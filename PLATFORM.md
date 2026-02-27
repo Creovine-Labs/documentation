@@ -30,7 +30,7 @@
    - [CVault VPN](#64-cvault-vpn--cvaultv1vpn)
    - [CVault Licenses](#65-cvault-licenses--cvaultv1licenses)
    - [CVault Clients](#66-cvault-clients)
-7. [Lyra AI](#7-lyra-ai) *(Planned)*
+7. [Lira AI](#7-lira-ai)
 8. [Adding a New Product](#8-adding-a-new-product)
 9. [Development Setup](#9-development-setup)
 10. [Environment Variables Reference](#10-environment-variables-reference)
@@ -53,7 +53,7 @@
 | Product | Status | Route Prefix | Description |
 |---|---|---|---|
 | CVault | Live | `/cvault/v1` | Managed WireGuard VPN — white-label VPN-as-a-Service |
-| Lyra AI | Planned | `/lyra/v1` | AI voice/language platform |
+| Lira AI | In Development | Own backend (`api.lira-ai.com`) | Voice AI meeting participant powered by Amazon Nova |
 
 **Core design principle:** Every new product gets a route namespace (e.g. `/productname/v1`) inside `creovine-api`. Product-specific clients (desktop app, SDK, web demo) live in the product's own repo. The shared backend handles auth, licensing, devices, and platform infrastructure.
 
@@ -108,6 +108,18 @@ cvault/
 ├── desktop-client/      # Flutter desktop app (macOS, Windows)
 ├── sdk-js/              # JavaScript/TypeScript SDK (npm package)
 └── web-demo/            # Vite + React demo app
+```
+
+### `lira_ai` — Lira AI Product (Own Backend)
+```
+lira_ai/
+├── backend/             # Go serverless backend (Lambda + ECS)
+│   ├── cmd/             # Lambda function entrypoints
+│   ├── internal/        # Business logic (nova, audio, meetings…)
+│   ├── deployments/     # CloudFormation / SAM IaC templates
+│   └── go.mod
+├── docs/                # Architecture and implementation docs
+└── tests/
 ```
 
 ### `documentation` — *(this repo)*
@@ -167,10 +179,10 @@ https://api.creovine.com
 ```typescript
 await fastify.register(
   async (fastify) => {
-    await fastify.register(lyraAuthRoutes,   { prefix: '/auth' });
-    await fastify.register(lyraModelsRoutes, { prefix: '/models' });
+    await fastify.register(newProductAuthRoutes,  { prefix: '/auth' });
+    await fastify.register(newProductModelsRoutes, { prefix: '/models' });
   },
-  { prefix: '/lyra/v1' }
+  { prefix: '/<productname>/v1' }
 );
 ```
 
@@ -705,20 +717,160 @@ await client.vpn.connect({ deviceId, licenseKey });
 
 ---
 
-## 7. Lyra AI
+## 7. Lira AI
 
-> **Status: Planned — not yet built.**
+> **Status: In Development — Go backend, AWS serverless, own infrastructure.**
 
-Lyra AI will be a Creovine platform product focused on voice and language AI.
+**Lira AI** is a voice-powered AI meeting participant that actively joins conversations, responds in real-time using natural speech, and provides live insights — using **Amazon Nova 2 Sonic** (speech-to-speech) and **Nova 2 Lite** (reasoning). Unlike passive tools (Otter.ai, Fireflies.ai), Lira AI responds when addressed, challenges ideas, and participates in brainstorming.
 
-**Planned route prefix:** `/lyra/v1`
+> ⚠️ **Lira AI does NOT share `creovine-api`.** It has its own Go serverless backend deployed on AWS Lambda + API Gateway. However, it is a Creovine platform product and is listed in the platform product catalog.
 
-**Known requirements so far:**
-- Separate product route group in `creovine-api`
-- Tenant API key auth (same pattern as CVault)
-- Will share the platform auth, license, and product catalog systems
+---
 
-*This section will be fully expanded when Lyra AI development begins.*
+### 7.1 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Go 1.25 |
+| Compute | AWS Lambda (serverless) + AWS ECS Fargate (audio processing) |
+| API | AWS API Gateway — WebSocket API + REST |
+| AI / LLM | Amazon Nova 2 Sonic (speech-to-speech), Nova 2 Lite (LLM reasoning) |
+| STT | AWS Transcribe |
+| TTS | AWS Polly |
+| Database | AWS DynamoDB |
+| Storage | AWS S3 |
+| Logging | zerolog |
+| Module | `github.com/creovine/lira-ai-backend` |
+
+---
+
+### 7.2 Repository
+
+```
+lira_ai/
+├── backend/
+│   ├── cmd/
+│   │   ├── gateway/       # WebSocket connection handler Lambda
+│   │   ├── audio/         # Audio processing (ECS Fargate container)
+│   │   ├── processor/     # Audio pipeline Lambda
+│   │   ├── responder/     # AI response generator Lambda
+│   │   ├── meetings/      # Meeting REST API Lambda
+│   │   └── validate/      # Validation utilities
+│   ├── internal/
+│   │   ├── audio/         # Audio stream handling
+│   │   ├── context/       # Meeting context manager
+│   │   ├── meetings/      # Meeting domain logic
+│   │   ├── middleware/    # Auth, logging middleware
+│   │   ├── models/        # DynamoDB data models
+│   │   ├── nova/          # Amazon Nova (Bedrock) integration
+│   │   ├── sentiment/     # Sentiment analysis
+│   │   ├── tts/           # AWS Polly TTS
+│   │   ├── validation/    # Input validation
+│   │   └── wshandler/     # WebSocket frame handling
+│   ├── pkg/               # Shared packages
+│   ├── deployments/       # CloudFormation / SAM templates
+│   ├── scripts/           # Build and deploy scripts
+│   └── go.mod
+├── docs/
+│   ├── NOVA_AI_MEETING_PARTICIPANT_ARCHITECTURE.md
+│   ├── BACKEND_IMPLEMENTATION_GUIDE.md
+│   ├── BACKEND_PHASES.md
+│   └── PENDING_AWS_WORK.md
+└── tests/
+```
+
+---
+
+### 7.3 Architecture Overview
+
+```
+Browser / Mobile Client
+        │
+        ├── WebSocket (WSS) ──► AWS API Gateway WebSocket API
+        │                              │
+        │                    ┌─────────┴──────────┐
+        │                    │   Lambda Functions  │
+        │                    │  • connection-handler│
+        │                    │  • context-manager  │
+        │                    │  • ai-response-gen  │
+        │                    └─────────┬──────────┘
+        │                             │
+        │                    ┌────────┴────────┐
+        │                    │  ECS Fargate     │
+        │                    │  Audio Processor │
+        │                    └────────┬────────┘
+        │                             │
+        │              ┌──────────────┼──────────────┐
+        │              │              │              │
+        │         Transcribe      Bedrock         Polly
+        │         (STT)           (Nova AI)       (TTS)
+        │
+        └── REST ──────► AWS API Gateway REST API
+                                  │
+                             Lambda / meetings
+                                  │
+                             DynamoDB
+```
+
+**Lambda functions:**
+| Function | Trigger | Responsibility |
+|---|---|---|
+| `connection-handler` | API GW WebSocket `$connect` / `$disconnect` | Manage WS connections in DynamoDB |
+| `context-manager` | Internal invoke | Store/retrieve meeting context |
+| `ai-response-generator` | Internal invoke | Call Nova 2 Lite for reasoning, stream response |
+| `meetings` | API GW REST | CRUD for meeting records |
+
+---
+
+### 7.4 WebSocket API
+
+**Endpoint:** `wss://api.lira-ai.com/ws`
+
+| Route | Direction | Description |
+|---|---|---|
+| `$connect` | Client → Server | Establish WebSocket connection |
+| `audio-stream` | Client → Server | Stream binary audio chunks |
+| `get-transcript` | Client → Server | Request current transcript |
+| `$disconnect` | Client → Server | Close connection |
+
+Audio flow:
+1. Client streams audio chunks over WebSocket
+2. ECS Fargate processor forwards audio to AWS Transcribe
+3. Transcript forwarded to Nova 2 Lite for reasoning
+4. Response text sent to AWS Polly for TTS
+5. Audio response streamed back to client via WebSocket
+
+---
+
+### 7.5 REST API
+
+**Base URL:** `https://api.lira-ai.com/v1`
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/v1/meetings` | Create a new meeting session |
+| GET | `/v1/meetings/:id` | Get meeting details |
+| GET | `/v1/meetings/:id/summary` | Get AI-generated meeting summary |
+| PUT | `/v1/ai/personality` | Update AI participant settings |
+
+---
+
+### 7.6 AWS Services Used
+
+| Service | Purpose |
+|---|---|
+| API Gateway (WebSocket) | Real-time audio streaming |
+| API Gateway (REST) | Meeting management endpoints |
+| Lambda | Connection handler, context manager, AI response generator |
+| ECS Fargate | Audio processing pipeline (long-running) |
+| Bedrock (Nova 2 Sonic) | Speech-to-speech AI |
+| Bedrock (Nova 2 Lite) | Language reasoning / responses |
+| Transcribe | Speech-to-text |
+| Polly | Text-to-speech |
+| DynamoDB | Meetings, connections, context storage |
+| S3 | Audio file storage |
+
+> All infrastructure is defined as code in `backend/deployments/` (CloudFormation / SAM).
 
 ---
 
@@ -754,14 +906,16 @@ Follow this checklist when adding a new product to the Creovine platform:
 
 ### 8.3 Product Client Repo
 
-Create a new repo under `Creovine-Labs` (e.g. `Creovine-Labs/lyra`).  
+Create a new repo under `Creovine-Labs` (e.g. `Creovine-Labs/lira-ai` or `Creovine-Labs/my-product`).
 Structure it similar to `cvault/`:
 ```
-lyra/
+my-product/
 ├── desktop-client/   (or mobile, extension, etc.)
 ├── sdk-js/
 └── web-demo/
 ```
+
+> **Note:** If the product has its own dedicated backend (like Lira AI with Go + AWS Lambda), create a separate backend folder/repo instead of adding to `creovine-api`.
 
 ### 8.4 Update this document
 
