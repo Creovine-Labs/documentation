@@ -31,9 +31,10 @@
    - [CVault Licenses](#65-cvault-licenses--cvaultv1licenses)
    - [CVault Clients](#66-cvault-clients)
 7. [Lira AI](#7-lira-ai)
-8. [Adding a New Product](#8-adding-a-new-product)
-9. [Development Setup](#9-development-setup)
-10. [Environment Variables Reference](#10-environment-variables-reference)
+8. [EditCore](#8-editcore)
+9. [Adding a New Product](#9-adding-a-new-product)
+10. [Development Setup](#10-development-setup)
+11. [Environment Variables Reference](#11-environment-variables-reference)
 
 ---
 
@@ -54,6 +55,7 @@
 |---|---|---|---|
 | CVault | Live | `/cvault/v1` | Managed WireGuard VPN — white-label VPN-as-a-Service |
 | Lira AI | In Development | Own backend (`api.lira-ai.com`) | Voice AI meeting participant powered by Amazon Nova |
+| EditCore | In Development | Flutter plugin (no backend route) | High-performance mobile video editing SDK for Flutter |
 
 **Core design principle:** Every new product gets a route namespace (e.g. `/productname/v1`) inside `creovine-api`. Product-specific clients (desktop app, SDK, web demo) live in the product's own repo. The shared backend handles auth, licensing, devices, and platform infrastructure.
 
@@ -120,6 +122,18 @@ lira_ai/
 │   └── go.mod
 ├── docs/                # Architecture and implementation docs
 └── tests/
+```
+
+### `creovine_editcore` — EditCore Flutter SDK
+```
+creovine_editcore/
+├── lib/                 # Dart public API (EditCore, EditCoreConfig, models…)
+├── android/             # Kotlin native plugin (MediaCodec, ExoPlayer)
+├── ios/                 # Swift native plugin (AVFoundation, CoreImage)
+├── example/             # Full working demo app
+├── pubspec.yaml
+├── README.md
+└── editcore_architecture.md
 ```
 
 ### `documentation` — *(this repo)*
@@ -874,11 +888,168 @@ Audio flow:
 
 ---
 
-## 8. Adding a New Product
+## 8. EditCore
+
+> **Status: In Development — Flutter plugin (iOS + Android), no backend route.**
+
+**EditCore** is a drop-in Flutter plugin that embeds a professional-grade video editor directly into iOS and Android apps. It exposes a single `EditCore.openEditor()` call that presents a full-screen editor UI with trim, crop, filters, text overlays, watermarks, and hardware-accelerated export. A built-in licensing layer gates features by tier, validated remotely against the Creovine platform.
+
+> ⚠️ **EditCore does NOT add routes to `creovine-api`** at the product level. It communicates with the platform only for license validation (using a `ECK-` prefixed API key).
+
+---
+
+### 8.1 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Dart / Flutter 3.10+ |
+| iOS native | Swift — AVFoundation, CoreImage |
+| Android native | Kotlin — MediaCodec, ExoPlayer |
+| State management | Provider |
+| License validation | HTTP → Creovine platform API |
+| Secure storage | `flutter_secure_storage` (cached license state) |
+| Version | `0.1.0` |
+| Package name | `creovine_editcore` |
+
+---
+
+### 8.2 Features
+
+| Feature | Description | Status |
+|---|---|---|
+| **Trim** | Millisecond-level trimming with visual handles | ✅ v0.1 |
+| **Crop** | Normalized crop rectangles with live preview | ✅ v0.1 |
+| **Filters** | 10 built-in CIFilter/shader effects | ✅ v0.1 |
+| **Text Overlays** | Customizable fonts, colors, timing | ✅ v0.1 |
+| **Watermarks** | Configurable position, opacity, scale | ✅ v0.1 |
+| **Export** | Hardware-accelerated with progress streaming | ✅ v0.1 |
+| **Licensing** | Remote validation + tier feature gating | ✅ v0.1 |
+| Cloud rendering | — | 🔜 Planned |
+| AI tools | Auto-cut, scene detection | 🔜 Planned |
+| Auto-captions | — | 🔜 Planned |
+
+**Built-in filters:** None, Mono, Fade, Chrome, Noir, Instant, Vivid, Warmth, Cool, Drama
+
+---
+
+### 8.3 License Tiers
+
+| Tier | Features | Use Case |
+|---|---|---|
+| **Free** | Trim only, forced watermark | Evaluation / non-commercial |
+| **Basic** | Trim, crop, text, filters | Small apps, startups |
+| **Pro** | All features, no forced watermark | Commercial apps |
+| **Enterprise** | Pro + custom watermark + metering | Large-scale deployments |
+
+API keys are prefixed `ECK-`. Contact **sdk@creovine.com**.
+
+---
+
+### 8.4 Public API
+
+#### Initialize
+```dart
+await EditCore.initialize(apiKey: 'ECK-YOUR_KEY');
+```
+Must be called in `main()` before any other SDK call.
+
+#### Open editor
+```dart
+final result = await EditCore.openEditor(
+  context: context,
+  videoPath: '/path/to/video.mp4',
+  config: EditCoreConfig(
+    enableFilters: true,
+    enableTextOverlay: true,
+    enableTrim: true,
+    enableCrop: true,
+  ),
+);
+// result.success, result.outputPath, result.durationMs, result.fileSizeBytes
+```
+
+#### Other methods
+```dart
+LicenseTier tier = await EditCore.getLicenseTier();          // free | basic | pro | enterprise
+bool ok       = await EditCore.isFeatureEnabled(feature);   // EditCoreFeature enum
+```
+
+#### `EditCoreConfig` options
+| Property | Default | Description |
+|---|---|---|
+| `enableFilters` | `true` | Show filter panel |
+| `enableTextOverlay` | `true` | Enable text overlay tool |
+| `enableWatermark` | `false` | Show watermark tool |
+| `enableTrim` | `true` | Enable trim handles |
+| `enableCrop` | `true` | Enable crop tool |
+| `allowCancel` | `true` | Show cancel button |
+| `exportConfig` | default | Resolution, bitrate, format |
+
+#### `ExportConfig` options
+| Property | Options |
+|---|---|
+| `resolution` | `sd480p`, `hd720p`, `fhd1080p` *(default)*, `uhd4k`, `original` |
+| `format` | `mp4` *(default)* |
+| `bitrate` | Optional override |
+
+---
+
+### 8.5 Installation
+
+```yaml
+# pubspec.yaml
+dependencies:
+  creovine_editcore:
+    git:
+      url: https://github.com/creovine/editcore.git
+      ref: main
+```
+
+**Platform requirements:**
+| Platform | Minimum |
+|---|---|
+| iOS | 13.0+ |
+| Android | API 21+ (Android 5.0) |
+| Flutter | 3.10+ |
+| Dart | 3.0+ |
+
+**iOS** — add to `Info.plist`:
+```xml
+<key>NSPhotoLibraryUsageDescription</key>
+<string>We need access to select videos for editing.</string>
+```
+
+---
+
+### 8.6 Architecture
+
+```
+┌────────────────────────────────────────────┐
+│          HOST APPLICATION                  │
+├────────────────────────────────────────────┤
+│      PUBLIC API  (EditCore class)          │
+├────────────────────────────────────────────┤
+│         LICENSING LAYER                    │  ← validates ECK- key against Creovine API
+├───────────────┬────────────────────────────┤
+│   UI LAYER    │   CORE ENGINE LAYER        │
+├───────────────┴────────────────────────────┤
+│            EXPORT LAYER                    │
+├────────────────────────────────────────────┤
+│        PLATFORM CHANNEL BRIDGE             │
+├──────────────────┬─────────────────────────┤
+│   iOS (Swift)    │   Android (Kotlin)      │
+│   AVFoundation   │   MediaCodec            │
+│   CoreImage      │   ExoPlayer             │
+└──────────────────┴─────────────────────────┘
+```
+
+---
+
+## 9. Adding a New Product
 
 Follow this checklist when adding a new product to the Creovine platform:
 
-### 8.1 Backend (in `creovine-api`)
+### 9.1 Backend (in `creovine-api`)
 
 1. **Create route files** in `src/routes/` with prefix convention `<product>.routes.ts`
 2. **Register routes** in `src/index.ts`:
@@ -899,25 +1070,20 @@ Follow this checklist when adding a new product to the Creovine platform:
    git push   # deploy to production from server
    ```
 
-### 8.2 Product Catalog
+### 9.2 Product Catalog
 
 1. Create a `Product` record in the database with the new product's `slug`, `name`, `type`, `status`
 2. Add features, plans, and docs via admin CMS routes or seed script
 
-### 8.3 Product Client Repo
+### 9.3 Product Client Repo
 
-Create a new repo under `Creovine-Labs` (e.g. `Creovine-Labs/lira-ai` or `Creovine-Labs/my-product`).
-Structure it similar to `cvault/`:
-```
-my-product/
-├── desktop-client/   (or mobile, extension, etc.)
-├── sdk-js/
-└── web-demo/
-```
+Create a new repo under `Creovine-Labs`. Structure depends on product type:
 
-> **Note:** If the product has its own dedicated backend (like Lira AI with Go + AWS Lambda), create a separate backend folder/repo instead of adding to `creovine-api`.
+- **Shared backend product** (like CVault): add routes to `creovine-api`, create client repo with `desktop-client/`, `sdk-js/`, `web-demo/`
+- **Own backend product** (like Lira AI): separate backend folder/repo with its own stack (Go, Python, etc.)
+- **SDK/plugin product** (like EditCore): Flutter plugin or npm package repo, license validation via Creovine API with `ECK-` key prefix
 
-### 8.4 Update this document
+### 9.4 Update this document
 
 Add a new section to this file (see section 6 as template) covering:
 - Product overview
@@ -927,7 +1093,7 @@ Add a new section to this file (see section 6 as template) covering:
 
 ---
 
-## 9. Development Setup
+## 10. Development Setup
 
 ### Prerequisites
 - Node.js 20+
@@ -988,7 +1154,7 @@ sudo systemctl restart cvault-backend
 
 ---
 
-## 10. Environment Variables Reference
+## 11. Environment Variables Reference
 
 These are the variables used by the backend. In **development** they come from `.env`. In **production** they are loaded from AWS Secrets Manager.
 
