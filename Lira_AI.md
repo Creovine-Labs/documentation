@@ -2,7 +2,7 @@
 
 > **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
 
-*Last updated: June 2025*
+*Last updated: March 2026*
 
 ---
 
@@ -83,6 +83,13 @@
 - [12. How It All Connects — End-to-End Walkthrough](#12-how-it-all-connects--end-to-end-walkthrough)
 - [13. Repository Structure](#13-repository-structure)
 - [14. Running Locally](#14-running-locally)
+- [15. Known Limitations & Future Work](#15-known-limitations--future-work)
+  - [15.1 Single Bot Account](#151-single-bot-account)
+  - [15.2 EC2 Sizing](#152-ec2-sizing)
+  - [15.3 ScriptProcessorNode Deprecation](#153-scriptprocessornode-deprecation)
+  - [15.4 Rolling Wake Word Buffer — Cross-Speaker Context](#154-rolling-wake-word-buffer--cross-speaker-context)
+  - [15.5 Zoom Support](#155-zoom-support)
+  - [15.6 Two Audio Code Paths](#156-two-audio-code-paths)
 
 ---
 
@@ -391,6 +398,9 @@ To prevent the 30-day expiry from breaking the bot, we built an **automatic sile
 - Loads the saved session state
 - Navigates to `meet.google.com` (which triggers Google to refresh the cookies)
 - Saves the updated session state back to disk
+- **Backs up the updated state to S3** for disaster recovery
+
+**S3 auth state backup:** After every successful refresh, the auth state JSON is uploaded to S3 (`s3://<bucket>/lira-bot/auth-state/google-state.json`). On server startup, if the local auth state file is missing (e.g. fresh instance, EBS replacement), the system automatically restores it from S3. This ensures a new EC2 instance can start serving immediately without manual re-authentication. Configured via `LIRA_BOT_AUTH_S3_BUCKET` and `LIRA_BOT_AUTH_S3_PREFIX` environment variables.
 
 The frontend displays the session health via the `AuthStatusCard` component:
 - **Green**: Session is healthy (auto-refreshes)
@@ -429,6 +439,8 @@ const SELECTORS = {
 5. `clickJoinButton()` — try CSS selectors, then text matching, then brute-force scan
 6. `waitForEntry()` — poll for in-meeting indicators vs. lobby vs. meeting ended
 7. `startMeetingEndMonitor()` — 5-second polling interval to detect meeting end
+
+**Screenshot-on-failure:** When the join sequence fails — join button not found, timeout, or an unexpected exception — the driver saves a full-page PNG screenshot to `debug-screenshots/` with a timestamped filename (e.g. `2026-03-02T10-30-00-000Z_join-button-not-found.png`). This provides immediate visual context for debugging DOM changes without needing to reproduce the failure. The directory is configurable via `LIRA_BOT_SCREENSHOT_DIR`.
 
 **Meeting end detection checks for:**
 - Text like "You were removed from the meeting" or "The meeting has ended"
@@ -736,21 +748,43 @@ The output stream processes events:
 
 ### 6.4 System Prompt & Personality Engine
 
-The system prompt is dynamically built based on a `MeetingSettings` object that configures the AI's behaviour:
+The system prompt is dynamically built by `buildSystemPrompt(settings)`. It establishes Lira's **core identity as a meeting participant** — not an AI assistant, chatbot, or help desk.
 
-**Four personality modes:**
+**Core identity block** (~30 lines):
+- Establishes that Lira is a colleague sitting in the meeting, not a service
+- Explicitly bans generic assistant phrases: "How can I help you?", "What can I assist you with?", "I'd be happy to help with that"
+- Instructs Lira to reference the ongoing discussion when first addressed ("What are we covering today?", "Sounds like the main blocker is the API integration, right?")
+- Adapts to meeting energy: casual in standups, thoughtful in strategy discussions, creative in brainstorms
+- Lira has opinions — she flags concerns and gaps in reasoning, not just agrees
+- Responses are concise (1–3 sentences) unless more detail is explicitly requested
+
+**Anti-patterns (explicitly banned):**
+- Never introduce herself as an "AI assistant" or "virtual assistant"
+- Never offer generic help like "What would you like to know?"
+- Never list capabilities or treat a greeting as a command to start assisting
+- Never say "Sure! I'd be happy to help with that."
+
+**Proactive behaviours:**
+- Build context about who is in the meeting, what's being discussed, what decisions are pending
+- Offer quick summaries when asked "where are we at?" or "recap"
+- Note action items naturally ("So it sounds like Sarah is handling the API docs and we're reconvening Thursday?")
+- Adapt style to meeting type — bullet-point updates for standups, creative contributions for brainstorms
+
+**Four personality modes** (layered on top of the core identity):
 
 | Mode | Behaviour |
 |---|---|
-| **Supportive** | Listens actively, asks clarifying questions, encourages team members |
-| **Challenger** | Respectfully challenges assumptions, surfaces blind spots, pushes for rigour |
-| **Facilitator** | Summarises discussions, surfaces action items, ensures all voices are heard |
-| **Analyst** | Provides data-driven insights and structured thinking |
+| **Supportive** | Encourages others, validates good ideas, asks clarifying questions. Makes everyone feel heard but still flags concerns. |
+| **Challenger** | Pushes back on assumptions, surfaces blind spots. "Wait, have we considered…?" Rigorous but collegial. |
+| **Facilitator** | Keeps conversation on track. Surfaces action items, prompts quieter voices, helps the group reach conclusions. |
+| **Analyst** | Structured thinking, data-oriented. Breaks complex topics into concrete components, thinks about trade-offs and dependencies. |
 
-The system prompt also contains detailed instructions for:
-- **Wake word behaviour**: "Your name is 'Lira'. People may pronounce it differently (Lyra, Leera, Lara, etc.). Treat ALL of these as your name."
-- **Conversation flow**: "After you respond, if the same person asks a follow-up without repeating your name, assume they are still talking to you."
-- **Mute/unmute**: "If someone tells you to mute, acknowledge briefly ('Okay, I'll go on mute. Just say Lira, unmute when you need me.') then stop talking entirely."
+**Wake word instructions:**
+- "Your name is 'Lira'. People may pronounce it differently (Lyra, Leera, Lara, etc.). Treat ALL of these as your name."
+- "When nobody has mentioned your name, stay quiet and listen. You are paying attention the entire time."
+- "When someone says your name, respond using the full context of everything you've heard so far."
+- Mute acknowledgement: "Got it, going on mute. Just say 'Lira, unmute' when you want me back."
+- Unmute acknowledgement: "I'm back — what'd I miss?" (not "What can I help with?")
 
 ### 6.5 Keepalive Mechanism
 
@@ -938,23 +972,30 @@ The server starts on port 3000 (behind Nginx on EC2 for TLS termination) and reg
 
 **Constants:**
 ```typescript
-const MAX_ACTIVE_BOTS = parseInt(process.env.LIRA_BOT_MAX_ACTIVE ?? '10', 10);
+const MAX_ACTIVE_BOTS = parseInt(process.env.LIRA_BOT_MAX_ACTIVE ?? '3', 10);
+const MAX_BOTS_PER_USER = parseInt(process.env.LIRA_BOT_MAX_PER_USER ?? '2', 10);
+const DEFAULT_TTL_DAYS = parseInt(process.env.LIRA_MEETING_TTL_DAYS ?? '7', 10);
 const GOOGLE_AUTH_STATE_PATH = process.env.LIRA_BOT_GOOGLE_AUTH_STATE || '';
 const BOT_HEADLESS = process.env.LIRA_BOT_HEADLESS !== 'false';
 const DEFAULT_DISPLAY_NAME = process.env.LIRA_BOT_DISPLAY_NAME || 'Lira AI';
 ```
 
+The default `MAX_ACTIVE_BOTS` is 3 (calibrated for the `t3.small` instance — each Chromium consumes ~200–400MB RAM on a 2GB machine). `MAX_BOTS_PER_USER` prevents a single user from monopolising capacity.
+
+Each deploy logs memory usage (`rss`, `heapUsed`, active bot count) for capacity monitoring.
+
 **Deploy flow** (`deployBot(request, userId)`):
 1. Validate meeting URL
-2. Detect platform (Google Meet or Zoom)
-3. Generate unique `botId` and `sessionId`
-4. Merge user settings with defaults
-5. Create `Meeting` record in DynamoDB
-6. Construct `BotConfig` (URL, platform, auth path, headless flag, timeouts)
-7. Create `MeetingBot` instance
-8. Wire all event handlers (see below)
-9. Call `meetingBot.launch()` (async — returns immediately)
-10. Return `{ bot_id, session_id, state: 'launching' }`
+2. Detect platform — **Zoom returns a clear `PLATFORM_NOT_SUPPORTED` error** (Phase 2)
+3. Check global capacity (`MAX_ACTIVE_BOTS`) and per-user limit (`MAX_BOTS_PER_USER`)
+4. Generate unique `botId` and `sessionId`
+5. Merge user settings with defaults
+6. Create `Meeting` record in DynamoDB (TTL = `DEFAULT_TTL_DAYS`)
+7. Construct `BotConfig` (URL, platform, auth path, headless flag, timeouts)
+8. Create `MeetingBot` instance
+9. Wire all event handlers (see below)
+10. Call `meetingBot.launch()` (async — returns immediately)
+11. Return `{ bot_id, session_id, state: 'launching' }`
 
 **Event wiring:**
 
@@ -1003,7 +1044,7 @@ meetingBot.on('ended')  → sonic.endSession() + cleanup
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/deploy` | Deploy a bot to join a meeting. Body: `{ meeting_url, display_name?, settings? }` |
+| `POST` | `/deploy` | Deploy a bot to join a meeting. Body: `{ meeting_url, display_name?, settings? }`. Returns 429 if global capacity or per-user limit exceeded. Returns 400 `PLATFORM_NOT_SUPPORTED` for Zoom. |
 | `GET` | `/:botId` | Get bot status (state, platform, errors, timestamps) |
 | `POST` | `/:botId/terminate` | Gracefully terminate a bot |
 | `GET` | `/active` | List all active bots with count |
@@ -1014,7 +1055,7 @@ meetingBot.on('ended')  → sonic.endSession() + cleanup
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/` | Create a new meeting session (24h TTL in DynamoDB) |
+| `POST` | `/` | Create a meeting session. Optional `ttl_days` (1–90, default 7). |
 | `GET` | `/` | List all meetings for the authenticated user |
 | `GET` | `/:id` | Get a single meeting with full transcript |
 | `GET` | `/:id/summary` | Generate AI summary of the meeting |
@@ -1046,7 +1087,7 @@ Server responses:
 
 **`lira-meetings`** (partition key: `session_id`):
 - Stores meeting metadata, settings, transcript messages, AI state
-- 24-hour TTL (`ttl` attribute)
+- **7-day default TTL** (`ttl` attribute, configurable per meeting via `ttl_days` or globally via `LIRA_MEETING_TTL_DAYS`)
 - Messages are appended via `list_append` UpdateExpression
 
 **`lira-connections`** (partition key: `connection_id`):
@@ -1078,7 +1119,7 @@ Both tables use PAY_PER_REQUEST billing and the AWS SDK v3 `DynamoDBDocumentClie
   user_id: string,
   created_at: string,      // ISO-8601
   updated_at: string,
-  ttl: number,             // Unix epoch seconds (24h)
+  ttl: number,             // Unix epoch seconds (default: 7 days)
   settings: MeetingSettings,
   messages: Message[],
   participants: string[],
@@ -1221,11 +1262,14 @@ Three Zustand stores manage the frontend state:
 `src/services/api/index.ts` provides a typed wrapper around all backend endpoints:
 
 - `apiFetch<T>()` — generic fetch wrapper that auto-injects JWT and handles errors
+- **JWT expiry handling**: `apiFetch` intercepts 401 responses, clears `localStorage` credentials, and dispatches a `lira:auth-expired` custom event. The `AuthExpiryGuard` component in `App.tsx` listens for this event and redirects the user to the login screen.
 - `googleLogin()`, `login()` — authentication
 - `createMeeting()`, `listMeetings()`, `getMeeting()`, `getMeetingSummary()`, etc.
 - `deployBot()`, `getBotStatus()`, `terminateBot()`, `listActiveBots()`
 - `getBotAuthStatus()`, `refreshBotAuth()`
 - `buildWsUrl()` — constructs WebSocket URL with token
+
+The `BotDeployPanel` polling loop also detects JWT expiry gracefully — it stops polling, sets an error message ("Session expired — please sign in again."), and relies on `AuthExpiryGuard` to handle the redirect.
 
 ---
 
@@ -1332,8 +1376,13 @@ AWS_REGION=us-east-1
 # Lira AI Bot
 LIRA_BOT_GOOGLE_AUTH_STATE=.lira-bot-auth/google-state.json
 LIRA_BOT_DISPLAY_NAME=Lira AI
-LIRA_BOT_MAX_ACTIVE=10
+LIRA_BOT_MAX_ACTIVE=3
+LIRA_BOT_MAX_PER_USER=2
 LIRA_BOT_HEADLESS=true
+LIRA_BOT_SCREENSHOT_DIR=./debug-screenshots
+LIRA_BOT_AUTH_S3_BUCKET=                  # S3 bucket for auth state backup (optional)
+LIRA_BOT_AUTH_S3_PREFIX=lira-bot/auth-state
+LIRA_MEETING_TTL_DAYS=7
 LIRA_BEDROCK_REGION=us-east-1
 LIRA_NOVA_SONIC_MODEL_ID=amazon.nova-sonic-v1:0
 LIRA_DYNAMODB_MEETINGS_TABLE=lira-meetings
@@ -1405,6 +1454,8 @@ joinButtonText: ['Ask to join', 'Join now', 'Join'],  // Text fallback
 ```
 
 If all selectors fail, a brute-force scan checks every visible button for matching text content.
+
+When all strategies fail, a **debug screenshot** is saved automatically (see section 4.5). This captures the exact DOM state at the moment of failure, making it straightforward to update selectors without reproducing the issue.
 
 ---
 
@@ -1627,6 +1678,46 @@ The frontend starts at `http://localhost:5173`.
 9. Say "Hey Lira, introduce yourself" — Lira responds via voice
 
 Set `LIRA_BOT_HEADLESS=false` in `.env` to see the Chromium browser window during development.
+
+---
+
+---
+
+## 15. Known Limitations & Future Work
+
+This section documents known constraints and planned improvements, informed by a thorough engineering review of the system.
+
+### 15.1 Single Bot Account
+
+Currently, all bots share a single Google account (`lira.ai.creovine@gmail.com`). If Google flags or suspends this account, every customer's bot stops simultaneously. The 7-day silent refresh strategy extends the session window but doesn't address this single point of failure.
+
+**Planned fix**: A pool of bot accounts with session state sharded by bot instance and round-robin assignment. This is the highest-priority scaling item.
+
+### 15.2 EC2 Sizing
+
+Each Playwright Chromium instance consumes ~200–400MB of RAM. The `t3.small` (2GB RAM) realistically supports 3 concurrent bots — reflected in the `LIRA_BOT_MAX_ACTIVE=3` default. For higher concurrency, upgrade to `t3.medium` (4GB) or larger. Per-deploy memory logging is now in place for capacity planning.
+
+### 15.3 ScriptProcessorNode Deprecation
+
+The Audio Bridge uses `ScriptProcessorNode` for audio capture, which is deprecated in favour of `AudioWorkletProcessor`. In a headless browser (no rendering), the main-thread contention argument is weaker than in a visible browser, so this is not urgent. However, Google could increase deprecation pressure. The migration to AudioWorklet is non-trivial (separate worklet file, MessagePort communication model) and would touch the most sensitive part of the system.
+
+**Status**: Planned but not urgent. The current approach works reliably.
+
+### 15.4 Rolling Wake Word Buffer — Cross-Speaker Context
+
+The 8-second rolling transcript buffer concatenates all speech regardless of speaker. In theory, if participant A says "Hey Lira" and 7 seconds later participant B says something unrelated, the buffer could create a false-positive wake context. In practice this is extremely unlikely because the wake word check requires the name to appear in the output, and the transcription text from two speakers would not accidentally form "Lira."
+
+**Future improvement**: Tag chunks with speaker-change detection or only run the combined-buffer check when the current chunk contains a partial name match.
+
+### 15.5 Zoom Support
+
+The Zoom driver (`zoom.driver.ts`) exists but is Phase 2. The API currently accepts Zoom URLs in the schema but returns a clear `PLATFORM_NOT_SUPPORTED` error at deployment time. The Zoom web client has additional challenges vs. Google Meet: explicit "Join from Your Browser" click, separate audio connection dialog, shorter cookie lifetimes, and some hosts disable the web client entirely.
+
+### 15.6 Two Audio Code Paths
+
+The browser-based demo meeting (WebSocket + mic in browser) and the headless bot meeting use different audio code paths. Both handle PCM encoding/decoding and audio playback but are implemented independently. They can drift over time.
+
+**Mitigation**: Both code paths are explicitly cross-referenced in comments.
 
 ---
 
