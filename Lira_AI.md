@@ -1,0 +1,1633 @@
+# Lira AI — Complete Project Documentation
+
+> **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
+
+*Last updated: June 2025*
+
+---
+
+## Table of Contents
+
+- [1. Project Overview](#1-project-overview)
+  - [1.1 What is Lira AI?](#11-what-is-lira-ai)
+  - [1.2 The Problem It Solves](#12-the-problem-it-solves)
+  - [1.3 Key Capabilities](#13-key-capabilities)
+- [2. Technology Stack](#2-technology-stack)
+  - [2.1 Frontend](#21-frontend)
+  - [2.2 Backend](#22-backend)
+  - [2.3 AI & Audio](#23-ai--audio)
+  - [2.4 Infrastructure](#24-infrastructure)
+- [3. Architecture Overview](#3-architecture-overview)
+  - [3.1 High-Level Architecture](#31-high-level-architecture)
+  - [3.2 Data Flow — From Meeting Audio to AI Response](#32-data-flow--from-meeting-audio-to-ai-response)
+  - [3.3 Component Map](#33-component-map)
+- [4. Google Meet Integration — The Hard Part](#4-google-meet-integration--the-hard-part)
+  - [4.1 Why Browser Automation?](#41-why-browser-automation)
+  - [4.2 Creating the Bot's Google Account](#42-creating-the-bots-google-account)
+  - [4.3 Capturing Authentication State](#43-capturing-authentication-state)
+  - [4.4 Silent Auth Refresh](#44-silent-auth-refresh)
+  - [4.5 The Google Meet Driver](#45-the-google-meet-driver)
+  - [4.6 Chromium Launch Configuration](#46-chromium-launch-configuration)
+- [5. The Audio Pipeline — Bidirectional Audio in a Headless Browser](#5-the-audio-pipeline--bidirectional-audio-in-a-headless-browser)
+  - [5.1 The Challenge](#51-the-challenge)
+  - [5.2 Audio Bridge Architecture](#52-audio-bridge-architecture)
+  - [5.3 Capture Path (Meeting → Lira)](#53-capture-path-meeting--lira)
+  - [5.4 Injection Path (Lira → Meeting)](#54-injection-path-lira--meeting)
+  - [5.5 The Echo Gate](#55-the-echo-gate)
+  - [5.6 getUserMedia Override](#56-getusermedia-override)
+  - [5.7 RTCPeerConnection Interception](#57-rtcpeerconnection-interception)
+- [6. Amazon Nova Sonic — Speech-to-Speech AI](#6-amazon-nova-sonic--speech-to-speech-ai)
+  - [6.1 What is Nova Sonic?](#61-what-is-nova-sonic)
+  - [6.2 Bidirectional Streaming Protocol](#62-bidirectional-streaming-protocol)
+  - [6.3 Event Flow](#63-event-flow)
+  - [6.4 System Prompt & Personality Engine](#64-system-prompt--personality-engine)
+  - [6.5 Keepalive Mechanism](#65-keepalive-mechanism)
+  - [6.6 Barge-In Detection](#66-barge-in-detection)
+  - [6.7 Output Gating & Wake Word Integration](#67-output-gating--wake-word-integration)
+  - [6.8 Mute / Unmute via Voice Commands](#68-mute--unmute-via-voice-commands)
+- [7. Wake Word Detection System](#7-wake-word-detection-system)
+  - [7.1 The Problem with Speech-to-Text](#71-the-problem-with-speech-to-text)
+  - [7.2 Four-Layer Detection Architecture](#72-four-layer-detection-architecture)
+  - [7.3 Rolling Transcript Buffer](#73-rolling-transcript-buffer)
+  - [7.4 Cooldown Window](#74-cooldown-window)
+- [8. Backend Architecture](#8-backend-architecture)
+  - [8.1 Server & Framework](#81-server--framework)
+  - [8.2 Bot Manager — The Orchestrator](#82-bot-manager--the-orchestrator)
+  - [8.3 Meeting Bot — Browser Lifecycle](#83-meeting-bot--browser-lifecycle)
+  - [8.4 REST API Routes](#84-rest-api-routes)
+  - [8.5 WebSocket Routes](#85-websocket-routes)
+  - [8.6 DynamoDB Store](#86-dynamodb-store)
+  - [8.7 Data Models](#87-data-models)
+- [9. Frontend Architecture](#9-frontend-architecture)
+  - [9.1 Project Structure](#91-project-structure)
+  - [9.2 Authentication Flow](#92-authentication-flow)
+  - [9.3 Bot Deploy Panel — The Main Feature](#93-bot-deploy-panel--the-main-feature)
+  - [9.4 Browser-Based Demo Meeting](#94-browser-based-demo-meeting)
+  - [9.5 State Management](#95-state-management)
+  - [9.6 API Service Layer](#96-api-service-layer)
+- [10. Infrastructure & Deployment](#10-infrastructure--deployment)
+  - [10.1 AWS Resources](#101-aws-resources)
+  - [10.2 EC2 Server Setup](#102-ec2-server-setup)
+  - [10.3 Vercel Frontend Deployment](#103-vercel-frontend-deployment)
+  - [10.4 DNS Configuration](#104-dns-configuration)
+  - [10.5 Deployment Script](#105-deployment-script)
+  - [10.6 Environment Variables](#106-environment-variables)
+- [11. Challenges & Solutions](#11-challenges--solutions)
+  - [11.1 Echo — Lira Hearing Herself](#111-echo--lira-hearing-herself)
+  - [11.2 Wake Word Splitting Across STT Chunks](#112-wake-word-splitting-across-stt-chunks)
+  - [11.3 Getting Stuck on Mute](#113-getting-stuck-on-mute)
+  - [11.4 Double Voice Output](#114-double-voice-output)
+  - [11.5 Nova Sonic Session Timeouts](#115-nova-sonic-session-timeouts)
+  - [11.6 Auto-Leaving Empty Meetings](#116-auto-leaving-empty-meetings)
+  - [11.7 Google Meet UI Selector Fragility](#117-google-meet-ui-selector-fragility)
+- [12. How It All Connects — End-to-End Walkthrough](#12-how-it-all-connects--end-to-end-walkthrough)
+- [13. Repository Structure](#13-repository-structure)
+- [14. Running Locally](#14-running-locally)
+
+---
+
+## 1. Project Overview
+
+### 1.1 What is Lira AI?
+
+Lira AI is an intelligent voice participant for video conference meetings. You paste a Google Meet link into the Lira dashboard, press "Send Lira to Meeting," and within seconds a new participant named **"Lira AI"** appears in the meeting. Lira listens to the entire conversation in real-time, and when someone says her name — "Hey Lira, what do you think?" — she responds with a natural, conversational voice.
+
+Lira is not a transcription tool or a post-meeting summary bot. She is a **live participant** who hears, understands, and speaks — in real-time, during the meeting itself.
+
+### 1.2 The Problem It Solves
+
+Meetings are where decisions happen, but they often lack structure, context recall, and follow-through. Lira acts as an always-attentive participant who:
+
+- **Never misses context** — she listens to 100% of the conversation, not just when you're paying attention
+- **Responds on demand** — say her name and she'll summarise, challenge, suggest, or facilitate
+- **Participates naturally** — uses voice (not chat), speaks in 1–3 sentences, and respects conversational flow
+- **Adapts personality** — can be supportive, a devil's advocate, a facilitator, or analytical
+- **Mutes on command** — "Lira, mute yourself" → she acknowledges and goes silent until unmuted
+
+### 1.3 Key Capabilities
+
+| Capability | Description |
+|---|---|
+| **Real-time voice participation** | Joins as a named participant, listens and speaks via WebRTC audio |
+| **Wake word activation** | Only responds when addressed by name (configurable) |
+| **4 personality modes** | Supportive, Challenger, Facilitator, Analyst |
+| **Voice mute/unmute** | Physical mic toggle in Google Meet via voice commands |
+| **Barge-in support** | Stops talking immediately when interrupted |
+| **Auto-leave** | Leaves after 45 seconds alone in an empty meeting |
+| **Transcript storage** | All conversation is stored in DynamoDB with sentiment tags |
+| **Meeting summaries** | AI-generated summaries of any meeting session |
+| **Auth session management** | Auto-refreshes Google login cookies every 7 days |
+| **Multi-platform** | Architecture supports Google Meet and Zoom |
+
+---
+
+## 2. Technology Stack
+
+### 2.1 Frontend
+
+| Technology | Purpose |
+|---|---|
+| **React 19** | UI framework |
+| **TypeScript ~5.9** | Type safety |
+| **Vite 7** | Build tool and dev server |
+| **Tailwind CSS 3** | Utility-first styling |
+| **Zustand 5** | Lightweight state management |
+| **Zod 4** | Runtime schema validation |
+| **React Router 7** | Client-side routing |
+| **@react-oauth/google** | Google Sign-In integration |
+| **Lucide React** | Icon library |
+| **Radix UI** | Accessible primitives (dialog, tabs, tooltip, etc.) |
+
+### 2.2 Backend
+
+| Technology | Purpose |
+|---|---|
+| **Fastify 4** | High-performance Node.js HTTP framework |
+| **TypeScript 5.3** | Type safety |
+| **Playwright 1.58** | Headless Chromium browser automation |
+| **Zod 3** | Request validation |
+| **@fastify/websocket** | WebSocket support for real-time audio |
+| **@fastify/jwt** | JWT authentication |
+| **@fastify/swagger** | OpenAPI documentation |
+| **Prisma 5** | Database ORM (PostgreSQL for platform data) |
+| **uuid** | Session/bot ID generation |
+
+### 2.3 AI & Audio
+
+| Technology | Purpose |
+|---|---|
+| **Amazon Nova Sonic** (`amazon.nova-sonic-v1:0`) | Speech-to-speech model — STT + LLM + TTS in one bidirectional stream |
+| **AWS Bedrock** (`InvokeModelWithBidirectionalStreamCommand`) | Streaming inference API |
+| **Web Audio API** | In-browser audio capture and injection |
+| **WebRTC** | Meeting audio transport (intercepted, not implemented) |
+
+### 2.4 Infrastructure
+
+| Resource | Purpose |
+|---|---|
+| **AWS EC2** (`t3.small`, `52.206.83.13`) | Backend server (Ubuntu 22.04) |
+| **AWS DynamoDB** | Meeting sessions + transcripts (`lira-meetings`, `lira-connections`) |
+| **AWS S3** | Audio recording storage |
+| **AWS Secrets Manager** | Database credentials |
+| **Vercel** | Frontend hosting (`lira.creovine.com`) |
+| **Namecheap DNS** | Domain management |
+| **systemd** | Process management (`creovine-api.service`) |
+
+---
+
+## 3. Architecture Overview
+
+### 3.1 High-Level Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          USER'S BROWSER                                  │
+│                                                                          │
+│   lira.creovine.com (Vercel)                                            │
+│   ┌────────────────────────────────────────┐                            │
+│   │  React SPA                             │                            │
+│   │  ┌──────────────────┐  ┌────────────┐  │                            │
+│   │  │  Bot Deploy Panel │  │ Demo Meeting│  │                            │
+│   │  │  Paste Meet link  │  │ Browser mic │  │                            │
+│   │  │  → Deploy bot     │  │ → WebSocket │  │                            │
+│   │  └────────┬─────────┘  └──────┬─────┘  │                            │
+│   └───────────┼───────────────────┼────────┘                            │
+│               │ REST              │ WSS                                   │
+└───────────────┼───────────────────┼──────────────────────────────────────┘
+                │                   │
+                ▼                   ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   EC2 BACKEND (api.creovine.com)                         │
+│                                                                          │
+│   Fastify Server                                                         │
+│   ┌──────────────────────────────────────────────────────────────────┐   │
+│   │  /lira/v1/bot/deploy  ──────► Bot Manager                       │   │
+│   │                                    │                             │   │
+│   │                         ┌──────────▼──────────┐                  │   │
+│   │                         │    Meeting Bot       │                  │   │
+│   │                         │  ┌────────────────┐  │                  │   │
+│   │                         │  │  Playwright     │  │                  │   │
+│   │                         │  │  Chromium       │  │                  │   │
+│   │                         │  │  (headless)     │  │                  │   │
+│   │                         │  │                 │  │                  │   │
+│   │                         │  │  Google Meet    │─────► Google Meet  │   │
+│   │                         │  │  Driver         │  │    servers      │   │
+│   │                         │  │                 │  │                  │   │
+│   │                         │  │  Audio Bridge   │  │                  │   │
+│   │                         │  └───────┬─────────┘  │                  │   │
+│   │                         └──────────┼────────────┘                  │   │
+│   │                                    │ PCM audio                     │   │
+│   │                         ┌──────────▼──────────┐                    │   │
+│   │                         │  Nova Sonic Service  │                    │   │
+│   │                         │  (Bedrock streaming) │──────► AWS Bedrock│   │
+│   │                         │                      │                    │   │
+│   │                         │  Wake Word Service   │                    │   │
+│   │                         └──────────────────────┘                    │   │
+│   │                                                                      │   │
+│   │  /lira/v1/meetings  ──────► DynamoDB Store                          │   │
+│   │  /lira/v1/ws         ──────► WebSocket Handler                      │   │
+│   └──────────────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 Data Flow — From Meeting Audio to AI Response
+
+Here is exactly what happens when a meeting participant speaks and Lira responds:
+
+```
+1. Participant speaks in Google Meet
+        │
+        ▼
+2. WebRTC delivers audio to all participants
+   (including Lira's headless Chromium browser)
+        │
+        ▼
+3. RTCPeerConnection.ontrack fires in Lira's browser
+   Audio Bridge intercepts the remote audio stream
+        │
+        ▼
+4. AudioContext (16 kHz) → ScriptProcessorNode
+   Float32 samples → Int16 PCM → base64 encoding
+        │
+        ▼
+5. page.exposeFunction('__liraOnAudioCapture')
+   Bridges from browser context to Node.js
+        │
+        ▼
+6. Echo Gate check: is Lira currently outputting audio?
+   YES → drop the frame (prevents feedback loop)
+   NO  → forward to Nova Sonic
+        │
+        ▼
+7. Nova Sonic Service pushes PCM into the bidirectional stream
+   (aws bedrock InvokeModelWithBidirectionalStreamCommand)
+        │
+        ▼
+8. Nova Sonic processes in real-time:
+   - Speech-to-Text (transcribes what was said)
+   - LLM reasoning (decides what to say)
+   - Text-to-Speech (generates voice response)
+        │
+        ▼
+9. Output stream delivers events:
+   - textOutput (role=user) → transcript
+   - textOutput (role=assistant) → AI response text
+   - audioOutput → PCM voice data
+        │
+        ▼
+10. Wake Word Gate: was Lira's name mentioned?
+    NO  → discard AI audio output (stay silent)
+    YES → forward audio to the meeting
+        │
+        ▼
+11. Audio Bridge receives PCM (24 kHz)
+    base64 → Int16 → Float32 → AudioBuffer
+        │
+        ▼
+12. AudioBufferSourceNode → MediaStreamDestination (48 kHz)
+    Scheduled for gapless playback
+        │
+        ▼
+13. getUserMedia override returns this custom stream
+    as Lira's "microphone" to Google Meet's WebRTC
+        │
+        ▼
+14. All meeting participants hear Lira speak
+```
+
+### 3.3 Component Map
+
+```
+Backend (creovine-api)
+├── src/routes/
+│   ├── lira-bot.routes.ts        — REST API for bot deploy/status/terminate
+│   └── lira-meetings.routes.ts   — REST API for meeting CRUD + summaries
+├── src/services/
+│   ├── lira-bot/
+│   │   ├── bot-manager.service.ts — Orchestrator: deploys bots, wires audio
+│   │   ├── meeting-bot.ts         — Browser lifecycle (launch → join → capture)
+│   │   ├── audio-bridge.ts        — Bidirectional audio pipe (browser ↔ Node.js)
+│   │   ├── auth-refresh.ts        — Silent Google session renewal
+│   │   └── drivers/
+│   │       ├── google-meet.driver.ts — Google Meet UI automation
+│   │       └── zoom.driver.ts        — Zoom UI automation (Phase 2)
+│   ├── lira-sonic.service.ts      — Nova Sonic bidirectional streaming
+│   ├── lira-wakeword.service.ts   — 4-layer wake word detection
+│   ├── lira-store.service.ts      — DynamoDB persistence
+│   └── lira-ai.service.ts         — Meeting summaries (Nova Lite)
+├── src/models/
+│   ├── lira.models.ts             — Meeting, Message, SonicSession types
+│   └── lira-bot.models.ts         — BotConfig, BotState, platform detection
+└── deploy-auto.sh                 — One-command production deployment
+
+Frontend (lira_ai)
+├── src/pages/
+│   ├── HomePage.tsx               — Login + Bot Deploy + Demo meeting start
+│   └── MeetingPage.tsx            — Browser-based demo meeting UI
+├── src/components/
+│   └── bot-deploy/
+│       ├── BotDeployPanel.tsx     — Paste link → deploy → status tracking
+│       └── AuthStatusCard.tsx     — Google session health indicator
+├── src/services/
+│   └── api/index.ts               — REST + bot deploy + auth status API client
+├── src/features/
+│   └── meeting/use-audio-meeting.ts — Full audio meeting lifecycle hook
+├── src/app/
+│   └── store/index.ts             — Zustand stores (auth, meeting, bot)
+└── src/env.ts                      — Runtime environment config (Zod validated)
+```
+
+---
+
+## 4. Google Meet Integration — The Hard Part
+
+### 4.1 Why Browser Automation?
+
+Google Meet has no public API for joining meetings programmatically. There is no SDK, no REST endpoint, no WebSocket you can connect to. The only way to join a Google Meet meeting is the same way a human does: open a browser, navigate to the meeting URL, enter a name, and click "Join now."
+
+This means Lira literally runs a **headless Chromium browser** (via Playwright) that:
+1. Navigates to `https://meet.google.com/xxx-yyy-zzz`
+2. Dismisses popups
+3. Turns off the camera
+4. Enters the name "Lira AI"
+5. Clicks the "Join now" button
+6. Waits to be admitted (if there's a waiting room)
+7. Once inside, intercepts all audio via WebRTC hooks
+
+This is not a hack or workaround — it's the **only** way to build a meeting bot for Google Meet without being Google.
+
+### 4.2 Creating the Bot's Google Account
+
+Lira needs a Google account to join meetings as an authenticated participant (avoiding guest restrictions and CAPTCHA challenges). We created:
+
+- **Email**: `lira.ai.creovine@gmail.com`
+- **Display name**: Lira AI
+- **Profile picture**: Custom Lira avatar
+
+This account is used solely by the bot. The account's session cookies are saved and reused for every meeting join.
+
+### 4.3 Capturing Authentication State
+
+Playwright can save and restore browser sessions via `storageState`. We wrote a setup script (`scripts/setup-bot-auth.ts`) that:
+
+1. Launches a **visible** Chromium browser (not headless)
+2. Navigates to `https://accounts.google.com`
+3. Pauses and waits for you to manually log in
+4. After login, saves the full session (cookies + localStorage) to `.lira-bot-auth/google-state.json`
+
+This file is then used by the bot every time it launches:
+
+```typescript
+contextOptions.storageState = this.config.authStatePath;
+```
+
+The session cookies last approximately 30 days. After that, they expire and the bot can't join meetings.
+
+### 4.4 Silent Auth Refresh
+
+To prevent the 30-day expiry from breaking the bot, we built an **automatic silent refresh** system:
+
+- Every **7 days**, the backend opens a headless Chromium instance
+- Loads the saved session state
+- Navigates to `meet.google.com` (which triggers Google to refresh the cookies)
+- Saves the updated session state back to disk
+
+The frontend displays the session health via the `AuthStatusCard` component:
+- **Green**: Session is healthy (auto-refreshes)
+- **Amber**: Expiring soon (< 7 days)
+- **Red**: Expired (needs manual re-login)
+
+The auth refresh is also available as an on-demand API endpoint: `POST /lira/v1/bot/auth-refresh`.
+
+### 4.5 The Google Meet Driver
+
+The `GoogleMeetDriver` class (560 lines) handles all UI automation. It uses **multiple fallback CSS selectors** for every element because Google Meet frequently changes its DOM structure:
+
+```typescript
+const SELECTORS = {
+  joinButton: [
+    'button[data-mdc-dialog-action="join"]',
+    'button[jsname="Qx7uuf"]',
+  ],
+  joinButtonText: ['Ask to join', 'Join now', 'Join'],
+  
+  micMuteButton: [
+    'button[aria-label="Turn off microphone"]',
+    'button[data-tooltip="Turn off microphone"]',
+    'button[aria-label="Turn off microphone (ctrl + d)"]',
+    'button[data-tooltip="Turn off microphone (ctrl + d)"]',
+  ],
+  // ... 4 variants for each button
+};
+```
+
+**Join flow:**
+1. `page.goto(meetingUrl)` — navigate to the meeting
+2. `dismissPopups()` — click "Got it", "Dismiss", "OK" on any info dialogs
+3. `turnOffCamera()` — the bot doesn't need video
+4. `enterName()` — triple-click to select all, then `fill("Lira AI")`
+5. `clickJoinButton()` — try CSS selectors, then text matching, then brute-force scan
+6. `waitForEntry()` — poll for in-meeting indicators vs. lobby vs. meeting ended
+7. `startMeetingEndMonitor()` — 5-second polling interval to detect meeting end
+
+**Meeting end detection checks for:**
+- Text like "You were removed from the meeting" or "The meeting has ended"
+- Loss of in-meeting indicators (leave button disappears)
+- Bot is alone: counts remote audio streams via the Audio Bridge. If zero other participants for 45 seconds, auto-leaves.
+
+### 4.6 Chromium Launch Configuration
+
+The headless browser is configured with specific Chrome flags for performance and compatibility on a server:
+
+```typescript
+const CHROME_ARGS = [
+  '--use-fake-ui-for-media-stream',              // Auto-accept mic/camera prompts
+  '--disable-notifications',                       // No Google Meet popups
+  '--disable-gpu',                                 // No GPU in headless mode
+  '--disable-background-timer-throttling',         // Keep audio processing smooth
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--no-sandbox',                                  // Required for running as root
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',                       // Prevent /dev/shm issues
+  '--disable-extensions',
+  '--disable-default-apps',
+  '--no-first-run',
+  '--disable-translate',
+  '--disable-infobars',
+];
+```
+
+The browser context is created with:
+- **Permissions**: microphone, camera, notifications (granted for `meet.google.com`)
+- **Viewport**: 1280×720 (realistic for Google Meet)
+- **User agent**: Chrome 131 on Linux
+- **Storage state**: Saved Google session cookies
+
+---
+
+## 5. The Audio Pipeline — Bidirectional Audio in a Headless Browser
+
+### 5.1 The Challenge
+
+A headless browser has no microphone and no speakers. Google Meet expects `getUserMedia()` to return a valid audio stream, and it sends audio to participants via WebRTC. We needed to:
+
+1. **Intercept** all incoming audio from meeting participants
+2. **Pipe** that audio to Nova Sonic for processing
+3. **Inject** Nova Sonic's voice response back as Lira's "microphone"
+4. **Prevent** Lira from hearing her own voice (echo cancellation)
+
+All of this happens inside a browser page that runs JavaScript before any Google Meet code loads.
+
+### 5.2 Audio Bridge Architecture
+
+The Audio Bridge is a 534-line TypeScript file that operates on two sides:
+
+**Browser side** (runs as `addInitScript` before page load):
+- Overrides `navigator.mediaDevices.getUserMedia`
+- Overrides `navigator.mediaDevices.enumerateDevices`
+- Intercepts `RTCPeerConnection` to capture remote audio tracks
+- Manages audio contexts for capture (16 kHz) and injection (48 kHz)
+- Exposes control functions (`__liraStartCapture`, `__liraInjectAudio`, etc.)
+
+**Node.js side** (the `AudioBridge` class):
+- Calls `page.exposeFunction()` to bridge data from browser to Node.js
+- Receives captured PCM audio via callback
+- Batches outbound audio chunks (50ms flush interval) to reduce CDP overhead
+- Manages the echo gate flag
+
+### 5.3 Capture Path (Meeting → Lira)
+
+```
+Google Meet sends audio via WebRTC
+    │
+    ▼
+RTCPeerConnection.ontrack (intercepted)
+    │
+    ▼
+MediaStreamSource → GainNode (mixer) → ScriptProcessorNode
+    │                                         │
+    │                              ┌──────────┘
+    │                              │
+    ▼                              ▼
+AudioContext at 16 kHz     Buffer size: 2048 samples
+                           = 128 ms per callback
+                                   │
+                                   ▼
+                           Check: outputting? → drop (echo gate)
+                           Check: energy < 0.001? → drop (silence gate)
+                                   │
+                                   ▼
+                           Float32 → Int16 PCM → base64
+                                   │
+                                   ▼
+                           window.__liraOnAudioCapture(base64)
+                                   │
+                                   ▼
+                           Node.js: Buffer.from(base64, 'base64')
+                                   │
+                                   ▼
+                           bot.emit('audio', pcm) → sonic.sendAudio()
+```
+
+The capture `AudioContext` runs at **16 kHz** because that's what Nova Sonic expects for input. The `ScriptProcessorNode` uses a buffer size of 2048 samples, producing one callback every 128 ms.
+
+An **energy gate** skips near-silent frames (RMS < 0.001) so we don't waste bandwidth sending silence to Nova Sonic.
+
+### 5.4 Injection Path (Lira → Meeting)
+
+```
+Nova Sonic sends audio response (24 kHz PCM)
+    │
+    ▼
+bot-manager: meetingBot.injectAudio(pcm)
+    │
+    ▼
+AudioBridge.injectAudio(pcmChunk)
+    │ (chunks are batched for 50ms)
+    ▼
+flushInjectBuffer() → Buffer.concat → base64
+    │
+    ▼
+page.evaluate(__liraInjectAudio, base64)
+    │
+    ▼ (inside browser)
+base64 → Uint8 → Int16 → Float32
+    │
+    ▼
+AudioBuffer at 24 kHz (the browser's 48 kHz context auto-resamples)
+    │
+    ▼
+AudioBufferSourceNode.start(nextPlayTime)
+    │  (scheduled for gapless playback)
+    ▼
+MediaStreamDestination → custom MediaStream
+    │
+    ▼
+getUserMedia override returns this stream
+    │
+    ▼
+Google Meet uses it as Lira's "microphone"
+    │
+    ▼
+All participants hear Lira speak via WebRTC
+```
+
+The injection context runs at **48 kHz** (Google Meet's expected sample rate) but the `AudioBuffer` is created at **24 kHz** (Nova Sonic's output rate). The `AudioContext` handles the resampling automatically.
+
+Audio chunks are **scheduled for gapless playback** using `nextPlayTime`:
+```javascript
+const now = injectCtx.currentTime;
+if (nextPlayTime < now) nextPlayTime = now + 0.01; // 10 ms initial buffer
+source.start(nextPlayTime);
+nextPlayTime += audioBuffer.duration;
+```
+
+### 5.5 The Echo Gate
+
+Without echo prevention, Lira would hear her own voice being played back through WebRTC, creating a feedback loop where she responds to herself. The echo gate is a simple boolean flag:
+
+```javascript
+// Set to true when audio injection starts
+processorNode.onaudioprocess = function(e) {
+  if (!capturing || outputting) return;  // ← echo gate
+  // ... capture audio
+};
+```
+
+When Lira finishes speaking, the echo gate isn't cleared immediately — there's a **drain delay**:
+
+```javascript
+window.__liraEndOutput = function endOutput() {
+  var drainMs = 0;
+  if (injectCtx && nextPlayTime > injectCtx.currentTime) {
+    drainMs = (nextPlayTime - injectCtx.currentTime) * 1000;
+  }
+  var delay = Math.max(drainMs, 300) + 1200; // buffer + reverb margin
+  setTimeout(function() {
+    outputting = false;
+    nextPlayTime = 0;
+  }, delay);
+};
+```
+
+This ensures all scheduled audio has finished playing and Google Meet's internal audio pipeline has drained before capture resumes. The 1200 ms margin accounts for any buffering or reverb in the pipeline.
+
+### 5.6 getUserMedia Override
+
+The most critical override. Google Meet calls `getUserMedia({ audio: true })` to get the user's microphone. We intercept this and return our custom stream instead:
+
+```javascript
+navigator.mediaDevices.getUserMedia = async function(constraints) {
+  ensureInjectContext();
+  
+  const stream = new MediaStream();
+  // Add our custom audio tracks (connected to MediaStreamDestination)
+  for (const track of customStream.getAudioTracks()) {
+    stream.addTrack(track);
+  }
+  
+  // If video was requested, provide a black canvas
+  if (constraints?.video) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640; canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, 640, 480);
+    const videoStream = canvas.captureStream(1);
+    for (const vt of videoStream.getVideoTracks()) {
+      stream.addTrack(vt);
+    }
+  }
+  
+  return stream;
+};
+```
+
+We also override `enumerateDevices` to ensure at least one `audioinput` device is reported (some Google Meet code paths check for available devices):
+
+```javascript
+navigator.mediaDevices.enumerateDevices = async function() {
+  const devices = await _origEnumerateDevices();
+  if (!devices.some(d => d.kind === 'audioinput')) {
+    devices.push({
+      deviceId: 'lira-virtual-mic',
+      kind: 'audioinput',
+      label: 'Lira AI Microphone',
+    });
+  }
+  return devices;
+};
+```
+
+### 5.7 RTCPeerConnection Interception
+
+To capture audio from other meeting participants, we wrap `RTCPeerConnection`:
+
+```javascript
+const OrigRTCPC = window.RTCPeerConnection;
+
+window.RTCPeerConnection = function LiraRTCPeerConnection(...args) {
+  const pc = new OrigRTCPC(...args);
+  
+  pc.addEventListener('track', (event) => {
+    if (event.track?.kind === 'audio') {
+      const stream = event.streams?.[0] ?? new MediaStream([event.track]);
+      onRemoteAudioStream(stream);  // Connect to capture pipeline
+    }
+  });
+  
+  return pc;
+};
+
+// Preserve prototype chain for instanceof checks
+window.RTCPeerConnection.prototype = OrigRTCPC.prototype;
+```
+
+Each new remote audio stream is connected to the capture mixer via `MediaStreamSource → mixerNode`, enabling Lira to hear all participants mixed together.
+
+---
+
+## 6. Amazon Nova Sonic — Speech-to-Speech AI
+
+### 6.1 What is Nova Sonic?
+
+Amazon Nova Sonic is a **speech-to-speech foundation model** available through AWS Bedrock. Unlike traditional pipelines that chain separate STT → LLM → TTS services, Nova Sonic handles all three in a **single bidirectional stream**:
+
+- **Input**: Raw PCM audio (16 kHz, 16-bit, mono)
+- **Processing**: Simultaneous transcription, reasoning, and speech synthesis
+- **Output**: Text transcripts + PCM audio (24 kHz, 16-bit, mono)
+
+This means lower latency (no round-trips between services), more natural conversation flow, and the ability to handle interruptions natively.
+
+### 6.2 Bidirectional Streaming Protocol
+
+Nova Sonic uses AWS Bedrock's `InvokeModelWithBidirectionalStreamCommand`. The connection is an async generator that yields input events and receives output events simultaneously.
+
+**Input side** (what we send):
+```
+sessionStart → promptStart → systemPrompt (TEXT) → audioContentStart → [audioInput...] → contentEnd → promptEnd
+```
+
+**Output side** (what we receive):
+```
+contentStart (role, type) → [textOutput | audioOutput]... → contentEnd → [repeat for each turn]
+```
+
+### 6.3 Event Flow
+
+The input stream generator creates events in a specific order:
+
+1. **`sessionStart`** — inference configuration (maxTokens: 1024, temperature: 0.7, topP: 0.9)
+2. **`promptStart`** — output configs (text/plain, audio at 24 kHz via voice "tiffany") + empty tool config
+3. **`contentStart`** (TEXT, SYSTEM) → **`textInput`** (system prompt) → **`contentEnd`** — sets personality and behaviour
+4. **`contentStart`** (AUDIO, USER) — opens the interactive audio stream
+5. **`audioInput`** events — pushed continuously as meeting audio arrives
+6. **`contentEnd`** + **`promptEnd`** — sent when ending the session
+
+The output stream processes events:
+- **`contentStart`** with `role=USER` → incoming user transcript
+- **`textOutput`** with `role=user` → speech-to-text transcript of what the user said
+- **`contentStart`** with `role=ASSISTANT` → AI starting to respond
+- **`textOutput`** with `role=assistant` → text of what the AI is saying
+- **`audioOutput`** → PCM audio of the AI speaking
+- **`contentEnd`** → content block finished
+- **Barge-in**: `contentStart` with `type=INTERRUPTION` or new `role=USER` while `ASSISTANT` is active
+
+### 6.4 System Prompt & Personality Engine
+
+The system prompt is dynamically built based on a `MeetingSettings` object that configures the AI's behaviour:
+
+**Four personality modes:**
+
+| Mode | Behaviour |
+|---|---|
+| **Supportive** | Listens actively, asks clarifying questions, encourages team members |
+| **Challenger** | Respectfully challenges assumptions, surfaces blind spots, pushes for rigour |
+| **Facilitator** | Summarises discussions, surfaces action items, ensures all voices are heard |
+| **Analyst** | Provides data-driven insights and structured thinking |
+
+The system prompt also contains detailed instructions for:
+- **Wake word behaviour**: "Your name is 'Lira'. People may pronounce it differently (Lyra, Leera, Lara, etc.). Treat ALL of these as your name."
+- **Conversation flow**: "After you respond, if the same person asks a follow-up without repeating your name, assume they are still talking to you."
+- **Mute/unmute**: "If someone tells you to mute, acknowledge briefly ('Okay, I'll go on mute. Just say Lira, unmute when you need me.') then stop talking entirely."
+
+### 6.5 Keepalive Mechanism
+
+Nova Sonic sessions timeout if no audio input is received for too long. To prevent this, we send **silent PCM every 5 seconds**:
+
+```typescript
+const KEEPALIVE_INTERVAL_MS = 5_000;
+const SILENT_PCM = Buffer.alloc(5120); // 160 ms of silence at 16 kHz
+
+session.keepaliveTimer = setInterval(() => {
+  if (!session.active) return;
+  pushEvent(buildAudioInputEvent(promptName, audioContentName, SILENT_PCM));
+}, KEEPALIVE_INTERVAL_MS);
+```
+
+### 6.6 Barge-In Detection
+
+When a user starts speaking while Lira is responding, Nova Sonic signals an interruption. We detect this in two ways:
+
+1. **New `contentStart` with `role=USER` while assistant was outputting** — the user started talking
+2. **`contentStart` with `type=INTERRUPTION`** — explicit interruption signal from Nova Sonic
+
+On barge-in:
+- Discard any partial assistant text
+- Call `onInterruption` callback → `meetingBot.endAudioOutput()` → clear echo gate immediately
+- Stop forwarding assistant audio
+
+### 6.7 Output Gating & Wake Word Integration
+
+Not all Nova Sonic output should reach the meeting. When wake word mode is enabled (the default), the `shouldForwardAssistantOutput()` function gates all assistant responses:
+
+```typescript
+function shouldForwardAssistantOutput(session: SonicSession): boolean {
+  if (!session.wakeWordEnabled) return true;
+  
+  // If muted, block all output (except the mute acknowledgement)
+  if (session.muted) return session.wakeWordActive;
+  
+  // Forward only if wake word was recently detected
+  if (session.wakeWordActive) return true;
+  return isWithinCooldown(session.lastWakeWordTime, false);
+}
+```
+
+This means Nova Sonic is **always listening and generating responses**, but those responses are silently discarded unless someone said Lira's name recently (within the 30-second cooldown window).
+
+### 6.8 Mute / Unmute via Voice Commands
+
+Voice-triggered mute/unmute physically clicks the Google Meet mic button. The detection uses regex patterns checked against both current transcription and the rolling transcript buffer:
+
+**Mute triggers** (requires wake word + keyword):
+- "Lira, mute yourself", "Lira, be quiet", "Lira, go on mute", "Lira, shut up", "Lira, stop talking"
+
+**Unmute triggers** (does NOT require wake word when muted):
+- "unmute", "come back", "start listening", "speak again", "wake up", "you can talk"
+
+When muting:
+1. Set `session.muted = true`
+2. Let the mute command's response through (so Lira can say "Okay, I'll go on mute")
+3. After a 4-second delay (enough for the acknowledgement), call `onMicMute` callback
+4. Bot Manager calls `meetingBot.muteMic()` → Google Meet Driver clicks the "Turn off microphone" button
+5. Participants see Lira's mic icon as muted in Google Meet
+
+When unmuting:
+1. Any "unmute" keyword triggers, **no wake word required** (prevents getting stuck on mute)
+2. Set `session.muted = false`, `session.wakeWordActive = true`
+3. Call `onMicUnmute` callback immediately
+4. Bot Manager calls `meetingBot.unmuteMic()` → Google Meet Driver clicks "Turn on microphone"
+
+---
+
+## 7. Wake Word Detection System
+
+### 7.1 The Problem with Speech-to-Text
+
+When someone says "Hey Lira, what do you think?", the speech-to-text engine (inside Nova Sonic) might transcribe it as:
+- "Hey **Lyra**, what do you think?" (common variant)
+- "Hey **Leera**, what do you think?" (phonetic spelling)
+- "Hey **Lara**, what do you think?" (wrong vowel)
+- "Hey **Leila**, what do you think?" (completely different but similar sound)
+
+Worse, the name might be **split across chunks**: Nova Sonic sends transcript in fragments, so "Lira" might arrive as "Li" in one chunk and "ra" in the next.
+
+We built a 4-layer detection system to handle all of this.
+
+### 7.2 Four-Layer Detection Architecture
+
+**Layer 0 — Hardcoded STT Variants** (fastest, highest confidence):
+
+A lookup table of 17 known mispellings of "Lira" that STT engines commonly produce:
+
+```typescript
+const COMMON_VARIANTS = {
+  lira: ['lyra', 'leera', 'lara', 'leara', 'leela', 'liera', 'liara',
+         'leyra', 'leila', 'lura', 'lera', 'lirra', 'leerah', 'lyrah',
+         'laira', 'lehera', 'leira'],
+};
+```
+
+Each variant is checked with word-boundary regex: `/\blyra\b/i`.
+
+**Layer 1 — Exact Match** (fast, high confidence):
+
+Regex word-boundary match of the exact AI name:
+```typescript
+const exactRegex = new RegExp(`\\b${escapedName}\\b`, 'i');
+```
+
+**Layer 2 — Fuzzy Match via Levenshtein Distance** (medium, handles typos):
+
+Tokenises the transcript and checks each word's edit distance against the AI name. For short names (≤ 4 characters like "Lira"), allows a distance of **2** — meaning up to 2 character insertions, deletions, or substitutions:
+
+```
+"leera" vs "lira" → distance 2 → MATCH
+"laura" vs "lira" → distance 2 → MATCH
+"michael" vs "lira" → distance 5 → NO MATCH
+```
+
+**Layer 3 — Phonetic Match via Soundex** (catches sounds-alike words):
+
+Soundex encodes words by how they sound in English. "Lira", "Lyra", and "Lura" all produce the Soundex code **L600**. Any word with the same Soundex code is a potential match, subject to a Levenshtein distance guard (≤ maxDist + 2) to prevent over-matching.
+
+```
+soundex("Lira")  → "L600"
+soundex("Lyra")  → "L600" → MATCH
+soundex("Laura") → "L600" → MATCH (with distance check)
+soundex("Luna")  → "L500" → NO MATCH
+```
+
+### 7.3 Rolling Transcript Buffer
+
+Nova Sonic sends transcripts in small chunks. The name "Lira" might be split:
+- Chunk 1: "Hey Li"
+- Chunk 2: "ra, what do you think?"
+
+To handle this, we maintain an **8-second rolling buffer** of recently received transcript chunks:
+
+```typescript
+const TRANSCRIPT_BUFFER_WINDOW_MS = 8_000;
+const recentUserChunks: { text: string; time: number }[] = [];
+
+function getRecentUserText(): string {
+  const cutoff = Date.now() - TRANSCRIPT_BUFFER_WINDOW_MS;
+  while (recentUserChunks.length > 0 && recentUserChunks[0].time < cutoff) {
+    recentUserChunks.shift();
+  }
+  return recentUserChunks.map(c => c.text).join(' ');
+}
+```
+
+Wake word detection runs against **both** the current chunk and the buffered text. So even if "Lira" is split across chunks, combining the last 8 seconds of text will capture the full name.
+
+### 7.4 Cooldown Window
+
+After detecting the wake word, Lira stays "addressed" for **30 seconds**. This enables natural conversation flow:
+
+```
+User: "Hey Lira, what happened last quarter?"     ← wake word detected
+Lira: "Revenue was up 15%..."                      ← responds
+User: "Can you break that down by region?"          ← no wake word, but within 30s → responds
+User: "And compare it to Q1?"                       ← still within 30s → responds
+[... 30 seconds of silence ...]
+User: "What about marketing spend?"                 ← no wake word, cooldown expired → silent
+```
+
+---
+
+## 8. Backend Architecture
+
+### 8.1 Server & Framework
+
+The backend runs as a **Fastify 4** server on EC2. It serves the Creovine platform (CVault VPN, CMS, etc.) and Lira AI from the same process.
+
+**Route groups:**
+- `/v1/auth/*` — Platform authentication (JWT)
+- `/lira/v1/meetings/*` — Meeting CRUD
+- `/lira/v1/bot/*` — Bot deployment and management
+- `/lira/v1/ws` — WebSocket for real-time audio (demo mode)
+
+The server starts on port 3000 (behind Nginx on EC2 for TLS termination) and registers Swagger/OpenAPI documentation at `/docs`.
+
+### 8.2 Bot Manager — The Orchestrator
+
+`bot-manager.service.ts` (338 lines) is the central orchestrator that ties everything together. It's a module with state managed in a `Map<string, ManagedBot>` (not a class — simple and effective).
+
+**Constants:**
+```typescript
+const MAX_ACTIVE_BOTS = parseInt(process.env.LIRA_BOT_MAX_ACTIVE ?? '10', 10);
+const GOOGLE_AUTH_STATE_PATH = process.env.LIRA_BOT_GOOGLE_AUTH_STATE || '';
+const BOT_HEADLESS = process.env.LIRA_BOT_HEADLESS !== 'false';
+const DEFAULT_DISPLAY_NAME = process.env.LIRA_BOT_DISPLAY_NAME || 'Lira AI';
+```
+
+**Deploy flow** (`deployBot(request, userId)`):
+1. Validate meeting URL
+2. Detect platform (Google Meet or Zoom)
+3. Generate unique `botId` and `sessionId`
+4. Merge user settings with defaults
+5. Create `Meeting` record in DynamoDB
+6. Construct `BotConfig` (URL, platform, auth path, headless flag, timeouts)
+7. Create `MeetingBot` instance
+8. Wire all event handlers (see below)
+9. Call `meetingBot.launch()` (async — returns immediately)
+10. Return `{ bot_id, session_id, state: 'launching' }`
+
+**Event wiring:**
+
+```
+meetingBot.on('state')  → update BotInstance state
+meetingBot.on('joined') → start Nova Sonic session with callbacks:
+    sonic.onAudioOutput  → meetingBot.injectAudio(pcm)
+    sonic.onTextOutput   → store.appendMessage() + console log
+    sonic.onAudioOutputEnd → meetingBot.endAudioOutput()
+    sonic.onInterruption → meetingBot.endAudioOutput()
+    sonic.onMicMute      → meetingBot.muteMic()
+    sonic.onMicUnmute    → meetingBot.unmuteMic()
+meetingBot.on('audio')  → sonic.sendAudio(sessionId, pcm)
+meetingBot.on('ended')  → sonic.endSession() + cleanup
+```
+
+### 8.3 Meeting Bot — Browser Lifecycle
+
+`MeetingBot` extends `EventEmitter` and manages the complete lifecycle:
+
+**States**: `launching` → `navigating` → `joining` → `active` → `leaving` → `terminated`
+
+**Launch sequence:**
+1. Launch Chromium with `CHROME_ARGS`
+2. Create browser context with auth state + permissions
+3. Create page
+4. Set up `AudioBridge` (inject init script before page load)
+5. Register audio capture callback
+6. Create platform-specific driver (`GoogleMeetDriver`)
+7. Register meeting-end callback
+8. Call `driver.join()` (handles navigation, popups, name entry, join click, lobby wait)
+9. Start audio capture
+10. Emit `'joined'` event
+11. Set meeting duration timeout (4 hours max)
+
+**Terminate sequence:**
+1. Stop audio capture
+2. Destroy audio bridge
+3. Call `driver.leave()` (click leave button)
+4. Close page → close context → close browser
+5. Emit `'ended'` event
+
+### 8.4 REST API Routes
+
+#### Bot Routes (`/lira/v1/bot`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/deploy` | Deploy a bot to join a meeting. Body: `{ meeting_url, display_name?, settings? }` |
+| `GET` | `/:botId` | Get bot status (state, platform, errors, timestamps) |
+| `POST` | `/:botId/terminate` | Gracefully terminate a bot |
+| `GET` | `/active` | List all active bots with count |
+| `GET` | `/auth-status` | Get Google/Zoom session health (days remaining, urgency) |
+| `POST` | `/auth-refresh` | Trigger silent Google session refresh |
+
+#### Meeting Routes (`/lira/v1/meetings`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/` | Create a new meeting session (24h TTL in DynamoDB) |
+| `GET` | `/` | List all meetings for the authenticated user |
+| `GET` | `/:id` | Get a single meeting with full transcript |
+| `GET` | `/:id/summary` | Generate AI summary of the meeting |
+| `PUT` | `/:id/settings` | Update AI settings mid-meeting |
+| `DELETE` | `/:id` | Delete a meeting |
+
+All routes require JWT authentication via `jwtWithTenantAuth` middleware.
+
+### 8.5 WebSocket Routes
+
+The `/lira/v1/ws` endpoint supports a browser-based demo mode where the user's microphone audio is sent directly to the backend (bypassing the browser bot). The protocol uses:
+
+- **Text frames**: JSON messages with `{ action, session_id?, payload }`
+  - Actions: `join`, `text`, `audio_start`, `audio_stop`, `settings`, `leave`
+- **Binary frames**: Raw PCM audio (16 kHz Int16 mono)
+
+Server responses:
+- `joined` — successfully joined a session
+- `transcript` — user or AI speech transcript
+- `ai_response` — AI text response
+- `ai_response_end` — AI finished speaking
+- `interruption` — user interrupted the AI
+- `audio_ready` — S3 recording URL available
+- `error` — error message
+
+### 8.6 DynamoDB Store
+
+`lira-store.service.ts` provides a clean CRUD layer over two DynamoDB tables:
+
+**`lira-meetings`** (partition key: `session_id`):
+- Stores meeting metadata, settings, transcript messages, AI state
+- 24-hour TTL (`ttl` attribute)
+- Messages are appended via `list_append` UpdateExpression
+
+**`lira-connections`** (partition key: `connection_id`):
+- Tracks active WebSocket connections
+- Links connections to sessions and users
+
+Both tables use PAY_PER_REQUEST billing and the AWS SDK v3 `DynamoDBDocumentClient` for clean JSON marshalling.
+
+### 8.7 Data Models
+
+**`MeetingSettings`**:
+```typescript
+{
+  personality: 'supportive' | 'challenger' | 'facilitator' | 'analyst',
+  participation_level: 0.0 – 1.0,
+  wake_word_enabled: boolean,
+  proactive_suggest: boolean,
+  ai_name: string,        // default: "Lira"
+  voice_id?: string,       // default: "tiffany"
+  language?: string,       // default: "en-US"
+}
+```
+
+**`Meeting`**:
+```typescript
+{
+  session_id: string,      // "mtg-<uuid>"
+  title: string,
+  user_id: string,
+  created_at: string,      // ISO-8601
+  updated_at: string,
+  ttl: number,             // Unix epoch seconds (24h)
+  settings: MeetingSettings,
+  messages: Message[],
+  participants: string[],
+  ai_state: { last_response_time, response_count },
+  audio_url?: string,      // S3 presigned URL
+}
+```
+
+**`Message`**:
+```typescript
+{
+  id: string,
+  speaker: string,         // "participant" or "lira"
+  text: string,
+  timestamp: string,
+  is_ai: boolean,
+  sentiment?: string,      // "positive", "negative", "neutral"
+}
+```
+
+**`SonicSession`** (runtime, not persisted):
+```typescript
+{
+  sessionId, connectionId, active, recordingChunks,
+  promptCounter, aiName, wakeWordEnabled, wakeWordActive,
+  lastWakeWordTime, conversationContext, muted, keepaliveTimer,
+  pushAudio(pcm), endAudio()
+}
+```
+
+**`BotConfig`**:
+```typescript
+{
+  meetingUrl: string,
+  platform: 'google_meet' | 'zoom',
+  displayName: string,
+  sessionId: string,
+  settings: MeetingSettings,
+  authStatePath?: string,
+  headless: boolean,
+  timeouts: { joinMs: 120_000, meetingMs: 14_400_000, lobbyMs: 300_000 }
+}
+```
+
+**Bot states**: `launching` → `navigating` → `in_lobby` → `joining` → `active` → `leaving` → `terminated` | `error`
+
+---
+
+## 9. Frontend Architecture
+
+### 9.1 Project Structure
+
+The frontend is a **React 19 + TypeScript SPA** built with Vite 7, deployed on Vercel at `https://lira.creovine.com`.
+
+```
+src/
+├── pages/
+│   ├── HomePage.tsx         — Login/home screen with bot deploy
+│   └── MeetingPage.tsx      — Browser-based demo meeting
+├── components/
+│   ├── bot-deploy/
+│   │   ├── BotDeployPanel.tsx   — Main feature: paste link → deploy bot
+│   │   └── AuthStatusCard.tsx   — Google session health display
+│   ├── common/                   — Reusable UI components
+│   └── ui/                       — Radix/shadcn primitives
+├── services/
+│   └── api/index.ts              — All REST API calls
+├── features/
+│   └── meeting/use-audio-meeting.ts — Audio meeting lifecycle hook
+├── app/
+│   ├── store/index.ts            — Zustand stores (auth, meeting, bot)
+│   └── router/index.ts           — Route definitions
+├── lib/
+│   ├── audio.ts                  — Browser mic capture + AI audio playback
+│   └── utils.ts                  — Tailwind class merge utilities
+└── env.ts                         — Zod-validated environment config
+```
+
+### 9.2 Authentication Flow
+
+The frontend uses Creovine platform authentication:
+
+1. **Google Sign-In** (primary): Uses `@react-oauth/google` to get a Google ID token, sends it to `POST /v1/auth/google`, receives a JWT
+2. **Email/password** (fallback): `POST /v1/auth/login`
+
+The JWT is stored in `localStorage` via a Zustand store with `persist` middleware and sent as `Authorization: Bearer <token>` on all API requests.
+
+### 9.3 Bot Deploy Panel — The Main Feature
+
+The `BotDeployPanel` component is the core user-facing feature. It provides a simple flow:
+
+1. **Paste a meeting link** — validates as Google Meet (`meet.google.com/xxx-yyy-zzz`) or Zoom
+2. **Click "Send Lira to Meeting"** — calls `POST /lira/v1/bot/deploy`
+3. **Status tracking** — polls `GET /lira/v1/bot/:botId` every 2 seconds
+4. **Live status display** — shows animated state indicators:
+   - `launching` → amber, spinning loader
+   - `navigating` → amber, spinning loader
+   - `in_lobby` → blue, with "Admit her from your meeting" hint
+   - `joining` → blue, spinning loader
+   - `active` → green, pulsing radio icon, with "Say Lira to get her attention" hint
+   - `terminated` / `error` → grey/red, with "Deploy to Another Meeting" button
+5. **Terminate button** — "Remove Lira from Meeting" calls `POST /lira/v1/bot/:botId/terminate`
+
+The `AuthStatusCard` component shows the Google session health below the deploy panel, with a manual refresh button.
+
+### 9.4 Browser-Based Demo Meeting
+
+The `MeetingPage` provides an alternative mode where the user's browser microphone is used directly (no Google Meet bot involved):
+
+1. User enters a meeting title and clicks "Start Meeting"
+2. `useAudioMeeting` hook creates a meeting via REST, then opens a WebSocket
+3. User clicks the mic button to start capturing
+4. Browser mic audio (16 kHz PCM) is sent as binary WebSocket frames
+5. Server forwards audio to Nova Sonic
+6. Nova Sonic responses come back as binary frames (24 kHz PCM) + JSON transcript
+7. Audio is played in the browser via `playPcmChunk()`
+8. Transcript appears in real-time
+
+This mode is useful for demos and testing without needing a real Google Meet call.
+
+### 9.5 State Management
+
+Three Zustand stores manage the frontend state:
+
+**`useAuthStore`** (persisted to localStorage):
+- `token`, `userEmail`, `userName`, `userPicture`
+- `setCredentials()`, `clearCredentials()`
+
+**`useMeetingStore`** (in-memory):
+- `meetingId`, `meetingTitle`, `isConnected`, `aiStatus`
+- `transcript[]` (last 200 lines, deduplicated)
+- `addTranscriptLine()`, `setAiStatus()`, `setLastAiResponse()`
+
+**`useBotStore`** (in-memory):
+- `botId`, `meetingUrl`, `platform`, `botState`, `error`
+- `setBotDeployed()`, `setBotState()`, `setBotError()`, `clearBot()`
+
+### 9.6 API Service Layer
+
+`src/services/api/index.ts` provides a typed wrapper around all backend endpoints:
+
+- `apiFetch<T>()` — generic fetch wrapper that auto-injects JWT and handles errors
+- `googleLogin()`, `login()` — authentication
+- `createMeeting()`, `listMeetings()`, `getMeeting()`, `getMeetingSummary()`, etc.
+- `deployBot()`, `getBotStatus()`, `terminateBot()`, `listActiveBots()`
+- `getBotAuthStatus()`, `refreshBotAuth()`
+- `buildWsUrl()` — constructs WebSocket URL with token
+
+---
+
+## 10. Infrastructure & Deployment
+
+### 10.1 AWS Resources
+
+| Service | Resource | Purpose |
+|---|---|---|
+| **EC2** | `t3.small` (i-038a4bb6abf311937) | Backend server — Fastify + Playwright |
+| **Elastic IP** | `52.206.83.13` | Static IP for the backend |
+| **DynamoDB** | `lira-meetings` table | Meeting sessions, transcripts, settings |
+| **DynamoDB** | `lira-connections` table | WebSocket connection tracking |
+| **S3** | Audio recording bucket | Meeting audio recordings |
+| **Secrets Manager** | `/creovine/shared` | DATABASE_URL + other secrets |
+| **Bedrock** | `amazon.nova-sonic-v1:0` | Speech-to-speech AI model |
+| **IAM** | EC2 instance role | Bedrock, DynamoDB, S3, Secrets Manager access |
+
+### 10.2 EC2 Server Setup
+
+The EC2 instance runs Ubuntu 22.04 with:
+
+- **Node.js 20+** (required for Playwright)
+- **Playwright Chromium** browsers installed (`npx playwright install chromium`)
+- **Chromium system dependencies** (`npx playwright install-deps`)
+- **systemd service**: `creovine-api.service` manages the Node.js process
+- **Nginx** (optional) for TLS termination and reverse proxy
+- **Code location**: `/opt/creovine-api`
+
+systemd ensures the server restarts automatically on crash:
+```bash
+sudo systemctl restart creovine-api
+sudo journalctl -u creovine-api -f  # tail logs
+```
+
+### 10.3 Vercel Frontend Deployment
+
+The frontend is deployed on Vercel:
+
+- **Project**: `lira-creovine`
+- **Domain**: `lira.creovine.com`
+- **Framework**: Vite (auto-detected)
+- **Build command**: `npm run build` → `tsc -b && vite build`
+- **SPA routing**: `vercel.json` rewrites all paths to `index.html`
+
+Environment variables on Vercel:
+```
+VITE_API_URL=https://api.creovine.com
+VITE_WS_URL=wss://api.creovine.com/lira/v1/ws
+VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+```
+
+### 10.4 DNS Configuration
+
+DNS records on Namecheap:
+
+| Type | Name | Value | Purpose |
+|---|---|---|---|
+| `A` | `api` | `52.206.83.13` | Backend API |
+| `CNAME` | `lira` | `cname.vercel-dns.com` | Frontend |
+
+- `https://api.creovine.com` → EC2 backend
+- `https://lira.creovine.com` → Vercel frontend
+
+### 10.5 Deployment Script
+
+`deploy-auto.sh` provides one-command deployment from the local machine:
+
+```bash
+./deploy-auto.sh
+```
+
+**What it does:**
+1. `npm run build` — compiles TypeScript to `dist/` locally
+2. `rsync` — syncs all files to EC2 (excludes `node_modules`, `.env`, `.git`)
+3. SSH to server: `npm install --production`, `prisma generate`, `prisma migrate deploy`
+4. `sudo systemctl restart creovine-api` — restarts the service
+5. Verifies the service is active
+
+**Requirements:**
+- SSH key at `~/.ssh/creovine-api-key.pem`
+- SSH access to `ubuntu@52.206.83.13`
+
+### 10.6 Environment Variables
+
+**Backend (`.env` on EC2):**
+
+```bash
+# Server
+PORT=3000
+NODE_ENV=production
+HOST=0.0.0.0
+
+# Database
+DATABASE_URL="postgresql://..."
+
+# JWT
+JWT_SECRET="..."
+JWT_EXPIRES_IN=15m
+
+# AWS (via instance role, but region needed)
+AWS_REGION=us-east-1
+
+# Lira AI Bot
+LIRA_BOT_GOOGLE_AUTH_STATE=.lira-bot-auth/google-state.json
+LIRA_BOT_DISPLAY_NAME=Lira AI
+LIRA_BOT_MAX_ACTIVE=10
+LIRA_BOT_HEADLESS=true
+LIRA_BEDROCK_REGION=us-east-1
+LIRA_NOVA_SONIC_MODEL_ID=amazon.nova-sonic-v1:0
+LIRA_DYNAMODB_MEETINGS_TABLE=lira-meetings
+LIRA_DYNAMODB_CONNECTIONS_TABLE=lira-connections
+```
+
+**Frontend (Vercel environment):**
+
+```bash
+VITE_API_URL=https://api.creovine.com
+VITE_WS_URL=wss://api.creovine.com/lira/v1/ws
+VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+```
+
+---
+
+## 11. Challenges & Solutions
+
+### 11.1 Echo — Lira Hearing Herself
+
+**Problem**: When Lira speaks, her voice is played through WebRTC, which means her own capture pipeline picks it up. Nova Sonic then processes Lira's voice as if a participant said something, causing Lira to respond to herself in an infinite loop.
+
+**Solution**: The **echo gate** — a boolean flag (`outputting`) in the Audio Bridge. When Lira is injecting audio, all captured frames are dropped. After injection ends, a drain delay (remaining scheduled audio time + 1200 ms margin) ensures all audio has finished playing before capture resumes.
+
+### 11.2 Wake Word Splitting Across STT Chunks
+
+**Problem**: Nova Sonic sends transcripts as small fragments. When someone says "Hey Lira," the name might arrive as "Li" in one chunk and "ra" in the next. No single chunk contains "Lira", so wake word detection fails.
+
+**Solution**: An **8-second rolling transcript buffer** combines recently received chunks. Wake word detection runs against both the current chunk AND the combined buffer text, so even split names are caught.
+
+### 11.3 Getting Stuck on Mute
+
+**Problem**: When Lira is muted, she can't hear anything (mic button is physically muted in Google Meet). If the unmute command required saying "Lira, unmute" — but Lira can't hear you because she's muted — you're trapped.
+
+**Solution**: When muted, the unmute command does **NOT require the wake word**. Any occurrence of "unmute", "come back", "start listening", etc. triggers unmute, even without saying "Lira" first. The mute command still requires the wake word to prevent accidental muting.
+
+> **Design principle**: False-positive unmute is harmless (Lira just starts listening again). False-negative unmute is a trap (user can't get Lira back). So we bias toward unmuting.
+
+### 11.4 Double Voice Output
+
+**Problem**: Nova Sonic sends both a TEXT content block and an AUDIO content block for each assistant turn. Both contain `textOutput` events with identical text, causing duplicated transcript entries.
+
+**Solution**: Track `currentContentBlockType` ('TEXT' vs 'AUDIO'). Only buffer assistant text from TEXT-type blocks. When contentEnd fires for AUDIO blocks, discard any buffered text (it's a duplicate of what TEXT already flushed).
+
+### 11.5 Nova Sonic Session Timeouts
+
+**Problem**: If no audio input is received for more than ~30 seconds (e.g., during a silent moment in the meeting), Nova Sonic closes the bidirectional stream, ending the session.
+
+**Solution**: Send **silent PCM every 5 seconds** via a keepalive timer. The 5120-byte buffer represents 160 ms of silence at 16 kHz — enough to keep the stream alive without triggering any response.
+
+### 11.6 Auto-Leaving Empty Meetings
+
+**Problem**: If all participants leave a meeting, the bot sits alone indefinitely, consuming server resources.
+
+**Solution**: The Google Meet Driver counts other participants by checking audio bridge `connectedSources`. When zero other participants are detected, a 45-second timer starts. If no one rejoins within 45 seconds, the bot auto-leaves. If someone rejoins, the timer resets.
+
+### 11.7 Google Meet UI Selector Fragility
+
+**Problem**: Google Meet frequently changes its DOM structure, class names, and `aria-label` values. A single CSS selector for the "Join now" button would break every few weeks.
+
+**Solution**: Every UI element has **multiple fallback selectors**. The driver iterates through them and uses the first one that finds a visible element:
+
+```typescript
+joinButton: [
+  'button[data-mdc-dialog-action="join"]',  // Primary
+  'button[jsname="Qx7uuf"]',                 // Fallback
+],
+joinButtonText: ['Ask to join', 'Join now', 'Join'],  // Text fallback
+```
+
+If all selectors fail, a brute-force scan checks every visible button for matching text content.
+
+---
+
+## 12. How It All Connects — End-to-End Walkthrough
+
+Here is the complete journey from a user clicking "Send Lira to Meeting" to Lira responding in a Google Meet call:
+
+**Step 1 — User deploys Lira**
+- User pastes `https://meet.google.com/abc-defg-hij` into the BotDeployPanel
+- Frontend validates the URL, detects "google_meet" platform
+- Frontend calls `POST /lira/v1/bot/deploy` with the URL
+
+**Step 2 — Backend creates the bot**
+- Bot Manager generates `botId` (UUID) and `sessionId` ("mtg-UUID")
+- Creates a DynamoDB meeting record
+- Constructs `BotConfig` with auth state path, headless=true, Lira AI name
+- Creates `MeetingBot` instance and wires event handlers
+- Calls `meetingBot.launch()` (non-blocking)
+- Returns `{ bot_id, session_id, state: "launching" }` to frontend
+
+**Step 3 — Frontend starts polling**
+- Frontend sets `botState = "launching"` and starts polling every 2s
+- Shows amber spinner with "Launching browser…"
+
+**Step 4 — Chromium launches**
+- Playwright launches Chromium with 14 Chrome flags for headless operation
+- Creates context with saved Google session cookies
+- Grants microphone + camera permissions for `meet.google.com`
+- Creates page and injects Audio Bridge init script
+
+**Step 5 — Joining the meeting**
+- Google Meet Driver navigates to the meeting URL
+- Dismisses any "Got it" popups
+- Turns off camera
+- Enters "Lira AI" as display name
+- Clicks "Join now" (tries CSS selectors, then text match, then brute force)
+- Waits for in-meeting indicators (leave button visible) or lobby
+- If lobby: waits up to 5 minutes to be admitted
+
+**Step 6 — Audio bridge activates**
+- Bot state → `active`
+- Audio capture starts: `__liraStartCapture()` enables the ScriptProcessorNode
+- Any pending remote streams are connected to the capture mixer
+- Bot emits `'joined'` event
+
+**Step 7 — Nova Sonic session starts**
+- Bot Manager receives `'joined'` event
+- Calls `sonic.startSession()` with callbacks
+- Nova Sonic opens bidirectional Bedrock stream
+- Sends session config → system prompt (personality + wake word instructions) → opens audio content
+- Starts 5-second keepalive timer
+
+**Step 8 — Meeting audio flows**
+- Participants speak → WebRTC delivers audio to all
+- Audio Bridge captures via ScriptProcessorNode (16 kHz)
+- Echo gate checks: not outputting → forward
+- Energy gate checks: above 0.001 → forward
+- PCM → base64 → Node.js callback → `sonic.sendAudio(sessionId, pcm)`
+- Nova Sonic receives audio in real-time
+
+**Step 9 — Nova Sonic processes**
+- Speech-to-Text: generates transcript in fragments
+- Sends `textOutput` with `role=user` → transcript stored in DynamoDB
+- Wake word service checks transcript against 4 layers
+- If name detected: `wakeWordActive = true`
+
+**Step 10 — Lira responds (if addressed)**
+- Nova Sonic generates response
+- `shouldForwardAssistantOutput()` checks: wake word active? → YES
+- Assistant text → buffered → flushed to DynamoDB on contentEnd
+- Assistant audio → `meetingBot.injectAudio(pcm)`
+- Audio Bridge: batch (50ms) → `__liraInjectAudio(base64)`
+- Browser: base64 → AudioBuffer → scheduled playback → MediaStreamDestination
+- Google Meet uses this as Lira's "microphone"
+- All participants hear Lira speak
+
+**Step 11 — Lira finishes speaking**
+- Nova Sonic sends `contentEnd` for AUDIO block
+- `onAudioOutputEnd` callback fires
+- `meetingBot.endAudioOutput()` → Audio Bridge drain delay
+- Echo gate clears after all scheduled audio finishes + 1200ms
+- Capture resumes
+
+**Step 12 — Meeting ends**
+- Participant clicks "End meeting" or all leave
+- Google Meet Driver detects meeting-end indicator or 45s alone timeout
+- Bot terminates: stops capture → leaves meeting → closes browser
+- Nova Sonic session ends
+- Bot Manager cleans up
+- Frontend polling sees `state: "terminated"`
+
+---
+
+## 13. Repository Structure
+
+**Backend** — `Creovine-Labs/creovine-api` (private):
+```
+creovine-api/
+├── src/
+│   ├── index.ts                    — Fastify server + Swagger + route registration
+│   ├── routes/
+│   │   ├── lira-bot.routes.ts      — Bot deploy/status/terminate REST API
+│   │   └── lira-meetings.routes.ts — Meeting CRUD + summaries REST API
+│   ├── services/
+│   │   ├── lira-bot/
+│   │   │   ├── index.ts            — Barrel exports
+│   │   │   ├── bot-manager.service.ts — Orchestrator
+│   │   │   ├── meeting-bot.ts      — Browser lifecycle
+│   │   │   ├── audio-bridge.ts     — Audio capture/injection
+│   │   │   ├── auth-refresh.ts     — Google session renewal
+│   │   │   └── drivers/
+│   │   │       ├── google-meet.driver.ts
+│   │   │       └── zoom.driver.ts
+│   │   ├── lira-sonic.service.ts   — Nova Sonic + wake word gating
+│   │   ├── lira-wakeword.service.ts — 4-layer wake word detection
+│   │   ├── lira-store.service.ts   — DynamoDB persistence
+│   │   └── lira-ai.service.ts      — Meeting summaries
+│   ├── models/
+│   │   ├── lira.models.ts          — Meeting, Message, SonicSession
+│   │   └── lira-bot.models.ts      — BotConfig, BotState
+│   └── middleware/
+│       └── auth.middleware.ts       — JWT authentication
+├── deploy-auto.sh                   — One-command deployment
+├── .lira-bot-auth/
+│   └── google-state.json           — Saved Google session (not in git)
+└── package.json
+```
+
+**Frontend** — `Creovine-Labs/lira` (private):
+```
+lira_ai/
+├── src/
+│   ├── App.tsx                     — Root component with providers
+│   ├── main.tsx                    — Entry point
+│   ├── env.ts                      — Zod-validated environment config
+│   ├── pages/
+│   │   ├── HomePage.tsx            — Login + Bot Deploy
+│   │   └── MeetingPage.tsx         — Browser demo meeting
+│   ├── components/
+│   │   ├── bot-deploy/
+│   │   │   ├── BotDeployPanel.tsx  — Paste link → deploy → track
+│   │   │   └── AuthStatusCard.tsx  — Session health
+│   │   ├── common/                 — Reusable UI components
+│   │   └── ui/                     — Radix primitives
+│   ├── services/
+│   │   └── api/index.ts            — API client
+│   ├── features/
+│   │   └── meeting/
+│   │       └── use-audio-meeting.ts — Audio meeting hook
+│   ├── app/
+│   │   ├── store/index.ts          — Zustand stores
+│   │   └── router/index.ts         — Routes
+│   └── lib/
+│       ├── audio.ts                — Mic capture + audio playback
+│       └── utils.ts                — Tailwind utilities
+├── vite.config.ts
+├── vercel.json                     — SPA routing
+└── package.json
+```
+
+---
+
+## 14. Running Locally
+
+### Prerequisites
+- **Node.js 20+**
+- **Playwright Chromium**: `npx playwright install chromium && npx playwright install-deps`
+- **AWS credentials**: configured via `~/.aws/credentials` or environment variables (need Bedrock, DynamoDB, S3 access)
+- **Google auth state**: run `npx tsx scripts/setup-bot-auth.ts --google` to capture session
+
+### Backend
+
+```bash
+cd creovine-api
+
+# Install dependencies
+npm install
+
+# Create .env from template
+cp .env.example .env
+# Edit .env with your database URL, JWT secret, AWS config, etc.
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start development server (with hot reload)
+npm run dev
+```
+
+The server starts at `http://localhost:3000`. Visit `http://localhost:3000/docs` for the API reference.
+
+### Frontend
+
+```bash
+cd lira_ai
+
+# Install dependencies
+npm install
+
+# Create .env.local
+echo 'VITE_API_URL=http://localhost:3000' > .env.local
+echo 'VITE_WS_URL=ws://localhost:3000/lira/v1/ws' >> .env.local
+
+# Start development server
+npm run dev
+```
+
+The frontend starts at `http://localhost:5173`.
+
+### Testing the Bot Locally
+
+1. Start the backend: `npm run dev` in `creovine-api/`
+2. Start the frontend: `npm run dev` in `lira_ai/`
+3. Open `http://localhost:5173`
+4. Sign in with your Creovine account
+5. Create a Google Meet meeting at `meet.google.com`
+6. Paste the meeting link into the "Meeting link" field
+7. Click "Send Lira to Meeting"
+8. Admit "Lira AI" from the Google Meet waiting room
+9. Say "Hey Lira, introduce yourself" — Lira responds via voice
+
+Set `LIRA_BOT_HEADLESS=false` in `.env` to see the Chromium browser window during development.
+
+---
+
+*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock.*
