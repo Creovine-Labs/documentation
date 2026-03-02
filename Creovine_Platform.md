@@ -54,7 +54,7 @@
 | Product | Status | Route Prefix | Description |
 |---|---|---|---|
 | CVault | Live | `/cvault/v1` | Managed WireGuard VPN — white-label VPN-as-a-Service |
-| Lira AI | In Development | `/lira/v1` | Voice AI meeting participant powered by Amazon Nova Lite + Polly |
+| Lira AI | Beta | `/lira/v1` | Voice AI meeting participant — headless browser bot that joins Google Meet / Zoom, captures audio, and speaks AI responses using Amazon Nova Sonic bidirectional streaming. Frontend at https://lira.creovine.com. |
 | EditCore | In Development | Flutter plugin (no backend route) | High-performance mobile video editing SDK for Flutter |
 
 **Core design principle:** Every new product gets a route namespace (e.g. `/productname/v1`) inside `creovine-api`. Product-specific clients (desktop app, SDK, web demo) live in the product's own repo. The shared backend handles auth, licensing, devices, and platform infrastructure.
@@ -73,6 +73,8 @@ creovine-api/
 │   ├── config/             # Environment variable parsing and validation
 │   ├── middleware/         # auth.middleware, license.middleware, platform-admin.middleware
 │   ├── models/             # Shared TypeScript types
+│   │   ├── lira.models.ts              # Meeting, Message, MeetingSettings, SonicSession
+│   │   └── lira-bot.models.ts          # BotConfig, BotState, BotInstance, DeployBotRequest
 │   ├── routes/
 │   │   ├── platform-auth.routes.ts     # /v1/auth
 │   │   ├── platform-admin.routes.ts    # /v1/platform/admin
@@ -84,10 +86,22 @@ creovine-api/
 │   │   ├── vpn.routes.ts               # /cvault/v1/vpn
 │   │   ├── license.routes.ts           # /cvault/v1/licenses
 │   │   ├── lira-meetings.routes.ts     # /lira/v1/meetings
-│   │   └── lira-ws.routes.ts           # /lira/v1/ws (WebSocket)
-│   ├── models/
-│   │   └── lira.models.ts              # Lira AI TypeScript types
-│   ├── services/           # Business logic (auth, device, wireguard, license, cms, lira-ai…)
+│   │   ├── lira-bot.routes.ts          # /lira/v1/bot (deploy, status, terminate, auth)
+│   │   └── lira-ws.routes.ts           # /lira/v1/ws (WebSocket — text mode)
+│   ├── services/
+│   │   ├── lira-ai.service.ts          # Bedrock Nova Lite (summaries + sentiment)
+│   │   ├── lira-store.service.ts       # DynamoDB CRUD (meetings + connections)
+│   │   ├── lira-s3.service.ts          # S3 audio storage
+│   │   ├── lira-sonic.service.ts       # Nova Sonic bidirectional streaming + wake word gating
+│   │   ├── lira-wakeword.service.ts    # Wake word detection (exact + Levenshtein + Soundex)
+│   │   └── lira-bot/
+│   │       ├── index.ts                # Bot service exports + Google auth refresh scheduler
+│   │       ├── meeting-bot.ts          # Playwright orchestrator: browser + AudioBridge + driver
+│   │       ├── audio-bridge.ts         # Web Audio getUserMedia override, PCM inject/capture
+│   │       ├── bot-manager.service.ts  # Bot lifecycle: deploy, terminate, mic toggle
+│   │       ├── auth-refresh.ts         # Scheduled refresh of saved Google session cookies
+│   │       └── drivers/
+│   │           └── google-meet.driver.ts  # GMeet UI: join, leave, muteMic, unmuteMic
 │   └── utils/
 │       ├── prisma.ts       # Prisma client (lazy singleton)
 │       └── secrets.ts      # AWS Secrets Manager loader (all environments)
@@ -116,15 +130,19 @@ cvault/
 └── web-demo/            # Vite + React demo app
 ```
 
-### `lira_ai` — Lira AI Product (Docs + Legacy Go backend)
+### `lira` — Lira AI Frontend
 ```
-lira_ai/
-├── backend/             # Legacy Go serverless backend (NOT in use — superseded by creovine-api)
-├── docs/                # Architecture and implementation docs
-└── tests/
+lira/        (Vite + React + TypeScript, deployed to Vercel at https://lira.creovine.com)
+├── src/
+│   ├── app/             # Providers, router, store
+│   ├── components/      # meeting-room, transcript, common UI components
+│   ├── features/        # ai-participant, meeting, participants, settings
+│   ├── pages/           # HomePage, MeetingPage
+│   └── services/        # api, audio, webrtc, websocket clients
+└── public/
 ```
 
-> ⚠️ **Lira AI backend is implemented in `creovine-api`** at `/lira/v1`. The `lira_ai/backend` Go code is legacy and not deployed.
+> The Lira AI **backend** is implemented in `creovine-api` at `/lira/v1`. The `lira` repo is the dedicated React frontend deployed on Vercel.
 
 ### `creovine_editcore` — EditCore Flutter SDK
 ```
@@ -192,7 +210,14 @@ https://api.creovine.com
 │
 └── /lira/v1  (Lira AI product)
     ├── /meetings                   # Meeting session CRUD + AI summary
-    └── /ws                         # WebSocket — real-time AI conversation (WSS)
+    ├── /bot
+    │   ├── /deploy                 # Deploy a meeting bot (POST)
+    │   ├── /:botId                 # Get bot status (GET)
+    │   ├── /:botId/terminate       # Stop a running bot (POST)
+    │   ├── /active                 # List all active bots (GET)
+    │   ├── /auth-status            # Check Google auth state (GET)
+    │   └── /auth-refresh           # Refresh Google session cookies (POST)
+    └── /ws                         # WebSocket — text-mode conversation (WSS, legacy)
 ```
 
 **Adding a new product:** register a new Fastify plugin in `src/index.ts`:
@@ -349,7 +374,7 @@ Related models: `ProductVersion`, `ProductFeature`, `ProductPlan`, `ProductDoc`,
 | SSH key | `~/.ssh/creovine-api-key.pem` |
 | App directory | `/opt/creovine-api/` |
 | Systemd service | `creovine-api.service` |
-| IAM instance profile | `creovine-api-profile` (Secrets Manager + DynamoDB + Bedrock + Polly) |
+| IAM instance profile | `creovine-api-profile` (Secrets Manager + DynamoDB + Bedrock + S3) |
 
 **Open ports (Security Group `creovine-api-sg`):**
 | Port | Protocol | Purpose |
@@ -394,8 +419,9 @@ nginx.service          # Reverse proxy + SSL termination + WebSocket upgrade
 | RDS (PostgreSQL 16) | Managed production database (`creovine-postgres`) |
 | Secrets Manager | All production secrets (5 paths) |
 | DynamoDB | Lira AI — meetings + connections tables |
-| Bedrock (Nova Lite) | Lira AI — LLM reasoning + greeting generation |
-| Polly (neural) | Lira AI — Text-to-speech audio responses |
+| Bedrock `amazon.nova-sonic-v1:0` | Lira AI — bidirectional speech-to-speech streaming (primary AI engine) |
+| Bedrock `amazon.nova-lite-v1:0` | Lira AI — meeting summary generation only |
+| S3 | Lira AI — audio clip storage (`lira-s3.service.ts`) |
 | IAM | User `creovine-admin`; EC2 instance profile `creovine-api-profile` |
 
 **AWS Account:** `814322375061` (`support@creovine.com`)  
@@ -416,7 +442,7 @@ Production secrets are **not stored in `.env` files on the server** — they are
 | `/creovine/shared` | `JWT_SECRET`, `DATABASE_URL` |
 | `/creovine/api` | `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGIN`, `ADMIN_SECRET`, `ADMIN_ENCRYPTION_KEY`, `API_ENCRYPTION_KEY` |
 | `/cvault` | `WG_SERVER_IP`, `WG_SERVER_PORT`, `WG_SERVER_PUBLIC_KEY`, `WG_SERVER_SSH_HOST`, `WG_SERVER_SSH_PORT`, `WG_SERVER_SSH_USER`, `WG_SERVER_SSH_KEY_PATH`, `ADMIN_ENCRYPTION_KEY`, `ENCRYPTION_KEY` |
-| `/lira` | `LIRA_DYNAMODB_MEETINGS_TABLE`, `LIRA_DYNAMODB_CONNECTIONS_TABLE`, `LIRA_BEDROCK_REGION`, `LIRA_BEDROCK_MODEL_ID`, `LIRA_POLLY_VOICE_ID`, `LIRA_POLLY_ENGINE`, `LIRA_S3_AUDIO_BUCKET`, `LIRA_SESSION_TTL_HOURS` |
+| `/lira` | `LIRA_DYNAMODB_MEETINGS_TABLE`, `LIRA_DYNAMODB_CONNECTIONS_TABLE`, `LIRA_BEDROCK_REGION`, `LIRA_BEDROCK_MODEL_ID` (Nova Sonic), `LIRA_SUMMARY_MODEL_ID` (Nova Lite), `LIRA_S3_AUDIO_BUCKET`, `LIRA_SESSION_TTL_HOURS`, `LIRA_BOT_GOOGLE_AUTH_STATE`, `LIRA_BOT_HEADLESS`, `LIRA_BOT_DISPLAY_NAME` |
 | `/creovine/rds` | `username`, `password`, `dbname` (RDS master credentials — for ops only) |
 
 **Startup sequence:**
@@ -756,11 +782,11 @@ await client.vpn.connect({ deviceId, licenseKey });
 
 ## 7. Lira AI
 
-> **Status: In Development — TypeScript, integrated into `creovine-api` at `/lira/v1`.**
+> **Status: Live (Beta) — Frontend on Vercel · Backend in `creovine-api` at `/lira/v1`**
 
-**Lira AI** is a voice-powered AI meeting participant that actively joins conversations, responds in real-time using natural speech, and provides live insights — using **Amazon Nova Lite** (LLM reasoning) and **AWS Polly** (neural TTS). Unlike passive tools (Otter.ai, Fireflies.ai), Lira AI responds when addressed, challenges ideas, and participates in brainstorming.
+**Lira AI** is a voice-powered AI meeting participant that physically joins Google Meet (and Zoom) calls as a real participant, listens to the conversation, and responds in natural speech when addressed by name. Unlike passive transcription tools, Lira actively participates — answering questions, challenging ideas, and summarising discussions — powered by **Amazon Nova Sonic** (bidirectional speech-to-speech via AWS Bedrock).
 
-> ✅ **Lira AI shares `creovine-api`.** All routes live at `/lira/v1` on `api.creovine.com`. The `lira_ai/backend` Go code is legacy and not deployed.
+> ✅ **Lira AI backend is in `creovine-api`** at `/lira/v1`. The `lira_ai/backend` Go code is legacy and not deployed.
 
 ---
 
@@ -768,143 +794,50 @@ await client.vpn.connect({ deviceId, licenseKey });
 
 | Layer | Technology |
 |---|---|
-| Language | TypeScript 5.x (same codebase as `creovine-api`) |
-| HTTP Framework | Fastify 4.x — REST + WebSocket (`@fastify/websocket` v8) |
-| AI / LLM | Amazon Bedrock — `amazon.nova-lite-v1:0` |
-| TTS | AWS Polly (neural engine, `Joanna` voice) |
-| Database | AWS DynamoDB (`lira-meetings`, `lira-connections` tables) |
-| Auth | Same as platform — `X-API-Key` + Bearer JWT |
-| Route prefix | `/lira/v1` |
+| Frontend | React + TypeScript — deployed to Vercel (`https://lira.creovine.com`) |
+| Backend | TypeScript / Fastify 4.x — shared `creovine-api`, route prefix `/lira/v1` |
+| AI | Amazon Bedrock — `amazon.nova-sonic-v1:0` (bidirectional speech-to-speech) |
+| Browser bot | Playwright Chromium — headless browser that joins and controls the meeting |
+| Database | AWS DynamoDB (meeting records, transcripts) |
+| Auth | Platform standard — `X-API-Key` + Bearer JWT |
 
 ---
 
-### 7.2 Source Files (in `creovine-api`)
+### 7.2 How It Works
 
-```
-creovine-api/src/
-├── models/
-│   └── lira.models.ts              # Meeting, Message, LiraConnection, InboundMessage, OutboundMessage types
-├── services/
-│   ├── lira-store.service.ts       # DynamoDB CRUD (meetings + connections)
-│   └── lira-ai.service.ts          # Bedrock Nova Lite + Polly + sentiment
-└── routes/
-    ├── lira-meetings.routes.ts     # REST: /lira/v1/meetings
-    └── lira-ws.routes.ts           # WebSocket: /lira/v1/ws
-```
+A REST call to `/lira/v1/bots/deploy` launches a headless Playwright browser on the EC2 server. The bot navigates to the meeting URL, joins as a named participant, and establishes a bidirectional audio stream with Amazon Nova Sonic. Meeting audio captured from other participants is streamed to Nova Sonic for transcription and reasoning; Nova Sonic's audio responses are injected back into the meeting in real time.
 
-**DynamoDB tables (`us-east-1`, PAY_PER_REQUEST):**
-| Table | Key | Purpose |
-|---|---|---|
-| `lira-meetings` | `session_id` | Meeting records, messages, settings, AI state |
-| `lira-connections` | `connection_id` | Active WebSocket connections |
+Key behaviours:
+- **Wake word activation** — Lira only responds when her name is mentioned (3-layer detection: exact match → fuzzy Levenshtein → Soundex phonetic). Stays quiet otherwise.
+- **Physical mic mute/unmute** — voice commands ("Lira, mute" / "unmute") click the actual mic button in Google Meet.
+- **Auto-leave** — bot leaves automatically after 45 seconds alone in the meeting.
+- **Session keepalive** — silent audio keepalive prevents Nova Sonic from timing out in long meetings.
 
 ---
 
-### 7.3 Architecture Overview
+### 7.3 REST API (overview)
 
-```
-Browser / Mobile Client
-        │
-        ├── WSS ──► wss://api.creovine.com/lira/v1/ws?apiKey=KEY&token=JWT
-        │                    │
-        │             Fastify (creovine-api)
-        │          @fastify/websocket v8
-        │                    │
-        │         ┌──────────┴──────────┐
-        │         │  In-memory         │
-        │         │  socket registry   │
-        │         │  Map<connId, WS>   │
-        │         └──────────┬──────────┘
-        │                    │
-        │         ┌──────────┴──────────┐
-        │    DynamoDB          Bedrock + Polly
-        │  lira-meetings      Nova Lite → Polly
-        │  lira-connections   (TTS base64 audio)
-        │
-        └── REST ──► https://api.creovine.com/lira/v1/meetings
-                             │
-                        DynamoDB
-```
-
----
-
-### 7.4 WebSocket API
-
-**Endpoint:** `wss://api.creovine.com/lira/v1/ws?apiKey=<tenant-key>&token=<jwt>`
-
-> Auth is via query params (not headers) because the browser WebSocket API does not support custom headers.
-
-**Client → Server messages (JSON):**
-| Action | Payload | Description |
-|---|---|---|
-| `join` | `{ session_id?, user_name?, settings? }` | Join or create a meeting |
-| `text` | `{ text }` | Send a message — triggers AI response |
-| `settings` | `Partial<MeetingSettings>` | Update AI settings mid-session |
-| `leave` | `{}` | Leave the session |
-
-**Server → Client messages (JSON):**
-| Type | Payload | Description |
-|---|---|---|
-| `joined` | `{ session_id, user_id, settings, participants }` | Confirmed join |
-| `participant_event` | `{ user_id, user_name?, event: "joined"\|"left" }` | Someone joined/left |
-| `transcript` | `Message` | User message broadcast to session |
-| `ai_response` | `{ text, audio_base64?, message_id }` | Lira AI reply + Polly audio |
-| `settings_updated` | `MeetingSettings` | Settings change broadcast |
-| `error` | `{ code, message }` | Error response |
-
-**Flow for `join`:**
-1. Client connects with `apiKey` + `token` query params
-2. Backend validates API key (tenant) + JWT (user)
-3. New meeting created in DynamoDB (or existing one loaded)
-4. `joined` sent to client; `participant_event` broadcast to other members
-5. AI greeting generated via Bedrock Nova Lite → synthesized by Polly → sent as `ai_response`
-
-**Flow for `text`:**
-1. User message stored in DynamoDB with sentiment tag
-2. `transcript` broadcast to all session members
-3. Full message history sent to Bedrock Nova Lite
-4. AI reply stored, Polly TTS generated, `ai_response` broadcast to session
-
----
-
-### 7.5 REST API
-
-**Base URL:** `https://api.creovine.com/lira/v1`  
-**Auth:** All routes require `X-API-Key` + `Authorization: Bearer <jwt>` (`fullAuth` middleware)
+**Base URL:** `https://api.creovine.com/lira/v1`
+**Auth:** `X-API-Key` + `Authorization: Bearer <jwt>`
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/lira/v1/meetings` | Create a new meeting session |
-| GET | `/lira/v1/meetings` | List current user's meetings |
-| GET | `/lira/v1/meetings/:id` | Get meeting details + full message history |
-| GET | `/lira/v1/meetings/:id/summary` | Get AI-generated summary (Bedrock Nova Lite) |
-| PUT | `/lira/v1/meetings/:id/settings` | Update AI personality / TTS settings |
-| DELETE | `/lira/v1/meetings/:id` | Delete a meeting session |
+| POST | `/lira/v1/bots/deploy` | Launch a bot into a meeting |
+| POST | `/lira/v1/bots/:botId/terminate` | Remove the bot from a meeting |
+| GET | `/lira/v1/bots` | List active bots |
+| GET | `/lira/v1/meetings/:id` | Get meeting details + transcript |
+| GET | `/lira/v1/meetings/:id/summary` | AI-generated meeting summary |
+| DELETE | `/lira/v1/meetings/:id` | Delete a meeting record |
 
 ---
 
-### 7.6 MeetingSettings (AI configuration)
-
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `ai_name` | string | `"Lira"` | AI participant display name |
-| `ai_personality` | string | `"professional"` | Bedrock system prompt style |
-| `language` | string | `"en-US"` | Conversation language |
-| `tts_enabled` | boolean | `true` | Whether Polly TTS is generated |
-| `tts_voice` | string | `"Joanna"` | AWS Polly voice ID |
-| `response_style` | string | `"conversational"` | AI response brevity hint |
-
----
-
-### 7.7 AWS Services Used
+### 7.4 AWS Services Used
 
 | Service | Purpose |
 |---|---|
-| EC2 / `creovine-api` | Hosts all Lira AI REST + WebSocket routes |
-| DynamoDB `lira-meetings` | Meeting records, message history, AI state |
-| DynamoDB `lira-connections` | Active WebSocket connection → session mapping |
-| Bedrock `amazon.nova-lite-v1:0` | LLM reasoning — greetings, responses, summaries |
-| Polly (neural, `Joanna`) | Text-to-speech — returns base64 MP3 in `ai_response` |
+| EC2 / `creovine-api` | Hosts the bot manager and all API routes |
+| Bedrock `amazon.nova-sonic-v1:0` | Bidirectional speech — STT + LLM reasoning + TTS in one stream |
+| DynamoDB | Meeting records, message transcripts |
 
 ---
 
@@ -1210,16 +1143,14 @@ These are the variables used by the backend. In **development** they come from `
 | `LIRA_DYNAMODB_MEETINGS_TABLE` | `/lira` | DynamoDB meetings table name (`lira-meetings`) |
 | `LIRA_DYNAMODB_CONNECTIONS_TABLE` | `/lira` | DynamoDB connections table name (`lira-connections`) |
 | `LIRA_BEDROCK_REGION` | `/lira` | AWS region for Bedrock calls (`us-east-1`) |
-| `LIRA_BEDROCK_MODEL_ID` | `/lira` | Bedrock model ID (`amazon.nova-lite-v1:0`) |
-| `LIRA_POLLY_VOICE_ID` | `/lira` | AWS Polly voice (`Joanna`) |
-| `LIRA_POLLY_ENGINE` | `/lira` | Polly engine (`neural`) |
+| `LIRA_NOVA_SONIC_MODEL_ID` | `/lira` | Nova Sonic model ID (`amazon.nova-sonic-v1:0`) |
 | `LIRA_SESSION_TTL_HOURS` | `/lira` | DynamoDB TTL for sessions (default: 24) |
 
 > **Never commit actual secret values to Git.** Use `.env` locally and AWS Secrets Manager in production. The `.env` file is in `.gitignore`.
 
 ---
 
-*Last updated: February 27, 2026*  
+*Last updated: March 2, 2026*  
 *Maintainer: Creovine Labs — support@creovine.com*
 
 ---
