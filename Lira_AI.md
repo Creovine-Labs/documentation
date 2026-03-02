@@ -615,7 +615,7 @@ window.__liraEndOutput = function endOutput() {
   if (injectCtx && nextPlayTime > injectCtx.currentTime) {
     drainMs = (nextPlayTime - injectCtx.currentTime) * 1000;
   }
-  var delay = Math.max(drainMs, 300) + 1200; // buffer + reverb margin
+  var delay = Math.max(drainMs, 200) + 500; // pipeline buffer + short safety margin
   setTimeout(function() {
     outputting = false;
     nextPlayTime = 0;
@@ -623,7 +623,7 @@ window.__liraEndOutput = function endOutput() {
 };
 ```
 
-This ensures all scheduled audio has finished playing and Google Meet's internal audio pipeline has drained before capture resumes. The 1200 ms margin accounts for any buffering or reverb in the pipeline.
+This ensures all scheduled audio has finished playing and Google Meet's internal audio pipeline has drained before capture resumes. The 500 ms margin (reduced from 1200 ms) accounts for pipeline buffering. On the Node side, an additional 800 ms safety buffer ensures the capture callback won't forward stale audio.
 
 ### 5.6 getUserMedia Override
 
@@ -819,6 +819,9 @@ Not all Nova Sonic output should reach the meeting. When wake word mode is enabl
 ```typescript
 function shouldForwardAssistantOutput(session: SonicSession): boolean {
   if (!session.wakeWordEnabled) return true;
+
+  // 1-on-1 mode: when only 1 other participant, bypass wake word entirely
+  if (session.participantCount === 1 && !session.muted) return true;
   
   // If muted, block all output (except the mute acknowledgement)
   if (session.muted) return session.wakeWordActive;
@@ -829,7 +832,9 @@ function shouldForwardAssistantOutput(session: SonicSession): boolean {
 }
 ```
 
-This means Nova Sonic is **always listening and generating responses**, but those responses are silently discarded unless someone said Lira's name recently (within the 30-second cooldown window).
+This means Nova Sonic is **always listening and generating responses**, but those responses are silently discarded unless:
+- Someone said Lira's name recently (within the 45-second cooldown window), OR
+- Only one other participant is in the meeting (1-on-1 mode — obviously talking to Lira)
 
 ### 6.8 Mute / Unmute via Voice Commands
 
@@ -939,16 +944,29 @@ Wake word detection runs against **both** the current chunk and the buffered tex
 
 ### 7.4 Cooldown Window
 
-After detecting the wake word, Lira stays "addressed" for **30 seconds**. This enables natural conversation flow:
+After detecting the wake word, Lira stays "addressed" for **45 seconds**. This enables natural conversation flow. Crucially, the timer **refreshes after each Lira response** — so the 45-second window restarts from when Lira finishes speaking, not from the original wake word.
 
 ```
-User: "Hey Lira, what happened last quarter?"     ← wake word detected
-Lira: "Revenue was up 15%..."                      ← responds
-User: "Can you break that down by region?"          ← no wake word, but within 30s → responds
-User: "And compare it to Q1?"                       ← still within 30s → responds
-[... 30 seconds of silence ...]
+User: "Hey Lira, what happened last quarter?"     ← wake word detected (t=0)
+Lira: "Revenue was up 15%..."                      ← responds (t=5s), timer refreshed → t=0
+User: "Can you break that down by region?"          ← no wake word, within 45s → responds
+Lira: "Sure, EMEA was..."                           ← responds (t=10s), timer refreshed → t=0
+User: "And compare it to Q1?"                       ← still within 45s → responds
+[... 45 seconds of silence ...]
 User: "What about marketing spend?"                 ← no wake word, cooldown expired → silent
 ```
+
+### 7.5 1-on-1 Auto-Respond Mode
+
+When only **one other participant** is in the meeting (a 1-on-1 call), Lira bypasses the wake word entirely. The logic: if it's just the user and Lira, there's nobody else the user could be talking to.
+
+**Implementation**:
+- `MeetingBot.getParticipantCount()` queries the audio bridge's `connectedSources.length`
+- Bot Manager polls this every 5 seconds and calls `sonic.setParticipantCount(sessionId, count)`
+- `shouldForwardAssistantOutput()` checks `session.participantCount === 1` — if true, always forward
+- When a third person joins, the count changes to 2+ and wake word gating re-engages
+
+This covers the most common use case: a user calling Lira into a private meeting for a 1-on-1 chat.
 
 ---
 
@@ -1145,10 +1163,14 @@ Both tables use PAY_PER_REQUEST billing and the AWS SDK v3 `DynamoDBDocumentClie
 {
   sessionId, connectionId, active, recordingChunks,
   promptCounter, aiName, wakeWordEnabled, wakeWordActive,
-  lastWakeWordTime, conversationContext, muted, keepaliveTimer,
-  pushAudio(pcm), endAudio()
+  lastWakeWordTime, conversationContext, muted, participantCount,
+  keepaliveTimer, pushAudio(pcm), endAudio()
 }
 ```
+
+| Field | Purpose |
+|-------|---------|
+| `participantCount` | Number of other participants. When `1`, wake word is bypassed (1-on-1 mode). Updated by bot-manager polling every 5 seconds. |
 
 **`BotConfig`**:
 ```typescript
@@ -1405,7 +1427,7 @@ VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
 
 **Problem**: When Lira speaks, her voice is played through WebRTC, which means her own capture pipeline picks it up. Nova Sonic then processes Lira's voice as if a participant said something, causing Lira to respond to herself in an infinite loop.
 
-**Solution**: The **echo gate** — a boolean flag (`outputting`) in the Audio Bridge. When Lira is injecting audio, all captured frames are dropped. After injection ends, a drain delay (remaining scheduled audio time + 1200 ms margin) ensures all audio has finished playing before capture resumes.
+**Solution**: The **echo gate** — a boolean flag (`outputting`) in the Audio Bridge. When Lira is injecting audio, all captured frames are dropped. After injection ends, a drain delay (remaining scheduled audio time + 500 ms margin) ensures all audio has finished playing before capture resumes. The Node-side safety buffer adds another 800 ms. Total echo gate overhead is ~1.3 seconds (down from ~3.2 seconds in earlier versions).
 
 ### 11.2 Wake Word Splitting Across STT Chunks
 
@@ -1423,9 +1445,13 @@ VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
 
 ### 11.4 Double Voice Output
 
-**Problem**: Nova Sonic sends both a TEXT content block and an AUDIO content block for each assistant turn. Both contain `textOutput` events with identical text, causing duplicated transcript entries.
+**Problem (v1 — text)**: Nova Sonic sends both a TEXT content block and an AUDIO content block for each assistant turn. Both contain `textOutput` events with identical text, causing duplicated transcript entries.
 
-**Solution**: Track `currentContentBlockType` ('TEXT' vs 'AUDIO'). Only buffer assistant text from TEXT-type blocks. When contentEnd fires for AUDIO blocks, discard any buffered text (it's a duplicate of what TEXT already flushed).
+**Solution (v1)**: Track `currentContentBlockType` ('TEXT' vs 'AUDIO'). Only buffer assistant text from TEXT-type blocks. When contentEnd fires for AUDIO blocks, discard any buffered text (it's a duplicate of what TEXT already flushed).
+
+**Problem (v2 — audio)**: Some Nova Sonic stream chunks failed JSON parsing and were treated as raw PCM audio via a fallback path. This meant the same audio was forwarded TWICE: once through the proper `audioOutput` JSON event and once as "raw PCM". Additionally, `audioOutput` events were not gated by content block type, so audio could be forwarded from both TEXT and AUDIO blocks.
+
+**Solution (v2)**: (a) Removed the raw PCM fallback entirely — all output from the SDK is well-formed JSON events; non-JSON chunks are logged and skipped. (b) Added `currentContentBlockType === 'AUDIO'` guard on the `audioOutput` handler so audio is only forwarded from AUDIO-type content blocks.
 
 ### 11.5 Nova Sonic Session Timeouts
 
@@ -1536,7 +1562,7 @@ Here is the complete journey from a user clicking "Send Lira to Meeting" to Lira
 - Nova Sonic sends `contentEnd` for AUDIO block
 - `onAudioOutputEnd` callback fires
 - `meetingBot.endAudioOutput()` → Audio Bridge drain delay
-- Echo gate clears after all scheduled audio finishes + 1200ms
+- Echo gate clears after all scheduled audio finishes + 500ms (+ 800ms Node-side)
 - Capture resumes
 
 **Step 12 — Meeting ends**
