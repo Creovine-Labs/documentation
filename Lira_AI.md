@@ -80,6 +80,8 @@
   - [11.5 Nova Sonic Session Timeouts](#115-nova-sonic-session-timeouts)
   - [11.6 Auto-Leaving Empty Meetings](#116-auto-leaving-empty-meetings)
   - [11.7 Google Meet UI Selector Fragility](#117-google-meet-ui-selector-fragility)
+  - [11.8 Multi-Turn Echo Gate — Nova Sonic Splitting Long Responses](#118-multi-turn-echo-gate--nova-sonic-splitting-long-responses)
+  - [11.9 Speaker Identification Without Per-Stream Access](#119-speaker-identification-without-per-stream-access)
 - [12. How It All Connects — End-to-End Walkthrough](#12-how-it-all-connects--end-to-end-walkthrough)
 - [13. Repository Structure](#13-repository-structure)
 - [14. Running Locally](#14-running-locally)
@@ -90,6 +92,16 @@
   - [15.4 Rolling Wake Word Buffer — Cross-Speaker Context](#154-rolling-wake-word-buffer--cross-speaker-context)
   - [15.5 Zoom Support](#155-zoom-support)
   - [15.6 Two Audio Code Paths](#156-two-audio-code-paths)
+  - [15.7 Speaker Identification Accuracy](#157-speaker-identification-accuracy)
+- [16. Speaker Identification System](#16-speaker-identification-system)
+  - [16.1 Overview](#161-overview)
+  - [16.2 Architecture](#162-architecture)
+  - [16.3 Participant Name Scraping](#163-participant-name-scraping)
+  - [16.4 Active Speaker Detection](#164-active-speaker-detection)
+  - [16.5 System Prompt Enrichment](#165-system-prompt-enrichment)
+  - [16.6 Polling Strategy](#166-polling-strategy)
+  - [16.7 Speaker-Attributed Transcripts](#167-speaker-attributed-transcripts)
+  - [16.8 Accuracy & Limitations](#168-accuracy--limitations)
 
 ---
 
@@ -1483,6 +1495,65 @@ If all selectors fail, a brute-force scan checks every visible button for matchi
 
 When all strategies fail, a **debug screenshot** is saved automatically (see section 4.5). This captures the exact DOM state at the moment of failure, making it straightforward to update selectors without reproducing the issue.
 
+### 11.8 Multi-Turn Echo Gate — Nova Sonic Splitting Long Responses
+
+**Problem**: Nova Sonic splits long AI responses into multiple consecutive TEXT+AUDIO content block pairs (observed up to 4 pairs for a single answer). Each AUDIO block end fires `onAudioOutputEnd` → `endOutput()` on the Audio Bridge. The original implementation cleared the echo gate after each block — but the next block's audio arrived milliseconds later, after the gate had already opened. This created windows where Lira's own voice leaked into the capture pipeline. Nova Sonic heard the echo, interpreted it as the user speaking, and generated a duplicate response. Observed browser audio drain times exploded from 700 ms → 4,784 ms → 13,077 ms across blocks of the same response.
+
+**Root cause trace** (from live session logs):
+```
+16:23:33  AUDIO block 1 starts
+16:23:36  endOutput() called — Node-side gate clears after 800ms
+16:23:36  AUDIO block 2 starts immediately (next sub-turn)
+16:23:37  Node-side echo gate cleared ← LEAK WINDOW (browser drain was 4784ms)
+16:23:40  AUDIO block 3 → browser drain 2237ms
+16:23:42  AUDIO block 4 → browser drain explodes to 13,077ms
+16:23:59  Lira repeats herself verbatim — echoed her own voice
+```
+
+**Solution**: Three coordinated fixes in `audio-bridge.ts`:
+
+1. **Node-side debounce** — `endOutput()` now waits **600 ms** before acting. If `injectAudio()` is called during that window (next sub-turn audio arrived), the debounce timer resets. The echo gate only clears after all consecutive AUDIO blocks in the response are done. The `injectAudio()` method actively cancels both the debounce timer and any pending Node-side gate timer when new audio arrives.
+
+2. **Browser-side recheck** — When the drain `setTimeout` fires, the browser rechecks `nextPlayTime`. If new audio was scheduled while waiting, it re-calculates the drain and re-waits rather than clearing the gate prematurely. Overlapping drain timers are cancelled on re-entry via a tracked `endOutputTimer`.
+
+3. **Restored safe margins** — Browser drain: `max(drainMs, 300) + 1200 ms` (previously reduced to `200 + 500`). Node safety buffer: 2000 ms (previously 800 ms).
+
+```typescript
+// Node-side: debounce — only clear gate if no new audio for 600ms
+async endOutput(): Promise<void> {
+  if (this.endOutputDebounce) clearTimeout(this.endOutputDebounce);
+  this.endOutputDebounce = setTimeout(async () => {
+    await this.flushInjectBuffer();
+    await this.page.evaluate(() => (globalThis as any).__liraEndOutput?.());
+    this.nodeSideGateTimer = setTimeout(() => {
+      this.outputting = false; // Node echo gate clears after 2s
+    }, 2000);
+  }, 600); // Wait 600ms — if new audio arrives, this resets
+}
+
+// injectAudio() cancels any pending clear when new audio arrives
+injectAudio(pcmChunk: Buffer): void {
+  this.outputting = true;
+  if (this.endOutputDebounce) { clearTimeout(this.endOutputDebounce); this.endOutputDebounce = null; }
+  if (this.nodeSideGateTimer) { clearTimeout(this.nodeSideGateTimer); this.nodeSideGateTimer = null; }
+  // ... batch and flush
+}
+```
+
+> **Commit**: `3da9ee3` — *fix: debounce echo gate for multi-turn Nova Sonic responses*
+
+### 11.9 Speaker Identification Without Per-Stream Access
+
+**Problem**: A meeting AI that can identify who is speaking and address people by name would be a significant differentiator. However, the WebRTC audio capture pipeline receives a **single mixed PCM stream** — all participants' voices are combined into one audio feed before they reach the Audio Bridge. There is no standard API to demix a merged WebRTC audio stream or to map individual `MediaStreamTrack` objects to participant display names in a headless browser context.
+
+**Solution**: Rather than trying to identify speakers from audio (which would require per-track access and a separate speaker diarization model), the system uses **two complementary approaches**:
+
+1. **DOM scraping for names** — Google Meet renders participant tiles (`[data-participant-id]`) with names embedded as `img[alt]` attributes, `aria-label` values, or text overlays. Three fallback strategies ensure maximum coverage across Google Meet UI versions.
+
+2. **DOM-based active speaker detection** — Google Meet applies a coloured border or `box-shadow` to the active speaker's tile. Polling the computed styles of all participant tiles every 2 seconds identifies the current speaker.
+
+See **Section 16** for full architecture, implementation details, and accuracy characteristics.
+
 ---
 
 ## 12. How It All Connects — End-to-End Walkthrough
@@ -1744,6 +1815,184 @@ The Zoom driver (`zoom.driver.ts`) exists but is Phase 2. The API currently acce
 The browser-based demo meeting (WebSocket + mic in browser) and the headless bot meeting use different audio code paths. Both handle PCM encoding/decoding and audio playback but are implemented independently. They can drift over time.
 
 **Mitigation**: Both code paths are explicitly cross-referenced in comments.
+
+### 15.7 Speaker Identification Accuracy
+
+The DOM-based speaker identification system (Section 16) works well for normal conversation but has inherent limitations:
+
+- **Active speaker poll latency**: The 2-second polling interval means speakers who talk for less than 2 seconds may not be detected. Rapid back-and-forth cross-talk may result in incorrect attribution.
+- **Google Meet UI dependency**: The speaking indicator detection relies on computed `border-color` and `box-shadow` styles on participant tiles. Google can change these styles in a UI update, breaking detection until selectors are updated.
+- **Names not available at first session start**: Participants' names are scraped 3 seconds after Lira joins. The very first Nova Sonic session starts before names are known. On any subsequent session restart (auto-reconnect), the names are passed to the new session's system prompt.
+- **No voice fingerprinting**: The system cannot reliably attribute a specific voice to a specific name without access to individual per-participant audio tracks and a diarization model. Attribution relies entirely on timing correlation between the Google Meet speaking indicator and when speech arrives.
+- **Mid-sentence attribution errors**: If the active speaker poll captures a different participant's name during a long sentence, that sentence may be attributed incorrectly in the transcript.
+
+**Future improvement**: Use the `ontrack` event's `streams[0].id` to correlate each incoming `MediaStream` with its participant tile in the DOM at the moment the track arrives, creating a stable stream-to-name map that doesn't depend on polling.
+
+---
+
+## 16. Speaker Identification System
+
+Lira can detect who is in the meeting, who is currently speaking, address participants by name in conversation, and attribute transcript messages to the correct speaker.
+
+### 16.1 Overview
+
+| Capability | Implementation | Reliability |
+|-----------|---------------|-------------|
+| Count participants | `connectedSources.length` in Audio Bridge | High |
+| Get participant names | DOM scraping — 3 strategies | Medium-High |
+| Detect active speaker | Computed style polling on tiles | Medium |
+| Address by name in responses | System prompt instruction | High |
+| Speaker-attributed transcript | Poll correlation at transcript flush | Medium |
+| Names in session on restart | Passed to `startSession()` on reconnect | High |
+
+### 16.2 Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Google Meet Browser (Playwright page)                          │
+│                                                                 │
+│  DOM: [data-participant-id] tiles                               │
+│       └─ img[alt] / aria-label / text nodes  → names           │
+│       └─ border-color / box-shadow           → active speaker  │
+│                                                                 │
+└──────────────────────┬────────────────────────┬────────────────┘
+                       │ page.evaluate()        │ page.evaluate()
+                       ▼ every 15s             ▼ every 2s
+┌─────────────────────────────────────────────────────────────────┐
+│  GoogleMeetDriver                                               │
+│  getParticipantNames() → string[]                               │
+│  getActiveSpeaker()    → string | null                          │
+└──────────────────────┬────────────────────────┬────────────────┘
+                       │                        │
+                       ▼                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  BotManager (polling timers)                                    │
+│  participantNamePollTimer  — setInterval 15s                    │
+│  activeSpeakerPollTimer    — setInterval 2s                     │
+│                                                                 │
+│  sonic.setParticipantNames(sessionId, names)                    │
+│  sonic.setActiveSpeaker(sessionId, speaker)                     │
+└──────────────────────┬────────────────────────┬────────────────┘
+                       │                        │
+                       ▼                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  SonicSession                                                   │
+│  .participantNames: string[]    used in system prompt           │
+│  .activeSpeaker: string | null  used for transcript attribution │
+└─────────────────────────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Nova Sonic — system prompt includes participant list           │
+│  "There are 3 people in this meeting: John, Peter, James"       │
+│  → Lira can address them by name in responses                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 16.3 Participant Name Scraping
+
+`GoogleMeetDriver.getParticipantNames()` runs inside the browser via `page.evaluate()` using a string-based eval (to avoid TypeScript DOM type requirements in the Node.js process). It applies three strategies in order, deduplicating results:
+
+**Strategy 1 — Participant tiles** (`[data-participant-id]`)
+
+Each tile is checked in order:
+- `img[alt]` — Avatar images carry the participant's name as the `alt` attribute. Most reliable.
+- `aria-label` — Tile container often has `aria-label="John Smith, microphone off, camera off"`. The name is the first comma-separated segment.
+- Text node walker — Iterates text nodes in the tile, taking the first string that looks like a name (2–40 characters, not purely numeric).
+
+The bot's own tile is excluded by checking for a `[data-self-name]` child element.
+
+**Strategy 2 — Sidebar participant list**
+
+If the People panel is open, `[role="list"] [role="listitem"]` elements contain participant names as the first line of their text content.
+
+**Strategy 3 — Hovercard elements**
+
+`[data-hovercard-id]` elements (name chips/badges) are extracted directly.
+
+All detected names are filtered to remove the bot's own name, "You", and common non-name strings ("presentation", "screen sharing", etc.).
+
+### 16.4 Active Speaker Detection
+
+`GoogleMeetDriver.getActiveSpeaker()` queries computed styles of all participant tiles every 2 seconds.
+
+Google Meet highlights the active speaker with a **coloured border** (typically blue, ~`#1a73e8`) or `box-shadow`. The detector:
+
+1. Skips the bot's own tile (`[data-self-name]`).
+2. Checks `borderColor`, `outlineColor`, and `boxShadow` via `getComputedStyle()`.
+3. Filters out the default dark background borders (`rgb(32, 33, 36)`, `rgb(60, 64, 67)`) and `borderWidth: 0px`.
+4. If a non-default border is found on a tile or its immediate child, that tile's participant is the active speaker.
+5. Falls back to `[aria-live]` regions — Google Meet sometimes announces `"X is now talking"`.
+
+Once the speaking tile is identified, the name is extracted using the same priority order as Strategy 1 above (img alt → aria-label → text walker).
+
+### 16.5 System Prompt Enrichment
+
+When participant names are known (`participantNames.length > 0`), `buildSystemPrompt()` appends a participant awareness block:
+
+```
+Participant awareness:
+There are 3 other people in this meeting: John, Peter, James.
+You can hear everyone's voice but the audio arrives as a single mixed stream,
+so you may not always be able to tell exactly who is speaking.
+
+How to use participant names:
+- When you CAN identify who is speaking (from context, their topic, or because
+  they introduced themselves), address them by name.
+  e.g. "Good point, John." or "Peter, to answer your question…"
+- Never guess a name if you're uncertain.
+- When giving a summary, attribute contributions to the right people.
+```
+
+This is passed as part of the `buildSystemPromptEvents()` → `createInputStreamGenerator()` chain, which means it's embedded in the Nova Sonic session's SYSTEM content block at session start.
+
+On **auto-reconnect** (Sonic session restart after a Bedrock error), `sonic.getParticipantNames(sessionId)` retrieves the current names and passes them to the new `startSession()` call, so the restarted session also has full participant awareness.
+
+### 16.6 Polling Strategy
+
+Three separate timers run from Bot Manager after the bot joins:
+
+| Timer | Interval | Purpose |
+|-------|----------|---------|
+| `participantPollTimer` | 5 s | Count (for 1-on-1 wake word bypass) |
+| `participantNamePollTimer` | 15 s (+ initial 3 s) | Update participant names |
+| `activeSpeakerPollTimer` | 2 s | Track who is currently talking |
+
+The name poller runs an initial poll 3 seconds after joining (allowing the DOM to fully render before the first scrape), then every 15 seconds thereafter. Names rarely change mid-meeting, so 15 seconds is sufficient.
+
+The active speaker poller runs every 2 seconds. This is a balance between responsiveness and `page.evaluate()` overhead.
+
+All timers are cleaned up when the bot ends or when `terminateAll()` is called.
+
+### 16.7 Speaker-Attributed Transcripts
+
+When Nova Sonic emits a user speech transcript (`onTextOutput`, `role = 'user'`), Bot Manager checks `sonic.getActiveSpeaker(sessionId)` at that moment. If a speaker is identified, the message is stored in DynamoDB with `speaker: "John"` instead of the generic `speaker: "participant"`.
+
+```typescript
+// In bot-manager.service.ts — onTextOutput callback
+let speakerLabel = isAI ? aiName.toLowerCase() : 'participant';
+if (!isAI) {
+  const activeSpeaker = sonic.getActiveSpeaker(sessionId);
+  if (activeSpeaker) speakerLabel = activeSpeaker;
+}
+const msg: Message = {
+  id: uuidv4(),
+  speaker: speakerLabel, // e.g. "John" or "participant"
+  text,
+  is_ai: false,
+  ...
+};
+```
+
+This enables the transcript view in the frontend to show named speakers in the meeting history.
+
+### 16.8 Accuracy & Limitations
+
+See **Section 15.7** for a complete listing of known limitations. In summary:
+
+- Name detection via `img[alt]` and `aria-label` is **reliable** for meetings where Google renders participant tiles (typically 2+ participants, any modern Google Meet UI version).
+- Active speaker detection is **medium reliability** — works well for conversations where people take clear turns, less reliable for rapid cross-talk or very short utterances (< 2 s).
+- System prompt enrichment is **highly effective** — once Lira knows participants' names from the DOM, Nova Sonic naturally incorporates them into responses through the instruction in the system prompt.
 
 ---
 
