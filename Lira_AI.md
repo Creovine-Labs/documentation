@@ -2,7 +2,7 @@
 
 > **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
 
-*Last updated: March 2026*
+*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, and individual-contribution meeting summaries*
 
 ---
 
@@ -93,7 +93,7 @@
   - [15.5 Zoom Support](#155-zoom-support)
   - [15.6 Two Audio Code Paths](#156-two-audio-code-paths)
   - [15.7 Speaker Identification Accuracy](#157-speaker-identification-accuracy)
-- [16. Speaker Identification System](#16-speaker-identification-system)
+- [16. Speaker Identification System (DOM Layer)](#16-speaker-identification-system-dom-layer)
   - [16.1 Overview](#161-overview)
   - [16.2 Architecture](#162-architecture)
   - [16.3 Participant Name Scraping](#163-participant-name-scraping)
@@ -102,6 +102,14 @@
   - [16.6 Polling Strategy](#166-polling-strategy)
   - [16.7 Speaker-Attributed Transcripts](#167-speaker-attributed-transcripts)
   - [16.8 Accuracy & Limitations](#168-accuracy--limitations)
+- [17. Deepgram Speaker Diarization](#17-deepgram-speaker-diarization)
+  - [17.1 Why Deepgram?](#171-why-deepgram)
+  - [17.2 How It Works](#172-how-it-works)
+  - [17.3 Speaker Index → Real Name Correlation](#173-speaker-index--real-name-correlation)
+  - [17.4 Deepgram API Configuration](#174-deepgram-api-configuration)
+  - [17.5 Service Architecture](#175-service-architecture)
+  - [17.6 Graceful Degradation](#176-graceful-degradation)
+  - [17.7 Impact on Meeting Summaries](#177-impact-on-meeting-summaries)
 
 ---
 
@@ -133,8 +141,11 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | **Voice mute/unmute** | Physical mic toggle in Google Meet via voice commands |
 | **Barge-in support** | Stops talking immediately when interrupted |
 | **Auto-leave** | Leaves after 45 seconds alone in an empty meeting |
-| **Transcript storage** | All conversation is stored in DynamoDB with sentiment tags |
-| **Meeting summaries** | AI-generated summaries of any meeting session |
+| **Speaker diarization** | Deepgram identifies who is speaking in real-time; transcripts show real names (e.g. "John:") not "participant" |
+| **Named transcript attribution** | Every message stored in DynamoDB is tagged with the speaker's real name, sourced from Deepgram + DOM correlation |
+| **Transcript storage** | All conversation is stored in DynamoDB with sentiment tags and named speaker labels |
+| **Individual-contribution summaries** | AI summaries (short \& long) call out each person's specific contributions — who drove the discussion, who proposed key ideas, and who was most impactful |
+| **Meeting summaries** | AI-generated summaries via OpenAI GPT-4o-mini — available in short (4-6 sentence) or detailed (400-700 word) mode |
 | **Auth session management** | Auto-refreshes Google login cookies every 7 days |
 | **Multi-platform** | Architecture supports Google Meet and Zoom |
 
@@ -176,21 +187,26 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | Technology | Purpose |
 |---|---|
 | **Amazon Nova Sonic** (`amazon.nova-sonic-v1:0`) | Speech-to-speech model — STT + LLM + TTS in one bidirectional stream |
-| **AWS Bedrock** (`InvokeModelWithBidirectionalStreamCommand`) | Streaming inference API |
+| **AWS Bedrock** (`InvokeModelWithBidirectionalStreamCommand`) | Streaming inference API for Nova Sonic |
+| **OpenAI GPT-4o-mini** | Text generation: meeting summaries (short \& long), meeting titles, AI text responses |
+| **Deepgram Nova-2** | Real-time speaker diarization — identifies which speaker is which in the mixed audio stream |
 | **Web Audio API** | In-browser audio capture and injection |
-| **WebRTC** | Meeting audio transport (intercepted, not implemented) |
+| **WebRTC** | Meeting audio transport (intercepted via `RTCPeerConnection` hook) |
 
 ### 2.4 Infrastructure
 
 | Resource | Purpose |
 |---|---|
-| **AWS EC2** (`t3.small`, `52.206.83.13`) | Backend server (Ubuntu 22.04) |
+| **AWS EC2** (`t3.small`, `98.92.255.171`) | Backend server (Ubuntu 22.04) |
 | **AWS DynamoDB** | Meeting sessions + transcripts (`lira-meetings`, `lira-connections`) |
-| **AWS S3** | Audio recording storage |
+| **AWS S3** | Audio recording + Google auth state backup |
 | **AWS Secrets Manager** | Database credentials |
+| **OpenAI API** | GPT-4o-mini — meeting summaries, title generation, AI text responses |
+| **Deepgram API** | Nova-2 streaming — real-time speaker diarization ($0.0059/min, pay-per-use) |
 | **Vercel** | Frontend hosting (`lira.creovine.com`) |
-| **Namecheap DNS** | Domain management |
+| **Namecheap DNS** | Domain management (`api.creovine.com` → EC2) |
 | **systemd** | Process management (`creovine-api.service`) |
+| **nginx** | Reverse proxy + SSL termination (Let's Encrypt, cert valid to June 2026) |
 
 ---
 
@@ -1407,6 +1423,12 @@ JWT_EXPIRES_IN=15m
 # AWS (via instance role, but region needed)
 AWS_REGION=us-east-1
 
+# Lira AI (text generation + summaries)
+OPENAI_API_KEY=sk-proj-...              # GPT-4o-mini for summaries, titles, text responses
+
+# Deepgram (speaker diarization — optional, falls back gracefully if unset)
+DEEPGRAM_API_KEY=...                    # Deepgram Nova-2 streaming API key
+
 # Lira AI Bot
 LIRA_BOT_GOOGLE_AUTH_STATE=.lira-bot-auth/google-state.json
 LIRA_BOT_DISPLAY_NAME=Lira AI
@@ -1542,17 +1564,21 @@ injectAudio(pcmChunk: Buffer): void {
 
 > **Commit**: `3da9ee3` — *fix: debounce echo gate for multi-turn Nova Sonic responses*
 
-### 11.9 Speaker Identification Without Per-Stream Access
+### 11.9 Speaker Identification — From DOM-Only to Deepgram Diarization
 
-**Problem**: A meeting AI that can identify who is speaking and address people by name would be a significant differentiator. However, the WebRTC audio capture pipeline receives a **single mixed PCM stream** — all participants' voices are combined into one audio feed before they reach the Audio Bridge. There is no standard API to demix a merged WebRTC audio stream or to map individual `MediaStreamTrack` objects to participant display names in a headless browser context.
+**Original problem**: The WebRTC audio capture pipeline receives a **single mixed PCM stream** — all participants' voices are combined before they reach the Audio Bridge. There is no standard API to demix a merged WebRTC stream in a headless browser. This meant the only identification method was DOM-based timing correlation — unreliable for rapid cross-talk and yielding generic "participant" labels for any speaker not caught by the 2-second DOM poll.
 
-**Solution**: Rather than trying to identify speakers from audio (which would require per-track access and a separate speaker diarization model), the system uses **two complementary approaches**:
+**Fully implemented solution** — Three-tier speaker identification system:
 
-1. **DOM scraping for names** — Google Meet renders participant tiles (`[data-participant-id]`) with names embedded as `img[alt]` attributes, `aria-label` values, or text overlays. Three fallback strategies ensure maximum coverage across Google Meet UI versions.
+**Tier 1 — Deepgram real-time diarization** (new, primary method): The same 16 kHz Int16 PCM audio that feeds Nova Sonic is simultaneously streamed to [Deepgram's Nova-2 streaming API](https://deepgram.com) with `diarize=true`. Deepgram identifies distinct speakers in the mixed stream and labels each word with a speaker index (Speaker 0, Speaker 1, …). This works on the actual voice characteristics, not DOM timing. Cost: ~$0.0059/min, pay-per-use.
 
-2. **DOM-based active speaker detection** — Google Meet applies a coloured border or `box-shadow` to the active speaker's tile. Polling the computed styles of all participant tiles every 2 seconds identifies the current speaker.
+**Tier 2 — DOM name correlation**: The existing 2-second active speaker DOM poll (`getActiveSpeaker()`) calls `diarization.correlateNameWithSpeaker()` whenever Google Meet's UI shows a speaking indicator. If Deepgram recently identified a speaker index (within a 4-second window), that index is mapped to the participant name from the DOM. This mapping persists for the entire session (`Speaker 0 = John`, `Speaker 1 = Sarah`).
 
-See **Section 16** for full architecture, implementation details, and accuracy characteristics.
+**Tier 3 — DOM fallback**: If Deepgram is unavailable (API key not set), the system falls back gracefully to pure DOM polling — the pre-existing behaviour.
+
+Result: transcripts now store `speaker: "John"` instead of `speaker: "participant"`. Lira's system prompt still receives participant names from the DOM scraper. The new `deepgram-diarization.service.ts` manages the WebSocket lifecycle, speaker map, and correlation logic.
+
+See **Section 17** for the full Deepgram integration architecture.
 
 ---
 
@@ -1598,26 +1624,29 @@ Here is the complete journey from a user clicking "Send Lira to Meeting" to Lira
 - Any pending remote streams are connected to the capture mixer
 - Bot emits `'joined'` event
 
-**Step 7 — Nova Sonic session starts**
+**Step 7 — Nova Sonic + Deepgram sessions start**
 - Bot Manager receives `'joined'` event
 - Calls `sonic.startSession()` with callbacks
-- Nova Sonic opens bidirectional Bedrock stream
-- Sends session config → system prompt (personality + wake word instructions) → opens audio content
-- Starts 5-second keepalive timer
+- Nova Sonic opens bidirectional Bedrock stream — system prompt sent with personality + participant names
+- **Simultaneously**, `diarization.startDiarization(sessionId)` opens a Deepgram WebSocket
+- Both sessions are now ready to receive audio
 
-**Step 8 — Meeting audio flows**
+**Step 8 — Meeting audio flows (dual-stream)**
 - Participants speak → WebRTC delivers audio to all
-- Audio Bridge captures via ScriptProcessorNode (16 kHz)
+- Audio Bridge captures via ScriptProcessorNode (16 kHz Int16 PCM)
 - Echo gate checks: not outputting → forward
 - Energy gate checks: above 0.001 → forward
-- PCM → base64 → Node.js callback → `sonic.sendAudio(sessionId, pcm)`
-- Nova Sonic receives audio in real-time
+- Same PCM bytes sent to **both**:
+  - `sonic.sendAudio(sessionId, pcm)` → Nova Sonic for speech-to-speech
+  - `diarization.sendAudio(sessionId, pcm)` → Deepgram for speaker labeling
 
-**Step 9 — Nova Sonic processes**
-- Speech-to-Text: generates transcript in fragments
-- Sends `textOutput` with `role=user` → transcript stored in DynamoDB
-- Wake word service checks transcript against 4 layers
-- If name detected: `wakeWordActive = true`
+**Step 9 — Nova Sonic processes + Deepgram labels speaker**
+- Nova Sonic STT: generates transcript fragments
+- Sends `textOutput` with `role=user` → transcript processing
+- **Simultaneously**, Deepgram returns speaker-labeled words: `{word: "I", speaker: 0, ...}`
+- Deepgram `getCurrentSpeakerName(sessionId)` → resolves Speaker 0 to "John" (via prior DOM correlation)
+- Transcript stored in DynamoDB: `{ speaker: "John", text: "I think we should…" }`
+- Wake word service checks transcript: "Lira" found → `wakeWordActive = true`
 
 **Step 10 — Lira responds (if addressed)**
 - Nova Sonic generates response
@@ -1640,8 +1669,8 @@ Here is the complete journey from a user clicking "Send Lira to Meeting" to Lira
 - Participant clicks "End meeting" or all leave
 - Google Meet Driver detects meeting-end indicator or 45s alone timeout
 - Bot terminates: stops capture → leaves meeting → closes browser
-- Nova Sonic session ends
-- Bot Manager cleans up
+- Nova Sonic session ends; Deepgram session ends (CloseStream sent → final results logged)
+- Bot Manager cleans up all timers
 - Frontend polling sees `state: "terminated"`
 
 ---
@@ -1669,7 +1698,8 @@ creovine-api/
 │   │   ├── lira-sonic.service.ts   — Nova Sonic + wake word gating
 │   │   ├── lira-wakeword.service.ts — 4-layer wake word detection
 │   │   ├── lira-store.service.ts   — DynamoDB persistence
-│   │   └── lira-ai.service.ts      — Meeting summaries
+│   │   ├── lira-ai.service.ts      — Meeting summaries (OpenAI GPT-4o-mini) + title generation
+│   │   └── deepgram-diarization.service.ts — Real-time speaker diarization (Deepgram Nova-2)
 │   ├── models/
 │   │   ├── lira.models.ts          — Meeting, Message, SonicSession
 │   │   └── lira-bot.models.ts      — BotConfig, BotState
@@ -1818,21 +1848,19 @@ The browser-based demo meeting (WebSocket + mic in browser) and the headless bot
 
 ### 15.7 Speaker Identification Accuracy
 
-The DOM-based speaker identification system (Section 16) works well for normal conversation but has inherent limitations:
+The speaker identification system (Sections 16 & 17) is now a **two-tier architecture** combining Deepgram diarization with DOM-based correlation. Known characteristics:
 
-- **Active speaker poll latency**: The 2-second polling interval means speakers who talk for less than 2 seconds may not be detected. Rapid back-and-forth cross-talk may result in incorrect attribution.
-- **Google Meet UI dependency**: The speaking indicator detection relies on computed `border-color` and `box-shadow` styles on participant tiles. Google can change these styles in a UI update, breaking detection until selectors are updated.
-- **Names not available at first session start**: Participants' names are scraped 3 seconds after Lira joins. The very first Nova Sonic session starts before names are known. On any subsequent session restart (auto-reconnect), the names are passed to the new session's system prompt.
-- **No voice fingerprinting**: The system cannot reliably attribute a specific voice to a specific name without access to individual per-participant audio tracks and a diarization model. Attribution relies entirely on timing correlation between the Google Meet speaking indicator and when speech arrives.
-- **Mid-sentence attribution errors**: If the active speaker poll captures a different participant's name during a long sentence, that sentence may be attributed incorrectly in the transcript.
-
-**Future improvement**: Use the `ontrack` event's `streams[0].id` to correlate each incoming `MediaStream` with its participant tile in the DOM at the moment the track arrives, creating a stable stream-to-name map that doesn't depend on polling.
+- **Deepgram diarization accuracy**: Deepgram Nova-2 has very high accuracy for clean speech in meetings. Short utterances (<0.5s) may not produce a speaker label. The `interim_results: true` setting provides faster labels but may be revised in the final result.
+- **Correlation window (4 seconds)**: The DOM name poll must confirm the active speaker within 4 seconds of Deepgram's last speaker detection. In rapid cross-talk, correlation may assign a wrong name. Once mapped, corrections require a new matching event.
+- **DOM dependency for name lookup**: Real names still come from Google Meet's DOM (img alt, aria-label). If Google updates the UI, the DOM scraper may stop returning names — but Deepgram diarization still works (falling back to "Speaker 0", "Speaker 1" labels).
+- **Deepgram connection setup time**: The Deepgram WebSocket connection opens when the bot joins. For the first 1–2 seconds of the meeting, diarization results may not yet be flowing — early utterances may use DOM-only attribution.
+- **Names not available at first Sonic session**: Participants' names are scraped 3 seconds after Lira joins. The initial Nova Sonic system prompt may start without names but subsequent session restarts include them.
 
 ---
 
-## 16. Speaker Identification System
+## 16. Speaker Identification System (DOM Layer)
 
-Lira can detect who is in the meeting, who is currently speaking, address participants by name in conversation, and attribute transcript messages to the correct speaker.
+Lira can detect who is in the meeting, who is currently speaking, address participants by name in conversation, and attribute transcript messages to the correct speaker. This section covers the DOM-based layer. For Deepgram diarization (the primary attribution method), see **Section 17**.
 
 ### 16.1 Overview
 
@@ -1842,7 +1870,8 @@ Lira can detect who is in the meeting, who is currently speaking, address partic
 | Get participant names | DOM scraping — 3 strategies | Medium-High |
 | Detect active speaker | Computed style polling on tiles | Medium |
 | Address by name in responses | System prompt instruction | High |
-| Speaker-attributed transcript | Poll correlation at transcript flush | Medium |
+| Speaker-attributed transcript (primary) | Deepgram diarization + DOM name correlation | High |
+| Speaker-attributed transcript (fallback) | DOM poll correlation at transcript flush | Medium |
 | Names in session on restart | Passed to `startSession()` on reconnect | High |
 
 ### 16.2 Architecture
@@ -1966,34 +1995,164 @@ All timers are cleaned up when the bot ends or when `terminateAll()` is called.
 
 ### 16.7 Speaker-Attributed Transcripts
 
-When Nova Sonic emits a user speech transcript (`onTextOutput`, `role = 'user'`), Bot Manager checks `sonic.getActiveSpeaker(sessionId)` at that moment. If a speaker is identified, the message is stored in DynamoDB with `speaker: "John"` instead of the generic `speaker: "participant"`.
+When Nova Sonic emits a user speech transcript (`onTextOutput`, `role = 'user'`), Bot Manager resolves the speaker name using a two-tier priority system:
 
 ```typescript
 // In bot-manager.service.ts — onTextOutput callback
 let speakerLabel = isAI ? aiName.toLowerCase() : 'participant';
 if (!isAI) {
-  const activeSpeaker = sonic.getActiveSpeaker(sessionId);
-  if (activeSpeaker) speakerLabel = activeSpeaker;
+  // 1st: Deepgram diarization (most accurate — based on actual voice)
+  const deepgramSpeaker = diarization.getCurrentSpeakerName(sessionId);
+  if (deepgramSpeaker) {
+    speakerLabel = deepgramSpeaker; // e.g. "John" — from Deepgram + DOM map
+  } else {
+    // 2nd: DOM active speaker fallback
+    const activeSpeaker = sonic.getActiveSpeaker(sessionId);
+    if (activeSpeaker) speakerLabel = activeSpeaker;
+  }
 }
 const msg: Message = {
   id: uuidv4(),
-  speaker: speakerLabel, // e.g. "John" or "participant"
+  speaker: speakerLabel, // e.g. "John", "Sarah", or "participant"
   text,
   is_ai: false,
   ...
 };
 ```
 
-This enables the transcript view in the frontend to show named speakers in the meeting history.
+The result is a full meeting transcript where every line is attributed to a real person by name. This feeds directly into the meeting summaries, which now include per-person contribution analysis.
 
 ### 16.8 Accuracy & Limitations
 
-See **Section 15.7** for a complete listing of known limitations. In summary:
+See **Section 15.7** for current characteristics. In summary:
 
-- Name detection via `img[alt]` and `aria-label` is **reliable** for meetings where Google renders participant tiles (typically 2+ participants, any modern Google Meet UI version).
-- Active speaker detection is **medium reliability** — works well for conversations where people take clear turns, less reliable for rapid cross-talk or very short utterances (< 2 s).
-- System prompt enrichment is **highly effective** — once Lira knows participants' names from the DOM, Nova Sonic naturally incorporates them into responses through the instruction in the system prompt.
+- Name detection via `img[alt]` and `aria-label` is **reliable** for meetings where Google renders participant tiles (2+ participants).
+- Active speaker detection (DOM) is **medium reliability** — works well for turn-taking conversations.
+- Deepgram diarization is **high reliability** for normal meeting speech — see Section 17 for full details.
+- System prompt enrichment is **highly effective** once names are known from the DOM.
 
 ---
 
-*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock.*
+## 17. Deepgram Speaker Diarization
+
+Deepgram is a pay-per-use speech AI platform. Lira uses Deepgram's **Nova-2 streaming model** specifically for speaker diarization — determining which distinct voice corresponds to which utterance in the mixed meeting audio.
+
+### 17.1 Why Deepgram?
+
+Nova Sonic receives the meeting as a single mixed PCM stream (all participants combined). This means Nova Sonic itself cannot tell who is speaking — it just hears voices. Deepgram solves this by analysing voice characteristics in the stream and labelling each word with a speaker index.
+
+Compared to alternatives:
+- **AWS Transcribe**: Also supports diarization but higher latency and cost (~$1.44/hr vs $0.35/hr for Deepgram).
+- **AssemblyAI**: Similar quality but slightly more expensive and no performance advantage for this use case.
+- **Deepgram Nova-2**: Best balance of latency, accuracy, and cost for real-time meeting diarization. Pay-as-you-go, ~$0.0059/min.
+
+### 17.2 How It Works
+
+The Deepgram integration runs in **parallel with Nova Sonic** — the same captured audio bytes are sent to both:
+
+```
+Meeting audio (16 kHz Int16 PCM)
+          │
+          ├──────────────────────────────► Nova Sonic (Bedrock)
+          │                                 Speech → AI response
+          │
+          └──────────────────────────────► Deepgram (WebSocket)
+                                            Speech → speaker-labeled transcript
+```
+
+Deepgram returns events like:
+```json
+{
+  "type": "Results",
+  "is_final": true,
+  "channel": {
+    "alternatives": [{
+      "transcript": "I think we should go with option B",
+      "words": [
+        { "word": "I",     "speaker": 0, "start": 0.1 },
+        { "word": "think", "speaker": 0, "start": 0.4 },
+        ...
+      ]
+    }]
+  }
+}
+```
+
+The `speaker` field gives the speaker index (0, 1, 2, …). The **correlation layer** then maps these indices to real names.
+
+### 17.3 Speaker Index → Real Name Correlation
+
+Deepgram gives us `Speaker 0`, `Speaker 1`, etc. — not real names. The correlation works like this:
+
+1. Deepgram fires: "Speaker 0 is talking" at time T
+2. DOM polling (every 2s) fires: "John is the active speaker" at time T±2s
+3. Within the 4-second correlation window: `Speaker 0 → John` is mapped
+4. This mapping persists for the entire session
+
+```typescript
+// In bot-manager.service.ts — active speaker poll
+const speaker = await meetingBot.getActiveSpeaker();
+sonic.setActiveSpeaker(sessionId, speaker);
+if (speaker) {
+  diarization.correlateNameWithSpeaker(sessionId, speaker);
+  // If Deepgram recently saw "Speaker 0" → maps Speaker 0 → speaker name
+}
+```
+
+Once mapped, every future Deepgram utterance from Speaker 0 resolves to "John" automatically via `getCurrentSpeakerName(sessionId)`.
+
+### 17.4 Deepgram API Configuration
+
+```
+WebSocket URL: wss://api.deepgram.com/v1/listen
+Parameters:
+  model=nova-2
+  language=en
+  diarize=true
+  smart_format=true
+  encoding=linear16
+  sample_rate=16000
+  channels=1
+  interim_results=true
+  utterance_end_ms=1000
+  punctuate=true
+Auth: Authorization: Token ${DEEPGRAM_API_KEY}
+```
+
+### 17.5 Service Architecture
+
+`deepgram-diarization.service.ts` manages all Deepgram sessions:
+
+| Function | Purpose |
+|---|---|
+| `startDiarization(sessionId, onUtterance?)` | Opens Deepgram WebSocket for a meeting session |
+| `sendAudio(sessionId, pcmChunk)` | Streams audio bytes to Deepgram |
+| `correlateNameWithSpeaker(sessionId, domName)` | Links DOM-scraped name to current Deepgram speaker index |
+| `getCurrentSpeakerName(sessionId)` | Returns real name of current speaker (e.g. `"John"`) |
+| `getSpeakerMap(sessionId)` | Returns full `Map<speakerIndex, name>` for the session |
+| `endDiarization(sessionId)` | Sends CloseStream, closes WebSocket, logs final speaker map |
+
+### 17.6 Graceful Degradation
+
+If `DEEPGRAM_API_KEY` is not set, `startDiarization()` logs a warning and returns immediately. The bot continues to work normally — speaker attribution falls back to DOM-only polling. No errors are thrown.
+
+If the Deepgram WebSocket disconnects mid-meeting, the service marks the session inactive. Subsequent `sendAudio()` and `getCurrentSpeakerName()` calls silently no-op. The DOM fallback takes over.
+
+### 17.7 Impact on Meeting Summaries
+
+Because transcripts now contain real speaker names, the summary prompt (in `lira-ai.service.ts`) has been updated to take full advantage:
+
+- **Short summaries** include a "standout contributor" callout naming the person who drove the conversation most.
+- **Long summaries** include an **Individual Contributions** section — 1-3 sentences per named participant describing what they specifically brought to the meeting.
+- Lira's own contributions are described explicitly (e.g. "Lira recommended restructuring the onboarding flow and the team aligned with her suggestion").
+- If only generic "participant" labels are available (Deepgram not configured), the summary gracefully refers to "the team" without inventing names.
+
+**Example short summary output** (with diarization active):
+> In a 25-minute product strategy meeting, **John**, **Sarah**, and **Lira** (AI) discussed the Q2 roadmap prioritisation. **John** proposed deprioritising the mobile feature to focus on API stability, while **Sarah** pushed back citing customer demand data. **Lira** recommended a phased approach — ship a lightweight mobile release first, then the API work — which the group aligned on. **John** was the most vocal driver of the final decision. Next steps: John to draft the revised roadmap by Friday.
+
+**Example long summary — Individual Contributions section**:
+> **John** led much of the discussion, proposing the initial prioritisation framework and ultimately driving the group toward the phased decision. His input was decisive and backed by technical context. **Sarah** provided a strong counterpoint with customer data, challenging the initial framing effectively. **Lira** synthesised the two positions and offered the bridging recommendation that resolved the disagreement — her contribution was pivotal in reaching a conclusion.
+
+---
+
+*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock, OpenAI GPT-4o-mini, and Deepgram Nova-2.*
