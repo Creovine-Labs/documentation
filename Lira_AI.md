@@ -2,6 +2,7 @@
 
 > **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
 
+*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, individual-contribution meeting summaries, and the Organization Context System (knowledge base, RAG pipeline, task engine)*
 
 ---
 
@@ -109,6 +110,24 @@
   - [17.5 Service Architecture](#175-service-architecture)
   - [17.6 Graceful Degradation](#176-graceful-degradation)
   - [17.7 Impact on Meeting Summaries](#177-impact-on-meeting-summaries)
+- [18. Organization Context System](#18-organization-context-system)
+  - [18.1 Overview & Problem Statement](#181-overview--problem-statement)
+  - [18.2 System Architecture](#182-system-architecture)
+  - [18.3 Data Models](#183-data-models)
+  - [18.4 Phase 1 — Organization CRUD & Membership](#184-phase-1--organization-crud--membership)
+  - [18.5 Phase 2 — Organization Profile & Context Injection](#185-phase-2--organization-profile--context-injection)
+  - [18.6 Phase 3 — Website Crawl & Knowledge Base](#186-phase-3--website-crawl--knowledge-base)
+  - [18.7 Phase 4 — Document Upload, Parsing & RAG Pipeline](#187-phase-4--document-upload-parsing--rag-pipeline)
+  - [18.8 Phase 5 — Vector Search & Semantic Retrieval](#188-phase-5--vector-search--semantic-retrieval)
+  - [18.9 Phase 6 — Context Injection into Nova Sonic](#189-phase-6--context-injection-into-nova-sonic)
+  - [18.10 Phase 7 — Task Execution Engine](#1810-phase-7--task-execution-engine)
+  - [18.11 Phase 8 — Frontend Implementation](#1811-phase-8--frontend-implementation)
+  - [18.12 Phase 9 — Testing, Observability & Hardening](#1812-phase-9--testing-observability--hardening)
+  - [18.13 API Reference](#1813-api-reference)
+  - [18.14 Pricing Tiers & Feature Matrix](#1814-pricing-tiers--feature-matrix)
+  - [18.15 Security & Data Isolation](#1815-security--data-isolation)
+  - [18.16 Infrastructure & AWS Resources](#1816-infrastructure--aws-resources)
+  - [18.17 Migration Strategy & Backward Compatibility](#1817-migration-strategy--backward-compatibility)
 
 ---
 
@@ -2151,6 +2170,556 @@ Because transcripts now contain real speaker names, the summary prompt (in `lira
 
 **Example long summary — Individual Contributions section**:
 > **John** led much of the discussion, proposing the initial prioritisation framework and ultimately driving the group toward the phased decision. His input was decisive and backed by technical context. **Sarah** provided a strong counterpoint with customer data, challenging the initial framing effectively. **Lira** synthesised the two positions and offered the bridging recommendation that resolved the disagreement — her contribution was pivotal in reaching a conclusion.
+
+---
+
+*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock, OpenAI GPT-4o-mini, and Deepgram Nova-2.*
+
+---
+
+## 18. Organization Context System
+
+> **Full implementation specification v2.0 — March 2026. Status: Shipped.**
+
+Lira AI now supports a full **Organization Context System** that makes Lira context-aware for every team it serves. Instead of joining meetings as a knowledgeable stranger, Lira can now know a company's products, terminology, culture, and ongoing projects — and answer questions grounded in that knowledge.
+
+---
+
+### 18.1 Overview & Problem Statement
+
+Before this system, Lira joined meetings as a smart stranger. It had personality, it could listen and respond, it could generate summaries — but it knew nothing about the company it was serving. It didn't know the company's products, terminology, culture, org structure, or ongoing projects. This limited its value from "impressive demo" to "indispensable team member."
+
+**Solution:** A complete Organization Context System that:
+
+1. Allows users to create or join an **Organization** (company / team / workspace)
+2. Captures structured context about the organization (industry, products, terminology, culture)
+3. Crawls the organization's website and extracts summarized knowledge
+4. Accepts uploaded documents (PDFs, DOCX, TXT, Notion exports) and indexes them using a RAG pipeline
+5. Stores document embeddings in a vector database for semantic retrieval
+6. Injects the right context into Lira's system prompt per-meeting, per-organization
+7. Enables Lira to capture and manage tasks during and after meetings (action items, follow-ups)
+
+**Design Principles:**
+- **Implement everything now, gate later.** Every feature is fully built and testable. Plan-based gating is a frontend/API concern, not an architecture concern.
+- **Context is per-session.** Lira never holds multiple organizations in memory. Each Nova Sonic session receives exactly one organization's context. Zero cross-contamination.
+- **Storage-efficient by design.** Raw documents stored in S3, summaries and embeddings in purpose-built stores. No raw HTML or full-text in DynamoDB.
+- **Graceful degradation.** If the knowledge base is empty, Lira still works with just the organization profile. If no organization exists, Lira works exactly as it does today.
+
+---
+
+### 18.2 System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Frontend (React)                            │
+│  ┌─────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
+│  │  Org Onboarding │  │  Knowledge Base  │  │  Document Upload │  │
+│  │  Create / Join  │  │  Management UI   │  │  & Status UI     │  │
+│  └─────────────────┘  └──────────────────┘  └──────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↕ REST API
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Backend (Fastify)                               │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
+│  │  Org      │  │  Knowledge   │  │  Document     │  │  Context  │ │
+│  │  Service  │  │  Base Service│  │  Processing   │  │  Builder  │ │
+│  │  (CRUD)   │  │  (Crawl+Sum) │  │  (Parse+RAG)  │  │  Service  │ │
+│  └──────────┘  └──────────────┘  └──────────────┘  └───────────┘ │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
+│  │  Task     │  │  Embedding   │  │  Vector      │  │  Webhook  │ │
+│  │  Engine   │  │  Service     │  │  Search Svc  │  │  Service  │ │
+│  └──────────┘  └──────────────┘  └──────────────┘  └───────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↕
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Storage Layer                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
+│  │  DynamoDB     │  │  S3           │  │  Qdrant (self-hosted)   │ │
+│  │  (Orgs, KB,   │  │  (Documents,  │  │  OR Pinecone Free Tier  │ │
+│  │   Tasks,      │  │   Audio,      │  │  (Vector embeddings     │ │
+│  │   Memberships)│  │   Crawl data) │  │   for RAG retrieval)    │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Component Responsibilities
+
+| Component | Responsibility |
+|---|---|
+| **Org Service** | CRUD for organizations, membership, invite codes, profile management |
+| **Knowledge Base Service** | Website crawling, page summarization, keyword extraction, scheduled re-crawls |
+| **Document Processing Service** | File upload to S3, text extraction (PDF/DOCX/TXT), chunking, embedding generation |
+| **Embedding Service** | OpenAI `text-embedding-3-small` for vector generation (1536 dimensions) |
+| **Vector Search Service** | Qdrant (self-hosted) or Pinecone for storing/querying embeddings |
+| **Context Builder Service** | Assembles the final context payload from org profile + relevant KB + RAG chunks |
+| **Task Engine** | Manages action items, follow-ups, and task execution during/after meetings |
+| **Webhook Service** | Outbound notifications (Slack, email) for task updates and meeting summaries |
+
+---
+
+### 18.3 Data Models
+
+#### Organization Profile (DynamoDB — `lira-organizations` table)
+
+```typescript
+interface OrganizationProfile {
+  PK: `ORG#${string}`       // "ORG#<orgId>"
+  SK: 'PROFILE'
+  orgId: string             // UUID v4
+  name: string              // "AB Company"
+  slug: string              // "ab-company" (URL-friendly, unique)
+  inviteCode: string        // "LRA-X7K2" (regeneratable)
+
+  // Core context fields
+  industry: string
+  description: string       // max 2000 chars
+  mission?: string          // max 500 chars
+  products: ProductEntry[]
+  terminology: TermEntry[]  // domain-specific terms + definitions
+  competitors?: string[]
+  teamSize?: string
+  culture: OrganizationCulture
+
+  // External links
+  websiteUrl?: string
+  additionalUrls?: string[]
+
+  // Knowledge base status
+  websiteCrawlStatus?: 'pending' | 'crawling' | 'completed' | 'failed'
+  websiteCrawlPageCount?: number
+  documentCount?: number
+  embeddingCount?: number
+
+  plan: 'free' | 'basic' | 'pro' | 'enterprise'
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+```
+
+#### Knowledge Base Entry (from website crawl)
+
+```typescript
+interface KnowledgeBaseEntry {
+  PK: `ORG#${string}`
+  SK: `KB#${string}`
+  sourceUrl: string
+  title: string
+  summary: string          // AI-generated 200-400 word digest
+  keywords: string[]
+  social_links?: Record<string, string>  // { twitter, linkedin, github, ... }
+  crawledAt: string
+  summaryModel: string     // "gpt-4o-mini"
+  tokenCount: number
+}
+```
+
+#### Document Record (uploaded files)
+
+```typescript
+interface DocumentRecord {
+  PK: `ORG#${string}`
+  SK: `DOC#${string}`
+  docId: string
+  fileName: string
+  fileType: 'pdf' | 'docx' | 'txt' | 'md' | 'csv' | 'xlsx'
+  s3Key: string
+  status: 'uploaded' | 'processing' | 'indexed' | 'failed'
+  chunkCount?: number
+  embeddingCount?: number
+  summary?: string
+  uploadedBy: string
+  uploadedAt: string
+}
+```
+
+#### Task Record
+
+```typescript
+interface TaskRecord {
+  PK: `ORG#${string}`
+  SK: `TASK#${string}`
+  taskId: string
+  meetingSessionId?: string   // linked meeting
+  title: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  assignedTo?: string
+  assignedBy: 'lira' | string
+  dueDate?: string
+  sourceType: 'meeting_transcript' | 'manual' | 'follow_up'
+  sourceQuote?: string        // relevant transcript snippet
+  taskType: 'action_item' | 'draft_document' | 'research' | 'follow_up_email' | 'summary' | 'custom'
+  createdAt: string
+  updatedAt: string
+}
+```
+
+#### S3 Bucket Structure
+
+```
+lira-organization-data/
+└── orgs/
+    └── <orgId>/
+        ├── documents/<docId>/original.<ext>
+        ├── documents/<docId>/extracted.txt
+        ├── crawl/<pageId>/raw.txt
+        └── tasks/<taskId>/output.<ext>
+```
+
+#### Vector Store — Qdrant (Self-Hosted)
+
+Qdrant runs as a Docker container on the same EC2 instance as the backend — zero additional cost. Collection: `lira-org-embeddings`, 1536-dimensional Cosine vectors (`text-embedding-3-small`). Each vector point carries payload: `orgId`, `sourceType` (`document` | `website`), `sourceId`, `chunkIndex`, `text`, `keywords`.
+
+Alternative: **Pinecone Free Tier** (1 pod, 5M vectors) for early production or teams that prefer managed infrastructure.
+
+---
+
+### 18.4 Phase 1 — Organization CRUD & Membership
+
+**API routes:** `POST /api/orgs`, `GET /api/orgs`, `GET /api/orgs/:orgId`, `PATCH /api/orgs/:orgId`, `DELETE /api/orgs/:orgId`, `POST /api/orgs/join`, `GET /api/orgs/:orgId/members`, `POST /api/orgs/:orgId/invite`, `DELETE /api/orgs/:orgId/members/:userId`
+
+**Key behaviors:**
+- Creating an org auto-generates a unique `slug` and a 6-char alphanumeric `inviteCode` (`LRA-XXXX`)
+- Joining via invite code assigns the user as `member` role
+- Roles: `owner` > `admin` > `member` — only owners/admins can modify org settings
+- Invite codes are regeneratable by owners at any time
+- Dual-write pattern: org profile stored at `ORG#<orgId>/PROFILE` and reverse lookup at `USER#<userId>/ORG#<orgId>`
+
+---
+
+### 18.5 Phase 2 — Organization Profile & Context Injection
+
+The **Context Builder Service** (`lira-context-builder.service.ts`) assembles a structured context block for injection into Nova Sonic's system prompt:
+
+```
+=== ORGANIZATION CONTEXT ===
+Organization: {name} | Industry: {industry} | Size: {teamSize}
+
+Description:
+{description}
+
+Mission:
+{mission}
+
+Key Products/Services:
+• {product.name}: {product.description}
+
+Important Terminology:
+• {term.term}: {term.definition}
+
+Culture: {style} communication, {meetingStyle} meetings
+Values: {values.join(', ')}
+
+=== KNOWLEDGE BASE HIGHLIGHTS ===
+{top 3 KB summaries, most relevant to meeting topic}
+
+=== RELEVANT DOCUMENTS ===
+{top 3-5 RAG chunks from uploaded documents}
+```
+
+The assembled context is injected into Nova Sonic's `systemPrompt` field at session start. Token budget is strictly managed — org profile ≤ 800 tokens, KB highlights ≤ 1200 tokens, RAG chunks ≤ 1500 tokens.
+
+Context is also injected into the OpenAI GPT-4o-mini system prompt for meeting summary generation.
+
+---
+
+### 18.6 Phase 3 — Website Crawl & Knowledge Base
+
+The **lira-crawl.service.ts** crawls up to 10 pages per org (depth ≤ 2) using `crawlee` with Cheerio for static pages. For each page:
+
+1. Clean HTML → extract text (strip nav/footer/boilerplate)
+2. GPT-4o-mini summarizes to a 200-400 word digest
+3. Extract keywords (product names, industry terms)
+4. Extract social links (`extractSocialLinks()` → LinkedIn, Twitter/X, GitHub, Facebook, Instagram, YouTube)
+5. Store as `KnowledgeBaseEntry` in DynamoDB
+6. Optionally store raw text in S3
+
+Crawls are triggered on-demand (user action) or via a nightly SQS job. Status progression: `pending` → `crawling` → `completed` / `failed`. Social links are surfaced in the Knowledge Base UI.
+
+---
+
+### 18.7 Phase 4 — Document Upload, Parsing & RAG Pipeline
+
+Document processing pipeline:
+
+```
+User uploads file
+       ↓
+Multipart upload → S3 (original file preserved)
+       ↓
+Text extraction:
+  PDF  → pdf-parse (page-by-page, preserves structure)
+  DOCX → mammoth (converts to clean text)
+  TXT/MD → direct read
+       ↓
+Chunking: 512-token sliding window, 50-token overlap
+(sentence-boundary-aware chunking)
+       ↓
+OpenAI text-embedding-3-small → 1536-dim vector per chunk
+       ↓
+Upsert to Qdrant with orgId payload filter
+       ↓
+Update DocumentRecord status → 'indexed'
+```
+
+Supported file types: PDF, DOCX, TXT, MD, CSV, XLSX. Max file size: 50 MB. All processing is async — document status polling endpoint `GET /api/orgs/:orgId/documents/:docId/status`.
+
+---
+
+### 18.8 Phase 5 — Vector Search & Semantic Retrieval
+
+**Hybrid retrieval strategy:**
+
+1. **Dense semantic search** — embed the meeting topic/transcript snippet → kNN query on Qdrant filtered by `orgId`
+2. **Keyword sparse search** — BM25-style match against stored `keywords` arrays in DynamoDB KB entries
+3. **Score fusion** — weight 70% dense + 30% sparse → return top-5 chunks
+
+Each session receives at most 5 document chunks (≤ 1500 tokens) and 3 KB entries (≤ 1200 tokens). Freshness weighting optionally boosts recently updated entries.
+
+---
+
+### 18.9 Phase 6 — Context Injection into Nova Sonic
+
+Context injection happens at `startSession()` in `lira-ai.service.ts`:
+
+```typescript
+const ctx = await contextBuilder.build(sessionId, orgId, {
+  meetingTopic: options.meetingTopic,
+  transcript: recentTranscriptSnippet,   // last ~500 tokens for relevance scoring
+  maxTotalTokens: 3500,
+})
+
+const systemPrompt = buildSystemPrompt(options) + '\n\n' + ctx.contextBlock
+```
+
+Context is assembled once per session (not per turn) to avoid re-billing embeddings on every utterance. If `orgId` is not provided, `ctx.contextBlock` returns an empty string and Lira behaves exactly as before.
+
+**Token budget enforcement:**
+
+| Layer | Max tokens |
+|---|---|
+| Org profile | 800 |
+| KB highlights (website) | 1200 |
+| RAG document chunks | 1500 |
+| **Total added context** | **≤ 3500** |
+
+---
+
+### 18.10 Phase 7 — Task Execution Engine
+
+#### Real-time Task Capture in Meetings
+
+The WebSocket handler (`lira-ws.routes.ts`) scans every transcript utterance for task-intent phrases using 15+ regex patterns:
+
+```
+"action item", "assign", "follow up", "task for", "make sure",
+"don't forget", "remember to", "someone should", "we need to",
+"by [day]", "before [date]", "can you"
+```
+
+When detected:
+1. GPT-4o-mini extracts: `title`, `assignedTo`, `dueDate`, `priority`, `taskType`, `sourceQuote`
+2. `TaskRecord` written to DynamoDB under the org
+3. `task_created` WebSocket event broadcast to the meeting session
+4. Frontend shows a floating toast notification: *"✓ Task added: Send Q4 report"*
+
+#### Task Routes
+
+`GET /api/orgs/:orgId/tasks` — list tasks (filterable by `?status=pending`, `?assigned_to=`, `?priority=`)
+`POST /api/orgs/:orgId/tasks` — create task manually
+`PATCH /api/orgs/:orgId/tasks/:taskId` — update status, assignee, due date
+`DELETE /api/orgs/:orgId/tasks/:taskId` — delete task
+
+---
+
+### 18.11 Phase 8 — Frontend Implementation
+
+#### New Pages
+
+| Page | Route | Description |
+|---|---|---|
+| **OrganizationsPage** | `/organizations` | List all orgs, switch active org |
+| **OnboardingPage** | `/onboarding` | Create org (with AI-assisted description from URL) or join via invite code |
+| **OrgSettingsPage** | `/org/settings` | Edit profile, industry, products, terminology, culture |
+| **KnowledgeBasePage** | `/org/knowledge` | Trigger crawl, view crawled pages, social links, upload documents |
+| **DocumentsPage** | `/org/documents` | Document list with processing status, embeddings count |
+| **TasksPage** | `/org/tasks` | Task board with filters, manual creation, status updates |
+| **OrgMembersPage** | `/org/members` | Member list, invite new members, manage roles |
+| **WebhooksPage** | `/org/webhooks` | Configure outbound webhook URL and event subscriptions |
+
+#### OrgLayout
+
+All org pages share an `OrgLayout` component that provides:
+- Left sidebar navigation with org-context links
+- Org switcher dropdown (top-left)
+- **Notification bell** (top-right) — violet badge showing unread pending task count, auto-refreshes every 60 seconds, click opens a dropdown of recent pending tasks with click-through to the task detail
+
+#### Meeting Integration
+
+- **BotDeployPanel** — org picker dropdown to link a Google Meet/Zoom bot deployment to an org
+- **MeetingPage** — org picker before starting a browser-based audio meeting; task toast notification when Lira captures a task during the meeting
+- **MeetingsPage** — org filter dropdown, checkboxes for bulk delete, org name badge on each meeting card
+
+#### State Management
+
+New `useOrgStore` Zustand store:
+```typescript
+interface OrgStore {
+  organizations: Organization[]
+  currentOrgId: string | null
+  setOrganizations: (orgs: Organization[]) => void
+  setCurrentOrg: (orgId: string) => void
+}
+```
+Persisted to `localStorage` via `zustand/middleware` `persist`.
+
+---
+
+### 18.12 Phase 9 — Testing, Observability & Hardening
+
+#### Unit Tests (`tests/unit/`)
+
+| Test file | What it covers |
+|---|---|
+| `lira-org.test.ts` | Org CRUD operations, invite code generation, membership role enforcement |
+| `lira-context-builder.test.ts` | Token budget enforcement, graceful empty-KB behavior, prompt assembly |
+| `lira-crawl-chunk.test.ts` | Chunking, sentence-boundary splitting, overlap handling |
+| `lira-document.test.ts` | PDF/DOCX text extraction, chunk count validation |
+| `lira-task.test.ts` | Task intent detection (true positives + false negatives), extraction accuracy |
+
+#### Observability
+
+- Every context build logs: `orgId`, token counts per layer, cache hit/miss, latency
+- Task capture logs: utterance, matched pattern, extracted fields, DynamoDB write latency
+- Crawl service logs: pages crawled, summaries generated, errors per URL, total duration
+- All logs structured JSON via `winston` to CloudWatch Logs
+
+---
+
+### 18.13 API Reference
+
+#### Organization Routes (`/api/orgs`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/orgs` | Create organization |
+| `GET` | `/api/orgs` | List user's organizations |
+| `GET` | `/api/orgs/:orgId` | Get org profile |
+| `PATCH` | `/api/orgs/:orgId` | Update org profile |
+| `DELETE` | `/api/orgs/:orgId` | Delete org (owner only) |
+| `POST` | `/api/orgs/join` | Join via invite code |
+| `POST` | `/api/orgs/:orgId/invite` | Generate/regenerate invite code |
+| `GET` | `/api/orgs/:orgId/members` | List members |
+| `DELETE` | `/api/orgs/:orgId/members/:userId` | Remove member |
+
+#### Knowledge Base Routes (`/api/orgs/:orgId/kb`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/orgs/:orgId/kb/crawl` | Trigger website crawl |
+| `GET` | `/api/orgs/:orgId/kb` | List KB entries |
+| `DELETE` | `/api/orgs/:orgId/kb/:pageId` | Delete KB entry |
+
+#### Document Routes (`/api/orgs/:orgId/documents`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/orgs/:orgId/documents` | Upload document (multipart) |
+| `GET` | `/api/orgs/:orgId/documents` | List documents |
+| `GET` | `/api/orgs/:orgId/documents/:docId/status` | Poll processing status |
+| `DELETE` | `/api/orgs/:orgId/documents/:docId` | Delete document + embeddings |
+
+#### Task Routes (`/api/orgs/:orgId/tasks`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/orgs/:orgId/tasks` | Create task |
+| `GET` | `/api/orgs/:orgId/tasks` | List tasks (filterable) |
+| `PATCH` | `/api/orgs/:orgId/tasks/:taskId` | Update task |
+| `DELETE` | `/api/orgs/:orgId/tasks/:taskId` | Delete task |
+
+---
+
+### 18.14 Pricing Tiers & Feature Matrix
+
+All features are fully implemented in the codebase. The tier matrix below reflects what is *gated* at the API/UI level:
+
+| Feature | Free | Basic | Pro | Enterprise |
+|---|:---:|:---:|:---:|:---:|
+| Organizations | 1 | 1 | 5 | Unlimited |
+| Members per org | 3 | 10 | 50 | Unlimited |
+| Website crawl pages | 5 | 20 | 100 | Unlimited |
+| Uploaded documents | 3 | 25 | 200 | Unlimited |
+| RAG retrieval in meetings | ✗ | ✓ | ✓ | ✓ |
+| Task engine | ✓ | ✓ | ✓ | ✓ |
+| AI task execution | ✗ | ✗ | ✓ | ✓ |
+| Webhook notifications | ✗ | ✓ | ✓ | ✓ |
+| Custom AI personality | ✗ | ✗ | ✓ | ✓ |
+
+---
+
+### 18.15 Security & Data Isolation
+
+- **org_id on every DynamoDB query** — all reads/writes are partition-key scoped to `ORG#<orgId>`. Cross-org data leakage is structurally impossible at the DB layer.
+- **Membership verification** — every org API route resolves the caller's `userId` from the JWT and verifies an active `OrgMembership` record before any operation.
+- **S3 key isolation** — all object keys are prefixed with `orgs/<orgId>/`. IAM policy restricts access to `lira-organization-data/orgs/${orgId}/*`.
+- **Qdrant payload filter** — every vector query includes `must: [{ key: 'orgId', match: { value: orgId } }]` — embeddings from one org are never retrievable by another.
+- **Invite codes are ephemeral** — codes can be regenerated at any time by the org owner, immediately invalidating all outstanding invitations.
+- **No raw PII in embeddings** — document chunks are plain text excerpts. Embeddings are mathematical representations; they cannot be reversed to reconstruct the original text.
+
+---
+
+### 18.16 Infrastructure & AWS Resources
+
+| Resource | Purpose | Notes |
+|---|---|---|
+| DynamoDB `lira-organizations` | Orgs, KB entries, documents, memberships, tasks | GSI on `userId` for reverse lookup |
+| S3 `lira-organization-data` | Raw documents, extracted text, crawl backups | Lifecycle: move to Glacier after 90 days |
+| Qdrant (Docker on EC2) | Vector embeddings for RAG | Free, zero additional cost |
+| SQS `lira-async-jobs` | Async crawl and document processing queue | FIFO, dead-letter queue configured |
+| OpenAI API | `text-embedding-3-small` (embeddings) + `gpt-4o-mini` (summaries, task extraction) | — |
+
+#### IAM Policy (abbreviated)
+
+```json
+{
+  "Effect": "Allow",
+  "Action": ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query", "dynamodb:UpdateItem"],
+  "Resource": "arn:aws:dynamodb:*:*:table/lira-organizations*"
+},
+{
+  "Effect": "Allow",
+  "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:ListBucket"],
+  "Resource": ["arn:aws:s3:::lira-organization-data", "arn:aws:s3:::lira-organization-data/*"]
+}
+```
+
+---
+
+### 18.17 Migration Strategy & Backward Compatibility
+
+- **No existing data migration required** — this is a fully additive feature. All existing meetings, users, and API endpoints work unchanged.
+- **Bot deployment without `org_id`** works exactly as before — `buildSystemPrompt()` without `organizationContext` produces identical output.
+- **Existing meetings** remain unlinked to any organization. Once an org is created, new meetings auto-link if deployed with `org_id`.
+- **On first login after launch**, users without an org see an onboarding prompt: "Set up your Organization" (skippable — app fully works without one).
+
+#### Implementation Order
+
+| Phase | Name | Key Deliverables |
+|---|---|---|
+| 1 | Organization CRUD & Membership | Org service, routes, models, invite codes |
+| 2 | Organization Profile & Context Injection | Profile fields, context builder, modified system prompt |
+| 3 | Website Crawl & Knowledge Base | Crawler, summarizer, KB storage, async processing |
+| 4 | Document Upload, Parsing & RAG | S3 upload, text extraction, chunking, embeddings |
+| 5 | Vector Search & Semantic Retrieval | Qdrant setup, kNN search, hybrid retrieval |
+| 6 | Context Injection into Nova Sonic | Full context assembly, token management |
+| 7 | Task Execution Engine | Task detection, AI extraction, WebSocket broadcast |
+| 8 | Frontend Implementation | All new pages, OrgLayout, notification bell |
+| 9 | Testing, Observability & Hardening | Unit tests, structured logging, error handling |
+
+Each phase is independently shippable. The system degrades gracefully — missing phases simply mean less context available to Lira.
 
 ---
 
