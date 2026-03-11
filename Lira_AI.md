@@ -2,7 +2,6 @@
 
 > **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
 
-*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, and individual-contribution meeting summaries*
 
 ---
 
