@@ -1,8 +1,8 @@
 # Lira AI — Complete Project Documentation
 
-> **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, and responds intelligently when addressed by name.**
+> **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, responds intelligently when addressed by name — and now conducts AI-powered interviews, sends post-meeting emails, and manages tasks across your organisation.**
 
-*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, individual-contribution meeting summaries, and the Organization Context System (knowledge base, RAG pipeline, task engine)*
+*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, individual-contribution meeting summaries, Organization Context System (knowledge base, RAG pipeline, task engine), Email Integration via Resend (with inbound AI reply engine), and AI-Conducted Interviews with automated scheduling and candidate evaluation*
 
 ---
 
@@ -128,6 +128,24 @@
   - [18.15 Security & Data Isolation](#1815-security--data-isolation)
   - [18.16 Infrastructure & AWS Resources](#1816-infrastructure--aws-resources)
   - [18.17 Migration Strategy & Backward Compatibility](#1817-migration-strategy--backward-compatibility)
+- [19. Email Integration — Resend + Inbound Reply Engine](#19-email-integration--resend--inbound-reply-engine)
+  - [19.1 Overview](#191-overview)
+  - [19.2 Two Sending Modes (Platform vs Custom Domain)](#192-two-sending-modes-platform-vs-custom-domain)
+  - [19.3 Email Types](#193-email-types)
+  - [19.4 Inbound Reply Engine](#194-inbound-reply-engine)
+  - [19.5 Architecture & Data Models](#195-architecture--data-models)
+  - [19.6 API Reference](#196-api-reference)
+  - [19.7 Frontend — Email Settings UI](#197-frontend--email-settings-ui)
+- [20. AI-Conducted Interviews](#20-ai-conducted-interviews)
+  - [20.1 Overview & Problem Statement](#201-overview--problem-statement)
+  - [20.2 Interview Modes](#202-interview-modes)
+  - [20.3 How It Works — End-to-End Flow](#203-how-it-works--end-to-end-flow)
+  - [20.4 Data Model](#204-data-model)
+  - [20.5 AI Pipeline — Questions, Evaluation & Scoring](#205-ai-pipeline--questions-evaluation--scoring)
+  - [20.6 Interview Scheduler (Auto-Deploy)](#206-interview-scheduler-auto-deploy)
+  - [20.7 Resume Parsing](#207-resume-parsing)
+  - [20.8 API Reference](#208-api-reference)
+  - [20.9 Frontend Pages](#209-frontend-pages)
 
 ---
 
@@ -138,6 +156,8 @@
 Lira AI is an intelligent voice participant for video conference meetings. You paste a Google Meet link into the Lira dashboard, press "Send Lira to Meeting," and within seconds a new participant named **"Lira AI"** appears in the meeting. Lira listens to the entire conversation in real-time, and when someone says her name — "Hey Lira, what do you think?" — she responds with a natural, conversational voice.
 
 Lira is not a transcription tool or a post-meeting summary bot. She is a **live participant** who hears, understands, and speaks — in real-time, during the meeting itself.
+
+Beyond live meetings, Lira now also **conducts AI-powered interviews** — deploying a bot to a Google Meet call, autonomously asking structured questions, evaluating candidates against configurable criteria, and producing scored reports — all without a human interviewer needing to be present.
 
 ### 1.2 The Problem It Solves
 
@@ -164,6 +184,11 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | **Transcript storage** | All conversation is stored in DynamoDB with sentiment tags and named speaker labels |
 | **Individual-contribution summaries** | AI summaries (short \& long) call out each person's specific contributions — who drove the discussion, who proposed key ideas, and who was most impactful |
 | **Meeting summaries** | AI-generated summaries via OpenAI GPT-4o-mini — available in short (4-6 sentence) or detailed (400-700 word) mode |
+| **Post-meeting email notifications** | Sends meeting summaries, task assignments, and meeting invites via Resend (platform domain or custom org domain) |
+| **AI reply engine** | Recipients can reply to Lira's emails — Lira reads the reply in context, searches the org knowledge base, and either responds directly or escalates to an admin |
+| **AI-conducted interviews** | Deploys the Lira bot to a Google Meet as an interviewer — asks structured questions, follows up intelligently, and produces a full scored candidate evaluation after the session |
+| **Interview auto-scheduler** | Interviews scheduled for a future time are automatically started by a background scheduler — no manual bot deployment needed |
+| **Resume parsing** | Upload candidate PDFs; Lira extracts structured data (name, experience, skills, education) using GPT-4o-mini |
 | **Auth session management** | Auto-refreshes Google login cookies every 7 days |
 | **Multi-platform** | Architecture supports Google Meet and Zoom |
 
@@ -197,7 +222,12 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | **@fastify/websocket** | WebSocket support for real-time audio |
 | **@fastify/jwt** | JWT authentication |
 | **@fastify/swagger** | OpenAPI documentation |
+| **@fastify/multipart** | Multipart form-data for resume PDF uploads (50 MB limit) |
 | **Prisma 5** | Database ORM (PostgreSQL for platform data) |
+| **Resend** | Transactional email delivery (meeting summaries, task assignments, interview invites) |
+| **mailparser** | MIME email parsing for the inbound reply webhook |
+| **pdf-parse** | PDF text extraction for candidate resume parsing |
+| **jsonwebtoken** | JWT generation for reply tokens (email reply context encoding) |
 | **uuid** | Session/bot ID generation |
 
 ### 2.3 AI & Audio
@@ -216,13 +246,17 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | Resource | Purpose |
 |---|---|
 | **AWS EC2** (`t3.small`, `98.92.255.171`) | Backend server (Ubuntu 22.04) |
-| **AWS DynamoDB** | Meeting sessions + transcripts (`lira-meetings`, `lira-connections`) |
-| **AWS S3** | Audio recording + Google auth state backup |
-| **AWS Secrets Manager** | Database credentials |
-| **OpenAI API** | GPT-4o-mini — meeting summaries, title generation, AI text responses |
+| **AWS DynamoDB** | Meeting sessions + transcripts (`lira-meetings`, `lira-connections`, `lira-organizations`, `lira-interviews`) |
+| **AWS S3** | Audio recordings, Google auth state backup, candidate resume storage (`lira-documents-storage`), inbound email storage (`lira-inbound-email`) |
+| **AWS SES** | Inbound email receipt for `reply+*@liraintelligence.com` (reply engine) |
+| **AWS SNS** | Notification bridge from SES receipt rule → Fastify inbound webhook |
+| **AWS Secrets Manager** | Database credentials and shared secrets |
+| **OpenAI API** | GPT-4o-mini — meeting summaries, title generation, AI text responses, interview question generation, candidate evaluation, email reply decisions |
 | **Deepgram API** | Nova-2 streaming — real-time speaker diarization ($0.0059/min, pay-per-use) |
+| **Resend API** | Transactional outbound email — meeting summaries, task assignments, interview invites |
+| **Qdrant** | Self-hosted vector DB on EC2 (Docker) — org knowledge base embeddings for RAG |
 | **Vercel** | Frontend hosting (`lira.creovine.com`) |
-| **Namecheap DNS** | Domain management (`api.creovine.com` → EC2) |
+| **Namecheap DNS** | Domain management (`api.creovine.com` → EC2, `reply.liraintelligence.com` MX for inbound email) |
 | **systemd** | Process management (`creovine-api.service`) |
 | **nginx** | Reverse proxy + SSL termination (Let's Encrypt, cert valid to June 2026) |
 
@@ -1126,6 +1160,18 @@ meetingBot.on('ended')  → sonic.endSession() + cleanup
 | `PUT` | `/:id/settings` | Update AI settings mid-meeting |
 | `DELETE` | `/:id` | Delete a meeting |
 
+#### Organisation Routes (`/lira/v1/orgs`)
+
+See [Section 18.13](#1813-api-reference) for the full org, knowledge base, document, task, and webhook route reference.
+
+#### Interview Routes (`/lira/v1/orgs/:orgId/interviews`)
+
+See [Section 20.8](#208-api-reference) for the full interview route reference.
+
+#### Email Routes (`/lira/v1/email`)
+
+See [Section 19.6](#196-api-reference) for the full email configuration and inbound route reference.
+
 All routes require JWT authentication via `jwtWithTenantAuth` middleware.
 
 ### 8.5 WebSocket Routes
@@ -1245,21 +1291,58 @@ The frontend is a **React 19 + TypeScript SPA** built with Vite 7, deployed on V
 ```
 src/
 ├── pages/
-│   ├── HomePage.tsx         — Login/home screen with bot deploy
-│   └── MeetingPage.tsx      — Browser-based demo meeting
+│   ├── HomePage.tsx              — Login/home screen with bot deploy
+│   ├── LandingPage.tsx           — Public marketing landing page
+│   ├── DashboardPage.tsx         — Authenticated user dashboard
+│   ├── MeetingPage.tsx           — Browser-based demo meeting
+│   ├── MeetingsPage.tsx          — List of all meetings
+│   ├── MeetingDetailPage.tsx     — Full transcript + summary for a meeting
+│   ├── OnboardingPage.tsx        — First-login org creation / join flow
+│   ├── OrganizationsPage.tsx     — List of user's organisations
+│   ├── OrgSettingsPage.tsx       — Organisation profile & settings
+│   ├── OrgMembersPage.tsx        — Member list, roles, invite code
+│   ├── OrgEmailPage.tsx          — Email config: platform / custom domain, threads
+│   ├── WebhooksPage.tsx          — Slack webhook & email notification config
+│   ├── KnowledgeBasePage.tsx     — Website crawl & KB entry management
+│   ├── DocumentsPage.tsx         — Uploaded document management
+│   ├── TasksPage.tsx             — Task list: filter by status, assign, execute
+│   ├── OrgTaskDetailPage.tsx     — Single task detail + execution result
+│   ├── InterviewsPage.tsx        — Interview roles list (grouped by job title)
+│   ├── InterviewRolePage.tsx     — All candidates for a role
+│   ├── InterviewCreatePage.tsx   — Create / draft a new interview
+│   ├── InterviewDetailPage.tsx   — Interview detail: transcript, evaluation, scoring
+│   ├── MemberProfilePage.tsx     — Individual member profile
+│   ├── SettingsPage.tsx          — Personal user settings
+│   ├── ProductSalesPage.tsx      — Sales coaching product marketing page
+│   ├── ProductInterviewsPage.tsx — AI Interviews product marketing page
+│   ├── ProductCustomerSupportPage.tsx — Customer support product marketing page
+│   ├── ResourcesPage.tsx         — Resources / documentation links
+│   ├── BlogPage.tsx              — Blog listing page
+│   └── BlogPostPage.tsx          — Individual blog post
 ├── components/
 │   ├── bot-deploy/
 │   │   ├── BotDeployPanel.tsx   — Main feature: paste link → deploy bot
 │   │   └── AuthStatusCard.tsx   — Google session health display
-│   ├── common/                   — Reusable UI components
-│   └── ui/                       — Radix/shadcn primitives
+│   ├── ai/                      — AI participant components
+│   ├── interview/               — Interview form, question builder, evaluation display
+│   ├── meeting-room/            — In-meeting controls and transcript display
+│   ├── org/                     — Organisation management components
+│   ├── transcript/              — Transcript rendering components
+│   ├── marketing/               — Marketing layout and section components
+│   ├── common/                  — Reusable UI components (ConfirmDialog, PageLoader, etc.)
+│   └── ui/                      — Radix/shadcn primitives
 ├── services/
-│   └── api/index.ts              — All REST API calls
+│   └── api/index.ts              — All REST API calls (typed wrappers)
 ├── features/
-│   └── meeting/use-audio-meeting.ts — Audio meeting lifecycle hook
+│   ├── ai-participant/           — AI participant feature state
+│   ├── interview/                — Interview feature store and logic
+│   ├── meeting/
+│   │   └── use-audio-meeting.ts — Audio meeting lifecycle hook
+│   ├── participants/             — Participant management
+│   └── settings/                — User settings feature
 ├── app/
-│   ├── store/index.ts            — Zustand stores (auth, meeting, bot)
-│   └── router/index.ts           — Route definitions
+│   ├── store/index.ts            — Zustand stores (auth, meeting, bot, org, interview, tasks, KB)
+│   └── router/index.ts           — Route definitions (all 30+ routes)
 ├── lib/
 │   ├── audio.ts                  — Browser mic capture + AI audio playback
 │   └── utils.ts                  — Tailwind class merge utilities
@@ -1310,7 +1393,7 @@ This mode is useful for demos and testing without needing a real Google Meet cal
 
 ### 9.5 State Management
 
-Three Zustand stores manage the frontend state:
+Zustand stores manage the frontend state:
 
 **`useAuthStore`** (persisted to localStorage):
 - `token`, `userEmail`, `userName`, `userPicture`
@@ -1324,6 +1407,22 @@ Three Zustand stores manage the frontend state:
 **`useBotStore`** (in-memory):
 - `botId`, `meetingUrl`, `platform`, `botState`, `error`
 - `setBotDeployed()`, `setBotState()`, `setBotError()`, `clearBot()`
+
+**`useOrgStore`** (persisted to localStorage):
+- `currentOrgId`, `currentOrg`, `orgs[]`
+- `setCurrentOrg()`, `setOrgs()`
+
+**`useInterviewStore`** (in-memory):
+- `interviews[]`, `loading`
+- `setInterviews()`, `addInterview()`, `updateInterview()`, `removeInterview()`
+
+**`useTaskStore`** (in-memory):
+- `tasks[]`, `loading`
+- `setTasks()`, `addTask()`, `updateTask()`, `removeTask()`
+
+**`useKBStore`** (in-memory):
+- `entries[]`, `crawlStatus`, `loading`
+- `setEntries()`, `removeEntry()`, `setCrawlStatus()`
 
 ### 9.6 API Service Layer
 
@@ -1351,10 +1450,17 @@ The `BotDeployPanel` polling loop also detects JWT expiry gracefully — it stop
 | **Elastic IP** | `52.206.83.13` | Static IP for the backend |
 | **DynamoDB** | `lira-meetings` table | Meeting sessions, transcripts, settings |
 | **DynamoDB** | `lira-connections` table | WebSocket connection tracking |
-| **S3** | Audio recording bucket | Meeting audio recordings |
+| **DynamoDB** | `lira-organizations` table | Orgs, memberships, KB entries, documents, tasks, email config, threads |
+| **DynamoDB** | `lira-interviews` table | Interview records (questions, evaluation, status) |
+| **S3** | `creovine-lira-documents` | Org documents (uploaded PDFs, extracted text) |
+| **S3** | `lira-documents-storage` | Candidate resume PDFs (interview feature) |
+| **S3** | `lira-inbound-email` | Raw MIME emails routed by SES receipt rule |
+| **S3** | Auth state bucket | Google bot session backup |
+| **SES** | `liraintelligence.com` | Inbound email receipt — `reply+*@liraintelligence.com` routes |
+| **SNS** | Inbound email topic | SES → SNS → Fastify webhook bridge for reply engine |
 | **Secrets Manager** | `/creovine/shared` | DATABASE_URL + other secrets |
 | **Bedrock** | `amazon.nova-sonic-v1:0` | Speech-to-speech AI model |
-| **IAM** | EC2 instance role | Bedrock, DynamoDB, S3, Secrets Manager access |
+| **IAM** | EC2 instance role | Bedrock, DynamoDB, S3, SES, SNS, Secrets Manager access |
 
 ### 10.2 EC2 Server Setup
 
@@ -1442,7 +1548,9 @@ JWT_EXPIRES_IN=15m
 AWS_REGION=us-east-1
 
 # Lira AI (text generation + summaries)
-OPENAI_API_KEY=sk-proj-...              # GPT-4o-mini for summaries, titles, text responses
+OPENAI_API_KEY=sk-proj-...              # GPT-4o-mini for summaries, titles, text responses,
+                                        # interview question generation, evaluation, email replies
+OPENAI_MODEL=gpt-4o-mini                # override model if needed
 
 # Deepgram (speaker diarization — optional, falls back gracefully if unset)
 DEEPGRAM_API_KEY=...                    # Deepgram Nova-2 streaming API key
@@ -1461,6 +1569,23 @@ LIRA_BEDROCK_REGION=us-east-1
 LIRA_NOVA_SONIC_MODEL_ID=amazon.nova-sonic-v1:0
 LIRA_DYNAMODB_MEETINGS_TABLE=lira-meetings
 LIRA_DYNAMODB_CONNECTIONS_TABLE=lira-connections
+LIRA_DYNAMODB_ORGS_TABLE=lira-organizations    # orgs, KB, docs, tasks, email config
+LIRA_DYNAMODB_INTERVIEWS_TABLE=lira-interviews # interview records
+
+# Interview feature
+LIRA_S3_DOCUMENTS_BUCKET=lira-documents-storage  # candidate resume storage
+
+# Email integration (Resend)
+RESEND_API_KEY=re_...                  # Resend API key for outbound email
+REPLY_TOKEN_SECRET=...                 # Secret for signing JWT reply tokens
+LIRA_EMAIL_FROM_ADDRESS=lira@liraintelligence.com  # platform sending address
+
+# Inbound email (AWS SES → SNS → Fastify)
+LIRA_INBOUND_EMAIL_SNS_ARN=arn:aws:sns:...  # Expected SNS topic ARN (security check)
+LIRA_INBOUND_EMAIL_BUCKET=lira-inbound-email # S3 bucket for raw MIME emails from SES
+
+# Vector search (Qdrant)
+QDRANT_URL=http://localhost:6333             # Qdrant REST API (Docker on EC2)
 ```
 
 **Frontend (Vercel environment):**
@@ -2717,10 +2842,446 @@ All features are fully implemented in the codebase. The tier matrix below reflec
 | 6 | Context Injection into Nova Sonic | Full context assembly, token management |
 | 7 | Task Execution Engine | Task detection, AI extraction, WebSocket broadcast |
 | 8 | Frontend Implementation | All new pages, OrgLayout, notification bell |
+| 7 | Task Execution Engine | Task detection, AI extraction, WebSocket broadcast |
+| 8 | Frontend Implementation | All new pages, OrgLayout, notification bell |
 | 9 | Testing, Observability & Hardening | Unit tests, structured logging, error handling |
 
 Each phase is independently shippable. The system degrades gracefully — missing phases simply mean less context available to Lira.
 
 ---
 
-*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock, OpenAI GPT-4o-mini, and Deepgram Nova-2.*
+## 19. Email Integration — Resend + Inbound Reply Engine
+
+### 19.1 Overview
+
+Lira's email integration turns post-meeting notifications into two-way conversations. Every outgoing email (meeting summary, task assignment, meeting invite) includes a unique JWT-encoded `Reply-To` address. When a recipient replies, AWS SES captures the message and routes it through an AI reply engine that reads the reply in context, queries the org's knowledge base, and either responds directly or escalates to an admin.
+
+**Key capabilities:**
+- **Outbound email** via Resend — summaries, task assignments, meeting invites
+- **Platform sending domain** (`lira@liraintelligence.com`) — zero configuration, works on account creation
+- **Custom org domain** — org admins can self-configure a custom sending domain via the Resend domain management API (e.g. `lira@truthvote.com`)
+- **Inbound reply engine** — GPT-4o-mini reads replies with full org context and either responds or escalates
+- **Thread storage** — every back-and-forth conversation is stored in DynamoDB
+- **Unsubscribe support** — Resend Audiences ensure CAN-SPAM / GDPR compliance from day one
+
+### 19.2 Two Sending Modes (Platform vs Custom Domain)
+
+Every organisation independently chooses their sending mode. Both modes are available to all orgs — no pricing tier gates either option.
+
+**Mode A — Platform Domain (default, zero-config):**
+- Emails sent as: `Lira · <Org Name> <lira@liraintelligence.com>`
+- No setup required. Works immediately after account creation.
+
+**Mode B — Custom Org Domain (self-serve):**
+- Emails sent as: `Lira <lira@yourcompany.com>`
+- Org admin enters their domain in Settings → Email → Use custom domain
+- Lira calls the Resend domain API → retrieves DNS records → displays them in the settings UI with copy-to-clipboard
+- Once the org adds the DNS records, Lira polls for verification and activates custom mode
+
+**Reply-To (all modes):**
+- `Reply-To: reply+<jwt>@liraintelligence.com`
+- JWT encodes: `{ orgId, memberId, contextType, contextId, threadId, exp }`
+- `exp` is 30 days. Each reply from Lira carries a fresh token for the next turn.
+
+**Per-org `EMAIL_CONFIG` record (DynamoDB: `ORG#<orgId> | EMAIL_CONFIG`):**
+
+```ts
+{
+  mode: 'platform' | 'custom',
+  custom_domain?: string,
+  resend_domain_id?: string,
+  domain_verified: boolean,
+  dns_records?: DnsRecord[],
+  from_name?: string,
+  email_notifications_enabled: boolean,
+  ai_reply_enabled: boolean,           // enable/disable the inbound AI reply engine per org
+  notify_on: string[],                 // ["task_created", "meeting_ended", "summary_ready", ...]
+  updated_at: string,
+}
+```
+
+### 19.3 Email Types
+
+| Type | Trigger | Recipients |
+|---|---|---|
+| **Meeting Summary** | Meeting ends → summary generated | All meeting participants matched by email + org admins if configured |
+| **Task Assignment** | Task extracted and assigned to a member | Assigned member |
+| **Meeting Invite** | Scheduled meeting created | Listed participants |
+| **Weekly Digest** *(planned)* | Cron (Monday 9 AM) | All org members |
+
+**Example Meeting Summary email:**
+```
+Subject: Meeting Summary — "Sprint Planning" (May 20, 2025)
+
+Hi team,
+
+Here's the summary from today's meeting:
+
+[Short summary paragraph]
+
+Action Items:
+• Task title — assigned to Alice — due May 25
+• Task title — assigned to Bob — due May 27
+
+Decisions Made:
+• Decision 1
+
+Full transcript and details: [link to Lira meeting page]
+
+— Lira AI · Creovine Labs
+```
+
+### 19.4 Inbound Reply Engine
+
+When a recipient replies to any Lira email, the message is routed through:
+
+```
+1. Recipient hits "Reply" in their email client
+2. Message delivered to reply+<jwt>@liraintelligence.com
+3. AWS SES receipt rule: match reply+* → store raw MIME email to S3 (lira-inbound-email)
+                                        → publish notification to SNS topic
+4. SNS → POST /lira/v1/email/inbound (Fastify)
+5. Fastify handler:
+   a. Validates SNS message signature (HTTPS certificate fetch)
+   b. Validates TopicArn matches LIRA_INBOUND_EMAIL_SNS_ARN
+   c. Fetches raw email from S3 (messageId from SES notification)
+   d. Parses MIME via mailparser, strips quoted reply text
+   e. Decodes JWT from the recipient address (reply+<jwt>@...)
+   f. Loads thread history from DynamoDB (EMAIL_THREAD#<threadId>)
+   g. Fetches meeting/task context
+   h. Runs Qdrant vector search on the inbound message body
+   i. Calls GPT-4o-mini for reply/escalate decision
+   j. If "reply": sends response via Resend with new reply token in Reply-To,
+      appends both messages to thread
+   k. If "escalate": sends canned reply to sender + notifies org admin +
+      forwards full thread, marks thread status: "escalated"
+```
+
+**GPT-4o-mini decision prompt (summary):**
+The model receives the full thread history, original email context, relevant org knowledge from Qdrant, and the inbound message. It outputs `{ action: "reply" | "escalate", draft?: string }`. It is explicitly instructed never to fabricate org-specific information.
+
+**Thread storage (DynamoDB: `ORG#<orgId> | EMAIL_THREAD#<threadId>`):**
+
+```ts
+{
+  threadId: string,
+  orgId: string,
+  memberId: string,
+  contextType: string,          // "meeting_summary" | "task_assignment" | "meeting_invite"
+  contextId: string,
+  subject?: string,
+  recipient?: string,
+  messages: Array<{
+    role: 'lira' | 'member',
+    body: string,
+    timestamp: string,
+  }>,
+  status: 'open' | 'escalated' | 'closed',
+  created_at: string,
+  updated_at: string,
+}
+```
+
+### 19.5 Architecture & Data Models
+
+**Backend services:**
+- `lira-email.service.ts` — Resend wrapper, email config CRUD, reply token generation/verification, thread storage
+- `lira-email-reply.service.ts` — SNS signature verification, MIME parsing, GPT-4o-mini reply engine, escalation flow
+
+**DynamoDB records added (in `lira-organizations` table):**
+
+| SK | Purpose |
+|---|---|
+| `EMAIL_CONFIG` | Per-org sending mode, domain config, notification preferences, AI reply toggle |
+| `EMAIL_THREAD#<threadId>` | Full inbound/outbound thread history per recipient per context |
+
+### 19.6 API Reference
+
+All routes mounted at `/lira/v1/email`. JWT auth required except `/inbound`.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/inbound` | SNS signature | Inbound email webhook. Receives SNS notification, fetches MIME from S3, runs reply engine. |
+| `GET` | `/config?orgId=<id>` | JWT | Get org email config (`EMAIL_CONFIG` record). Returns platform defaults if not yet configured. |
+| `PUT` | `/config?orgId=<id>` | JWT | Update org email config (notification prefs, AI reply toggle, from name). |
+| `POST` | `/domain?orgId=<id>` | JWT | Register custom sending domain via Resend. Returns DNS records to display in UI. |
+| `GET` | `/domain/status?orgId=<id>` | JWT | Poll Resend for domain verification status. Activates custom mode on success. |
+| `GET` | `/threads?orgId=<id>` | JWT | List email threads for an org (for the inbox UI). |
+| `GET` | `/threads/:threadId?orgId=<id>` | JWT | Get a single thread with full message history. |
+
+### 19.7 Frontend — Email Settings UI
+
+**Route:** `/org/email` → `OrgEmailPage.tsx`
+
+The email settings page has three sections:
+
+1. **Sending Mode** — toggle between platform default and custom domain
+   - Platform mode: shows `lira@liraintelligence.com`, no config needed
+   - Custom domain: text input for domain → triggers `POST /email/domain` → shows DNS records table with copy buttons → live verification status badge → retry button
+
+2. **Notification Preferences** — per-event toggles:
+   - Task Created, Task Completed, Meeting Ended, Summary Ready
+   - Master email notifications on/off toggle
+   - AI reply engine on/off toggle
+
+3. **Inbox / Threads** — lists recent email threads with status badges (open/escalated/closed). Clicking a thread shows the full conversation history.
+
+---
+
+## 20. AI-Conducted Interviews
+
+### 20.1 Overview & Problem Statement
+
+Screening candidates at scale is time-consuming, inconsistent, and expensive. Even with structured interview guides, human interviewers vary in quality, ask different follow-ups, and score subjectively. Lira solves this by deploying the same bot used in meetings as a **fully autonomous interviewer**.
+
+An org admin creates an interview — defines the job title, description, required skills, candidate details, and evaluation criteria. Lira generates a structured question set (or the admin writes questions manually). When the interview is started (manually or by the scheduler), Lira's bot joins the Google Meet call, conducts the interview, and after the call ends, runs a two-phase AI evaluation pipeline:
+
+1. **Phase 1 (auto)**: Extracts a Q&A summary and interview statistics
+2. **Phase 2 (on-demand)**: Generates per-criterion scores, an overall score, hire/no-hire recommendation, strengths, red flags, candidate engagement, and notable quotes
+
+### 20.2 Interview Modes
+
+| Mode | Description |
+|---|---|
+| **Solo** | Lira conducts the interview alone. No human interviewer in the call. Fully autonomous. |
+| **Copilot** | A human interviewer runs the call; Lira coaches them silently with suggested follow-ups displayed on screen. |
+| **Shadow** | Lira observes and takes notes but does not speak. Evaluation still runs post-interview. |
+
+### 20.3 How It Works — End-to-End Flow
+
+```
+1. Admin creates interview record (POST /orgs/:orgId/interviews)
+   → title, job description, candidate details, mode, meeting link,
+     questions (manual or AI-generated), evaluation criteria, personality
+
+2. (Optional) Upload candidate resume (POST /interviews/:id/resume)
+   → pdf-parse extracts text → GPT-4o-mini structures into ResumeData
+   → Stored in S3 (lira-documents-storage), parsed data on interview record
+
+3. Start interview (POST /interviews/:id/start)
+   → Validates interview.meeting_link is set and status is "draft" or "scheduled"
+   → Calls deployBot() with interview-specific system prompt
+   → Bot joins Google Meet as the interviewer
+   → Interview status: bot_deployed → in_progress
+
+4. Bot conducts interview
+   → System prompt includes: job description, required skills, all questions
+     in order, candidate name, personality, time limit
+   → Lira asks each question in order, listens for the answer, asks intelligent
+     follow-ups (if follow_up_enabled on the question)
+   → Marks questions as asked/answered in real-time
+
+5. Interview ends (bot leaves or time limit reached)
+   → Status: evaluating
+
+6. Phase 1 evaluation (automatic)
+   → GPT-4o-mini reads full transcript
+   → Extracts: Q&A summary per question (question, candidate_answer, quality,
+     duration_seconds), interview statistics (questions asked/answered/skipped,
+     duration), non-judgmental interview_summary
+   → Stored on interview record
+
+7. Phase 2 evaluation (triggered by admin via "Generate Score" button)
+   → GPT-4o-mini scores each evaluation criterion (0–100)
+   → Produces: overall_score, recommendation, recommendation_reasoning,
+     strengths, red_flags, candidate_engagement, notable_quotes,
+     follow_up_questions
+   → Stored on interview record → status: completed
+   → Re-evaluation allowed up to 3 times per interview
+
+8. Admin reviews evaluation + records decision (hire / no_hire / next_round)
+```
+
+### 20.4 Data Model
+
+**DynamoDB: `lira-interviews` table (`PK: ORG#<orgId>`, `SK: INT#<interviewId>`)**
+
+Key fields:
+
+```ts
+interface Interview {
+  interview_id: string                  // "int-<uuid>"
+  org_id: string
+  session_id?: string                   // FK → lira-meetings (set when bot deploys)
+  parent_interview_id?: string          // Links to first interview in a round chain
+  round: number                         // 1 = initial, 2 = first follow-up, etc.
+  interview_purpose?: InterviewPurpose  // introduction | technical | behavioral | ...
+
+  // Job details
+  title: string
+  department?: string
+  job_description: string
+  required_skills: string[]
+  experience_level: 'junior' | 'mid' | 'senior' | 'lead' | 'principal'
+  salary_currency?: string              // ISO 4217 (USD, NGN, EUR, etc.)
+  salary_min?: number                   // Monthly minimum
+  salary_max?: number                   // Monthly maximum
+
+  // Candidate details
+  candidate_name: string
+  candidate_email: string
+  candidate_resume_s3_key?: string      // S3 key for the original PDF
+  candidate_resume_parsed?: ResumeData  // Structured: name, experience, skills, education
+  resume_parse_failed?: boolean         // Visible indicator if parsing failed
+
+  // Configuration
+  mode: 'solo' | 'copilot' | 'shadow'
+  meeting_link: string
+  scheduled_at?: string                 // ISO 8601 — triggers auto-scheduler
+  time_limit_minutes: number            // 30, 45, or 60
+  personality: 'supportive' | 'challenger' | 'facilitator' | 'analyst'
+  ai_name_override?: string             // Per-interview AI name override
+  no_show_timeout_seconds: number       // Default: 600 (10 min) — bot leaves if candidate doesn't join
+
+  // Questions
+  questions: InterviewQuestion[]
+  question_generation: 'manual' | 'ai_generated' | 'hybrid'
+
+  // Evaluation
+  evaluation_criteria: EvaluationCriterion[]
+  status: InterviewStatus
+  evaluation?: InterviewEvaluation
+  re_evaluation_count: number           // Rate-limited: max 3 re-evals
+  decision?: 'hire' | 'no_hire' | 'next_round' | 'undecided'
+}
+```
+
+**`InterviewStatus` lifecycle:**
+```
+draft → scheduled → bot_deployed → in_progress → evaluating → completed
+                                                              → cancelled
+```
+
+**`InterviewEvaluation`** (two phases):
+
+- **Phase 1** (auto, always): `qa_summary[]`, `interview_summary`, `interview_duration_minutes`, `questions_asked`, `questions_answered`, `questions_skipped`
+- **Phase 2** (on-demand): `overall_score` (0–100), `recommendation`, `recommendation_reasoning`, `strengths[]`, `red_flags[]`, `candidate_engagement`, `notable_quotes[]`, `suggested_follow_up_questions[]`
+
+### 20.5 AI Pipeline — Questions, Evaluation & Scoring
+
+**Question generation (`POST /interviews/generate-questions`):**
+
+Admin provides job description, required skills, experience level, question categories (technical, behavioral, situational, cultural, warm_up), and desired count. GPT-4o-mini generates questions with `source: "ai_generated"`, each tagged with `category`, `skill_target`, `expected_depth` (brief/moderate/detailed), and `follow_up_enabled`.
+
+**Interview system prompt:**
+
+The bot's system prompt for interviews differs significantly from the meeting bot prompt:
+- Identity: "You are conducting an interview for the role of [title] at [company]"
+- Lists every question in order with depth instructions
+- Personality mode applied (supportive = encouraging tone; challenger = rigorous probing)
+- Time limit awareness: gracefully wraps up if running long
+- No-show handling: if candidate hasn't joined after `no_show_timeout_seconds`, bot leaves and sets `cancellation_reason: "candidate_no_show"`
+
+**Evaluation prompt (Phase 2 summary):**
+
+GPT-4o-mini receives the full Q&A summary from Phase 1, job description, required skills, and evaluation criteria with weights. It must:
+1. Score each criterion 0–100 based only on evidence from the transcript
+2. Compute weighted `overall_score`
+3. Output a `recommendation` with clear `recommendation_reasoning`
+4. List specific `strengths` and `red_flags` with transcript evidence
+5. Assess `candidate_engagement` (high/moderate/low)
+6. Extract verbatim `notable_quotes`
+7. Suggest `follow_up_questions` for the next round
+
+Re-evaluation (up to 3×) re-runs Phase 2 only — Phase 1 Q&A summary is preserved.
+
+### 20.6 Interview Scheduler (Auto-Deploy)
+
+`lira-interview-scheduler.service.ts` polls DynamoDB every 30 seconds for interviews whose `scheduled_at` time has arrived and whose status is `scheduled`.
+
+```
+Startup: startInterviewScheduler() → sets 30s interval
+Every 30s: pollScheduledInterviews()
+  → store.listScheduledInterviewsDue(now)
+  → for each due interview:
+     - Skip if already starting (Set<string> in-memory dedup)
+     - Skip if > 15 minutes past scheduled_at (max late start)
+     - Skip if no meeting_link
+     - Call deployBot() with interview bot config
+     - Update interview status: bot_deployed
+     - On error: update status: cancelled, reason: bot_error
+Shutdown: stopInterviewScheduler() (called on SIGTERM)
+```
+
+This means admins can schedule interviews for a future time during interview creation and the bot will start automatically without any manual intervention. The scheduler survives server restarts — on startup, any interviews whose `scheduled_at` is in the past (within the 15-minute window) are still picked up.
+
+### 20.7 Resume Parsing
+
+`POST /orgs/:orgId/interviews/:interviewId/resume` accepts a multipart PDF upload (max 50 MB, enforced by `@fastify/multipart`).
+
+Pipeline:
+1. Fastify `@fastify/multipart` reads the file stream
+2. `pdf-parse` extracts raw text from the PDF
+3. GPT-4o-mini structures the text into `ResumeData`:
+   ```ts
+   interface ResumeData {
+     full_name?: string
+     email?: string
+     phone?: string
+     location?: string
+     summary?: string
+     experience?: Array<{ company, role, duration, description }>
+     education?: Array<{ institution, degree, field, year }>
+     skills?: string[]
+     certifications?: string[]
+     languages?: string[]
+   }
+   ```
+4. Original PDF saved to S3 (`lira-documents-storage/<orgId>/resumes/<interviewId>/<filename>`)
+5. `candidate_resume_parsed` stored on the interview record in DynamoDB
+6. If PDF parsing fails (scanned image, encrypted), `resume_parse_failed: true` is set as a visible indicator in the UI — the interview can still proceed without parsed data
+
+### 20.8 API Reference
+
+All routes mounted at `/lira/v1/orgs/:orgId/interviews`. JWT auth required on all routes.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/` | Create interview. Requires `admin` role. |
+| `GET` | `/` | List interviews for the org. Optionally filter by `status`, `title`. |
+| `GET` | `/:interviewId` | Get interview with full question list and evaluation. |
+| `PUT` | `/:interviewId` | Update interview (draft or scheduled status only). |
+| `DELETE` | `/:interviewId` | Delete interview and all associated data. |
+| `POST` | `/:interviewId/start` | Deploy bot to start interview. Sets status `bot_deployed`. |
+| `POST` | `/:interviewId/cancel` | Cancel an in-progress or scheduled interview. Body: `{ reason }`. |
+| `POST` | `/:interviewId/rejoin` | Re-deploy bot (e.g. bot crashed mid-interview). |
+| `POST` | `/:interviewId/resume` | Upload and parse candidate resume PDF. Multipart form-data. |
+| `POST` | `/:interviewId/evaluate` | Re-run Phase 2 evaluation (max 3 times). |
+| `PUT` | `/:interviewId/decision` | Record hire/no-hire/next_round decision. |
+| `POST` | `/generate-questions` | AI question generation from job description + skills. |
+| `POST` | `/draft` | AI-assisted full interview draft from minimal details. |
+
+### 20.9 Frontend Pages
+
+**Route: `/org/roles` → `InterviewsPage.tsx`**
+- Lists all interviews grouped by job title (role)
+- Search by role name
+- Delete role group with confirmation dialog
+
+**Route: `/org/roles/:roleSlug` → `InterviewRolePage.tsx`**
+- All candidates for a specific role with status badges
+- Quick actions: start, cancel, view evaluation
+
+**Route: `/org/roles/new` → `InterviewCreatePage.tsx`**
+- Full interview creation form: job details, candidate info, resume upload, configuration, question builder, evaluation criteria weight sliders
+
+**Route: `/org/interviews/:interviewId` → `InterviewDetailPage.tsx`**
+- Three-tab view:
+  1. **Overview** — job details, candidate info, status timeline
+  2. **Transcript & Q&A** — full meeting transcript + Phase 1 Q&A summary (question, answer, quality badge, duration)
+  3. **Evaluation** — Phase 2 scores per criterion, overall score ring, recommendation badge, strengths/red flags, notable quotes, suggested follow-up questions
+- "Generate Score" button (Phase 2 trigger)
+- "Record Decision" button
+- "Re-evaluate" button (shows attempts remaining)
+
+**Product Marketing Page: `/products/interviews` → `ProductInterviewsPage.tsx`**
+- Public-facing marketing page for Lira AI Interviews
+- Four-step how-it-works flow, feature grid, call-to-action
+
+**Product Marketing Page: `/products/sales` → `ProductSalesPage.tsx`**
+- Public-facing marketing page for Lira AI Sales Coaching
+- Three-step how-it-works, feature grid (real-time transcription, objection handling, battle cards, CRM auto-fill)
+
+---
+
+*Built by the Creovine Labs team. Powered by Amazon Nova Sonic on AWS Bedrock, OpenAI GPT-4o-mini, Deepgram Nova-2, and Resend.*
