@@ -1,0 +1,157 @@
+/**
+ * Lira AI Documentation — Custom Theme
+ * Clean, professional look inspired by docs.slack.dev
+ */
+
+:root {
+  --ifm-color-primary: #0f172a;
+  --ifm-color-primary-dark: #0d1424;
+  --ifm-color-primary-darker: #0c1222;
+  --ifm-color-primary-darkest: #0a0e1c;
+  --ifm-color-primary-light: #111a30;
+  --ifm-color-primary-lighter: #121c32;
+  --ifm-color-primary-lightest: #142038;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-heading-font-weight: 700;
+  --ifm-font-weight-bold: 600;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-navbar-height: 3.75rem;
+  --ifm-footer-padding-vertical: 2rem;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #e2e8f0;
+  --ifm-color-primary-dark: #cdd6e4;
+  --ifm-color-primary-darker: #c5d0de;
+  --ifm-color-primary-darkest: #a7b5cb;
+  --ifm-color-primary-light: #eef2f7;
+  --ifm-color-primary-lighter: #f3f6f9;
+  --ifm-color-primary-lightest: #ffffff;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+}
+
+/* Navbar */
+.navbar {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.navbar__title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.navbar__logo img {
+  height: 28px;
+}
+
+/* Sidebar */
+.menu__link {
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: rgba(15, 23, 42, 0.06);
+}
+
+[data-theme='dark'] .menu__link--active:not(.menu__link--sublist) {
+  background-color: rgba(226, 232, 240, 0.08);
+}
+
+/* Content */
+.markdown h1:first-child {
+  font-size: 2rem;
+}
+
+.markdown h2 {
+  margin-top: 2.5rem;
+}
+
+/* Code blocks */
+.prism-code {
+  border-radius: 8px;
+}
+
+/* Table styling */
+table {
+  display: table;
+  width: 100%;
+}
+
+table th {
+  background-color: rgba(15, 23, 42, 0.04);
+  font-weight: 600;
+}
+
+[data-theme='dark'] table th {
+  background-color: rgba(226, 232, 240, 0.06);
+}
+
+/* Hero section for landing */
+.hero-lira {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.hero-lira h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.hero-lira p {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  opacity: 0.8;
+}
+
+/* Feature cards grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.feature-card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.feature-card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.feature-card h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  opacity: 0.8;
+}
+
+/* Admonition / callout overrides */
+.alert {
+  border-radius: 8px;
+}
+
+/* Footer */
+.footer--dark {
+  background-color: #0f172a;
+}
+
+/* Breadcrumbs */
+.breadcrumbs__link {
+  font-size: 0.85rem;
+}
