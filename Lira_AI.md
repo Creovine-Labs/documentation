@@ -1,6 +1,6 @@
 # Lira AI — Complete Project Documentation
 
-> **An AI-powered operations platform that puts your organisation on autopilot — from live meeting participation and AI-conducted interviews to sales coaching, customer support automation, and deep third-party integrations across your entire tool stack.**
+> **Your AI workforce — Lira joins your meetings, conducts your interviews, coaches your sales reps, and handles your customer support, all autonomously and deeply integrated with the tools your team already uses.**
 
 *Last updated: June 2026 — includes 9 third-party integrations (Linear, Slack, Teams, Google Calendar/Drive, GitHub, Greenhouse, HubSpot, Salesforce), Customer Support AI with email domain management, Usage Tracking & Quotas, Sales Coaching desktop app spec, dual Google OAuth (login vs integrations), OpenAI GPT-4o-mini, Deepgram real-time speaker diarization, Organization Context System, Email Integration via Resend, and AI-Conducted Interviews with automated scheduling and candidate evaluation*
 
@@ -179,7 +179,7 @@
 
 ### 1.1 What is Lira AI?
 
-Lira AI is an **operations autopilot platform** that sits at the centre of how your organisation works. It spans four product areas — **Meetings**, **Interviews**, **Sales Coaching**, and **Customer Support** — and connects to the tools your team already uses through 9 deep third-party integrations.
+Lira AI is **your AI workforce** — autonomous AI that does the work your team doesn't have time for. It spans four product areas — **Meetings**, **Interviews**, **Sales Coaching**, and **Customer Support** — and connects to the tools your team already uses through 9 deep third-party integrations.
 
 **Meetings** — Paste a Google Meet link into the Lira dashboard, press "Send Lira to Meeting," and within seconds a new participant named **"Lira AI"** appears in the meeting. Lira listens to the entire conversation in real-time, and when someone says her name, she responds with a natural, conversational voice. She captures action items, generates summaries, and pushes updates to your connected tools automatically.
 
