@@ -1,8 +1,8 @@
 # Lira AI — Complete Project Documentation
 
-> **An AI-powered voice participant that joins Google Meet and Zoom meetings in real-time, listens to conversations, responds intelligently when addressed by name — and now conducts AI-powered interviews, sends post-meeting emails, and manages tasks across your organisation.**
+> **An AI-powered operations platform that puts your organisation on autopilot — from live meeting participation and AI-conducted interviews to sales coaching, customer support automation, and deep third-party integrations across your entire tool stack.**
 
-*Last updated: March 2026 — includes OpenAI GPT-4o-mini integration, Deepgram real-time speaker diarization, individual-contribution meeting summaries, Organization Context System (knowledge base, RAG pipeline, task engine), Email Integration via Resend (with inbound AI reply engine), and AI-Conducted Interviews with automated scheduling and candidate evaluation*
+*Last updated: June 2026 — includes 9 third-party integrations (Linear, Slack, Teams, Google Calendar/Drive, GitHub, Greenhouse, HubSpot, Salesforce), Customer Support AI with email domain management, Usage Tracking & Quotas, Sales Coaching desktop app spec, dual Google OAuth (login vs integrations), OpenAI GPT-4o-mini, Deepgram real-time speaker diarization, Organization Context System, Email Integration via Resend, and AI-Conducted Interviews with automated scheduling and candidate evaluation*
 
 ---
 
@@ -146,6 +146,32 @@
   - [20.7 Resume Parsing](#207-resume-parsing)
   - [20.8 API Reference](#208-api-reference)
   - [20.9 Frontend Pages](#209-frontend-pages)
+- [21. Third-Party Integrations](#21-third-party-integrations)
+  - [21.1 Overview](#211-overview)
+  - [21.2 Integration Providers](#212-integration-providers)
+  - [21.3 Integration Architecture](#213-integration-architecture)
+  - [21.4 Google Calendar Event CRUD](#214-google-calendar-event-crud)
+  - [21.5 Member Mapping System](#215-member-mapping-system)
+  - [21.6 External Webhooks](#216-external-webhooks)
+  - [21.7 Integration Verification & Approval](#217-integration-verification--approval)
+- [22. Customer Support AI](#22-customer-support-ai)
+  - [22.1 Overview](#221-overview)
+  - [22.2 Key Features](#222-key-features)
+  - [22.3 Architecture](#223-architecture)
+  - [22.4 Email Domain Setup Flow](#224-email-domain-setup-flow)
+- [23. Usage Tracking & Quotas](#23-usage-tracking--quotas)
+  - [23.1 Overview](#231-overview)
+  - [23.2 Implementation](#232-implementation)
+  - [23.3 Usage Metrics](#233-usage-metrics)
+- [24. Sales Coaching](#24-sales-coaching)
+  - [24.1 Overview](#241-overview)
+  - [24.2 Product Marketing](#242-product-marketing)
+  - [24.3 Desktop App Architecture](#243-desktop-app-architecture)
+  - [24.4 CRM Integration for Sales](#244-crm-integration-for-sales)
+- [25. Dual Google OAuth System](#25-dual-google-oauth-system)
+  - [25.1 Why Two Client IDs?](#251-why-two-client-ids)
+  - [25.2 Backend Implementation](#252-backend-implementation)
+  - [25.3 Config Schema](#253-config-schema)
 
 ---
 
@@ -153,21 +179,30 @@
 
 ### 1.1 What is Lira AI?
 
-Lira AI is an intelligent voice participant for video conference meetings. You paste a Google Meet link into the Lira dashboard, press "Send Lira to Meeting," and within seconds a new participant named **"Lira AI"** appears in the meeting. Lira listens to the entire conversation in real-time, and when someone says her name — "Hey Lira, what do you think?" — she responds with a natural, conversational voice.
+Lira AI is an **operations autopilot platform** that sits at the centre of how your organisation works. It spans four product areas — **Meetings**, **Interviews**, **Sales Coaching**, and **Customer Support** — and connects to the tools your team already uses through 9 deep third-party integrations.
 
-Lira is not a transcription tool or a post-meeting summary bot. She is a **live participant** who hears, understands, and speaks — in real-time, during the meeting itself.
+**Meetings** — Paste a Google Meet link into the Lira dashboard, press "Send Lira to Meeting," and within seconds a new participant named **"Lira AI"** appears in the meeting. Lira listens to the entire conversation in real-time, and when someone says her name, she responds with a natural, conversational voice. She captures action items, generates summaries, and pushes updates to your connected tools automatically.
 
-Beyond live meetings, Lira now also **conducts AI-powered interviews** — deploying a bot to a Google Meet call, autonomously asking structured questions, evaluating candidates against configurable criteria, and producing scored reports — all without a human interviewer needing to be present.
+**Interviews** — Lira conducts AI-powered interviews autonomously — deploying a bot to a Google Meet call, asking structured questions, evaluating candidates against configurable criteria, and producing scored reports — all without a human interviewer needing to be present.
+
+**Sales Coaching** — Real-time transcription, objection handling guidance, battle cards, and CRM auto-fill during sales calls. A dedicated desktop app architecture is specified for always-on sales coaching (see `docs/features/SALES_COACHING_DESKTOP_APP.md`).
+
+**Customer Support** — AI-powered email support with custom domain management, knowledge base–grounded responses, and automatic escalation when Lira can't confidently answer.
+
+**Integrations** — Lira connects to Linear, Slack, Microsoft Teams, Google Calendar & Drive, GitHub, Greenhouse, HubSpot, and Salesforce with full OAuth flows, member mapping, and bidirectional data sync. Tasks created in meetings flow into your project tracker; meeting summaries land in your Slack channel; calendar events are created and updated automatically.
 
 ### 1.2 The Problem It Solves
 
-Meetings are where decisions happen, but they often lack structure, context recall, and follow-through. Lira acts as an always-attentive participant who:
+Organisations lose productivity to fragmented workflows — meetings lack follow-through, hiring is inconsistent, sales reps coach themselves, and support is reactive. Lira puts all of this on autopilot:
 
 - **Never misses context** — she listens to 100% of the conversation, not just when you're paying attention
 - **Responds on demand** — say her name and she'll summarise, challenge, suggest, or facilitate
 - **Participates naturally** — uses voice (not chat), speaks in 1–3 sentences, and respects conversational flow
 - **Adapts personality** — can be supportive, a devil's advocate, a facilitator, or analytical
 - **Mutes on command** — "Lira, mute yourself" → she acknowledges and goes silent until unmuted
+- **Syncs across tools** — tasks, summaries, and updates flow into Linear, Slack, Teams, Google Calendar, GitHub, and CRMs automatically
+- **Hires at scale** — autonomous AI interviews with structured scoring, resume parsing, and multi-round tracking
+- **Supports customers 24/7** — AI email replies grounded in your org's knowledge base, with human escalation when needed
 
 ### 1.3 Key Capabilities
 
@@ -189,7 +224,21 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | **AI-conducted interviews** | Deploys the Lira bot to a Google Meet as an interviewer — asks structured questions, follows up intelligently, and produces a full scored candidate evaluation after the session |
 | **Interview auto-scheduler** | Interviews scheduled for a future time are automatically started by a background scheduler — no manual bot deployment needed |
 | **Resume parsing** | Upload candidate PDFs; Lira extracts structured data (name, experience, skills, education) using GPT-4o-mini |
+| **9 third-party integrations** | Linear, Slack, Microsoft Teams, Google Calendar & Drive, GitHub, Greenhouse, HubSpot, Salesforce — all with OAuth flows, member mapping, and connection management |
+| **Google Calendar sync** | Create and update calendar events; list calendars, set defaults per org |
+| **Google Drive management** | Create folders, list/search/read files, read Sheets and Docs content |
+| **GitHub integration** | Browse repos, read files, create issues and PRs, search code |
+| **CRM sync (HubSpot + Salesforce)** | Contacts, companies, deals, accounts, opportunities, leads, pipelines, notes |
+| **ATS integration (Greenhouse)** | API-key auth, candidate/job/application/scorecard management |
+| **Project management (Linear)** | OAuth2, issue sync, team/member mapping |
+| **Team communication (Slack + Teams)** | Post messages, list channels, member mapping, inbound webhooks |
+| **Customer Support AI** | AI email support with custom domain, knowledge base grounding, thread management, escalation |
+| **Usage tracking & quotas** | Per-org usage dashboard, beta limits, quota enforcement |
+| **External webhook receivers** | Inbound webhooks from Linear, Slack, and Teams for real-time event processing |
+| **AI task review** | Tasks have `lira_review_status` ("reviewing" | "needs_info" | "approved") — Lira autonomously validates tasks before execution |
+| **Member contribution tracking** | Per-member contribution analytics across meetings |
 | **Auth session management** | Auto-refreshes Google login cookies every 7 days |
+| **Dual Google OAuth** | Separate client IDs for platform login vs integration scopes — `getAllowedAudiences()` accepts both |
 | **Multi-platform** | Architecture supports Google Meet and Zoom |
 
 ---
@@ -227,8 +276,23 @@ Meetings are where decisions happen, but they often lack structure, context reca
 | **Resend** | Transactional email delivery (meeting summaries, task assignments, interview invites) |
 | **mailparser** | MIME email parsing for the inbound reply webhook |
 | **pdf-parse** | PDF text extraction for candidate resume parsing |
+| **mammoth** | DOCX to text conversion for document processing |
+| **crawlee** | Website crawling with Cheerio for knowledge base ingestion |
 | **jsonwebtoken** | JWT generation for reply tokens (email reply context encoding) |
 | **uuid** | Session/bot ID generation |
+
+#### Integration SDKs & OAuth Libraries
+
+| Technology | Purpose |
+|---|---|
+| **googleapis** | Google Calendar, Drive, Sheets, Docs API access |
+| **@slack/web-api** | Slack OAuth V2, channel/message management |
+| **@microsoft/microsoft-graph-client** | Microsoft Teams integration (Azure AD OAuth) |
+| **@octokit/rest** | GitHub API — repos, issues, PRs, code search |
+| **hubspot-api-client** | HubSpot CRM — contacts, companies, deals, pipelines |
+| **jsforce** | Salesforce OAuth2 + PKCE, SOQL queries, CRM operations |
+| **@linear/sdk** | Linear OAuth2, issue/team sync |
+| **Greenhouse Harvest API** | API-key auth for ATS integration (candidates, jobs, scorecards) |
 
 ### 2.3 AI & Audio
 
@@ -247,7 +311,7 @@ Meetings are where decisions happen, but they often lack structure, context reca
 |---|---|
 | **AWS EC2** (`t3.small`, `98.92.255.171`) | Backend server (Ubuntu 22.04) |
 | **AWS DynamoDB** | Meeting sessions + transcripts (`lira-meetings`, `lira-connections`, `lira-organizations`, `lira-interviews`) |
-| **AWS S3** | Audio recordings, Google auth state backup, candidate resume storage (`lira-documents-storage`), inbound email storage (`lira-inbound-email`) |
+| **AWS S3** | Audio recordings, Google auth state backup, candidate resume storage (`lira-documents-storage`), inbound email storage (`lira-inbound-email`), org documents (`creovine-lira-documents`) |
 | **AWS SES** | Inbound email receipt for `reply+*@liraintelligence.com` (reply engine) |
 | **AWS SNS** | Notification bridge from SES receipt rule → Fastify inbound webhook |
 | **AWS Secrets Manager** | Database credentials and shared secrets |
@@ -1061,6 +1125,12 @@ The backend runs as a **Fastify 4** server on EC2. It serves the Creovine platfo
 - `/lira/v1/meetings/*` — Meeting CRUD
 - `/lira/v1/bot/*` — Bot deployment and management
 - `/lira/v1/ws` — WebSocket for real-time audio (demo mode)
+- `/lira/v1/integrations/*` — OAuth callbacks, connection CRUD, member mapping for all 9 integrations
+- `/lira/v1/integrations/google/events/*` — Google Calendar event creation and updates
+- `/lira/v1/usage/*` — Org usage tracking and quota enforcement
+- `/lira/v1/webhooks/inbound/*` — Inbound webhooks from Linear, Slack, Teams
+- `/lira/v1/email/*` — Email config, domain management, inbound reply engine
+- `/api/orgs/*` — Organization CRUD, membership, knowledge base, documents, tasks
 
 The server starts on port 3000 (behind Nginx on EC2 for TLS termination) and registers Swagger/OpenAPI documentation at `/docs`.
 
@@ -1172,7 +1242,62 @@ See [Section 20.8](#208-api-reference) for the full interview route reference.
 
 See [Section 19.6](#196-api-reference) for the full email configuration and inbound route reference.
 
-All routes require JWT authentication via `jwtWithTenantAuth` middleware.
+#### Integration Routes (`/lira/v1/integrations`)
+
+See [Section 21](#21-third-party-integrations) for full details. Summary:
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/:provider/auth-url` | Get OAuth authorization URL (Linear, Slack, Teams, Google, GitHub, HubSpot, Salesforce) |
+| `GET` | `/:provider/callback` | OAuth callback handler — exchanges code for tokens, stores encrypted connection |
+| `GET` | `/:provider/status` | Check connection status for a provider |
+| `DELETE` | `/:provider/disconnect` | Disconnect integration and revoke tokens |
+| `GET` | `/:provider/members` | List members from the connected platform |
+| `GET` | `/:provider/member-mappings` | Get org member ↔ platform member mappings |
+| `POST` | `/:provider/member-mappings` | Save member mapping |
+| `POST` | `/greenhouse/connect` | Connect Greenhouse via API key (not OAuth) |
+| `GET` | `/google/calendars` | List Google calendars |
+| `POST` | `/google/calendars/default` | Set default calendar for the org |
+| `GET` | `/google/events` | List upcoming Google Calendar events |
+| `POST` | `/google/events` | Create a Google Calendar event |
+| `PUT` | `/google/events/:eventId` | Update a Google Calendar event |
+| `GET` | `/google/drive/folders` | List Google Drive folders |
+| `GET` | `/google/drive/files` | List/search Google Drive files |
+| `GET` | `/google/drive/files/:fileId` | Read file content (Docs, Sheets, raw) |
+| `POST` | `/google/drive/folders` | Create a Google Drive folder |
+| `GET` | `/linear/teams` | List Linear teams |
+| `POST` | `/linear/teams/default` | Set default Linear team |
+| `GET` | `/slack/channels` | List Slack channels |
+| `POST` | `/slack/channels/default` | Set default Slack channel |
+| `GET` | `/teams/teams` | List Microsoft Teams teams |
+| `GET` | `/teams/channels` | List channels for a team |
+| `POST` | `/teams/teams/default` | Set default Teams team |
+| `GET` | `/github/repos` | List GitHub repositories |
+| `GET` | `/github/repos/:owner/:repo/files` | Browse repo files |
+| `POST` | `/github/issues` | Create GitHub issue |
+| `POST` | `/github/pull-requests` | Create GitHub PR |
+| `GET` | `/greenhouse/jobs` | List Greenhouse jobs |
+| `GET` | `/greenhouse/candidates` | List Greenhouse candidates |
+| `GET` | `/hubspot/contacts` | List HubSpot contacts |
+| `GET` | `/hubspot/deals` | List HubSpot deals |
+| `GET` | `/salesforce/contacts` | List Salesforce contacts |
+| `GET` | `/salesforce/opportunities` | List Salesforce opportunities |
+
+#### External Webhook Routes (`/lira/v1/webhooks/inbound`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/linear` | Linear webhook handler — receives issue/comment events |
+| `POST` | `/slack` | Slack Events API handler — message events, app mentions |
+| `POST` | `/teams` | Microsoft Teams webhook — activity notifications |
+
+#### Usage Routes (`/lira/v1/usage`)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/?orgId=<id>` | Get org usage stats (meetings, bots deployed, interviews, documents, API calls) |
+
+All routes require JWT authentication via `jwtWithTenantAuth` middleware (except external webhook endpoints which use platform-specific signature verification).
 
 ### 8.5 WebSocket Routes
 
@@ -1291,34 +1416,42 @@ The frontend is a **React 19 + TypeScript SPA** built with Vite 7, deployed on V
 ```
 src/
 ├── pages/
-│   ├── HomePage.tsx              — Login/home screen with bot deploy
-│   ├── LandingPage.tsx           — Public marketing landing page
-│   ├── DashboardPage.tsx         — Authenticated user dashboard
-│   ├── MeetingPage.tsx           — Browser-based demo meeting
-│   ├── MeetingsPage.tsx          — List of all meetings
-│   ├── MeetingDetailPage.tsx     — Full transcript + summary for a meeting
-│   ├── OnboardingPage.tsx        — First-login org creation / join flow
-│   ├── OrganizationsPage.tsx     — List of user's organisations
-│   ├── OrgSettingsPage.tsx       — Organisation profile & settings
-│   ├── OrgMembersPage.tsx        — Member list, roles, invite code
-│   ├── OrgEmailPage.tsx          — Email config: platform / custom domain, threads
-│   ├── WebhooksPage.tsx          — Slack webhook & email notification config
-│   ├── KnowledgeBasePage.tsx     — Website crawl & KB entry management
-│   ├── DocumentsPage.tsx         — Uploaded document management
-│   ├── TasksPage.tsx             — Task list: filter by status, assign, execute
-│   ├── OrgTaskDetailPage.tsx     — Single task detail + execution result
-│   ├── InterviewsPage.tsx        — Interview roles list (grouped by job title)
-│   ├── InterviewRolePage.tsx     — All candidates for a role
-│   ├── InterviewCreatePage.tsx   — Create / draft a new interview
-│   ├── InterviewDetailPage.tsx   — Interview detail: transcript, evaluation, scoring
-│   ├── MemberProfilePage.tsx     — Individual member profile
-│   ├── SettingsPage.tsx          — Personal user settings
-│   ├── ProductSalesPage.tsx      — Sales coaching product marketing page
-│   ├── ProductInterviewsPage.tsx — AI Interviews product marketing page
-│   ├── ProductCustomerSupportPage.tsx — Customer support product marketing page
-│   ├── ResourcesPage.tsx         — Resources / documentation links
-│   ├── BlogPage.tsx              — Blog listing page
-│   └── BlogPostPage.tsx          — Individual blog post
+│   ├── HomePage.tsx                    — Login + Bot Deploy + Demo meeting start
+│   ├── LandingPage.tsx                 — Public marketing landing (4 products: Meetings, Interviews, Sales, Support)
+│   ├── DashboardPage.tsx               — Authenticated user dashboard
+│   ├── MeetingPage.tsx                 — Browser-based demo meeting
+│   ├── MeetingsPage.tsx                — List of all meetings
+│   ├── MeetingDetailPage.tsx           — Full transcript + summary for a meeting
+│   ├── OnboardingPage.tsx              — First-login org creation / join flow
+│   ├── OrganizationsPage.tsx           — List of user's organisations
+│   ├── OrgSettingsPage.tsx             — Organisation profile & settings
+│   ├── OrgMembersPage.tsx              — Member list, roles, invite code
+│   ├── OrgEmailPage.tsx                — Email config: platform / custom domain, threads
+│   ├── WebhooksPage.tsx                — Slack webhook & email notification config
+│   ├── KnowledgeBasePage.tsx           — Website crawl & KB entry management
+│   ├── DocumentsPage.tsx               — Uploaded document management
+│   ├── TasksPage.tsx                   — Task list: filter by status, assign, execute
+│   ├── OrgTaskDetailPage.tsx           — Single task detail + execution result
+│   ├── InterviewsPage.tsx              — Interview roles list (grouped by job title)
+│   ├── InterviewRolePage.tsx           — All candidates for a role
+│   ├── InterviewCreatePage.tsx         — Create / draft a new interview
+│   ├── InterviewDetailPage.tsx         — Interview detail: transcript, evaluation, scoring
+│   ├── IntegrationsPage.tsx            — Connect/disconnect 9 integrations, OAuth flows, member mapping
+│   ├── UsagePage.tsx                   — Org usage dashboard & quota tracking
+│   ├── MemberProfilePage.tsx           — Individual member profile + contributions
+│   ├── SettingsPage.tsx                — Personal user settings
+│   ├── ProductSalesPage.tsx            — Sales coaching product marketing page
+│   ├── ProductInterviewsPage.tsx       — AI Interviews product marketing page
+│   ├── ProductCustomerSupportPage.tsx  — Customer support product marketing page
+│   ├── ResourcesPage.tsx               — Resources / documentation links
+│   ├── SecurityPage.tsx                — Platform security overview
+│   ├── BlogPage.tsx                    — Blog listing page
+│   ├── BlogPostPage.tsx                — Individual blog post
+│   ├── PrivacyPage.tsx                 — Privacy policy
+│   ├── TermsPage.tsx                   — Terms of service
+│   ├── CookiePolicyPage.tsx            — Cookie policy
+│   ├── AcceptableUsePage.tsx           — Acceptable use policy
+│   └── UiLabPage.tsx                   — Component development playground
 ├── components/
 │   ├── bot-deploy/
 │   │   ├── BotDeployPanel.tsx   — Main feature: paste link → deploy bot
@@ -1332,7 +1465,7 @@ src/
 │   ├── common/                  — Reusable UI components (ConfirmDialog, PageLoader, etc.)
 │   └── ui/                      — Radix/shadcn primitives
 ├── services/
-│   └── api/index.ts              — All REST API calls (typed wrappers)
+│   └── api/index.ts              — All REST API calls (200+ typed wrappers including 50+ integration APIs)
 ├── features/
 │   ├── ai-participant/           — AI participant feature state
 │   ├── interview/                — Interview feature store and logic
@@ -1342,7 +1475,7 @@ src/
 │   └── settings/                — User settings feature
 ├── app/
 │   ├── store/index.ts            — Zustand stores (auth, meeting, bot, org, interview, tasks, KB)
-│   └── router/index.ts           — Route definitions (all 30+ routes)
+│   └── router/index.ts           — Route definitions (40+ routes + 8 integration callbacks)
 ├── lib/
 │   ├── audio.ts                  — Browser mic capture + AI audio playback
 │   └── utils.ts                  — Tailwind class merge utilities
@@ -1447,7 +1580,7 @@ The `BotDeployPanel` polling loop also detects JWT expiry gracefully — it stop
 | Service | Resource | Purpose |
 |---|---|---|
 | **EC2** | `t3.small` (i-038a4bb6abf311937) | Backend server — Fastify + Playwright |
-| **Elastic IP** | `52.206.83.13` | Static IP for the backend |
+| **Elastic IP** | `98.92.255.171` | Static IP for the backend |
 | **DynamoDB** | `lira-meetings` table | Meeting sessions, transcripts, settings |
 | **DynamoDB** | `lira-connections` table | WebSocket connection tracking |
 | **DynamoDB** | `lira-organizations` table | Orgs, memberships, KB entries, documents, tasks, email config, threads |
@@ -1493,8 +1626,11 @@ Environment variables on Vercel:
 ```
 VITE_API_URL=https://api.creovine.com
 VITE_WS_URL=wss://api.creovine.com/lira/v1/ws
-VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+VITE_GOOGLE_LOGIN_CLIENT_ID=<google-oauth-client-id-for-login>
+VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id-for-integrations>
 ```
+
+> **Note:** Two separate Google Client IDs are used — `VITE_GOOGLE_LOGIN_CLIENT_ID` for platform sign-in (the Lira app's OAuth consent screen) and `VITE_GOOGLE_CLIENT_ID` for Google Calendar/Drive integration scopes (the broader Creovine platform consent screen). See Section 10.6 for more.
 
 ### 10.4 DNS Configuration
 
@@ -1502,7 +1638,7 @@ DNS records on Namecheap:
 
 | Type | Name | Value | Purpose |
 |---|---|---|---|
-| `A` | `api` | `52.206.83.13` | Backend API |
+| `A` | `api` | `98.92.255.171` | Backend API |
 | `CNAME` | `lira` | `cname.vercel-dns.com` | Frontend |
 
 - `https://api.creovine.com` → EC2 backend
@@ -1525,7 +1661,7 @@ DNS records on Namecheap:
 
 **Requirements:**
 - SSH key at `~/.ssh/creovine-api-key.pem`
-- SSH access to `ubuntu@52.206.83.13`
+- SSH access to `ubuntu@98.92.255.171`
 
 ### 10.6 Environment Variables
 
@@ -1554,6 +1690,13 @@ OPENAI_MODEL=gpt-4o-mini                # override model if needed
 
 # Deepgram (speaker diarization — optional, falls back gracefully if unset)
 DEEPGRAM_API_KEY=...                    # Deepgram Nova-2 streaming API key
+
+# Google OAuth — DUAL CLIENT IDS
+GOOGLE_LOGIN_CLIENT_ID=71053791265-...  # Lira app OAuth consent screen (login only)
+GOOGLE_CLIENT_ID=467839759761-...       # Creovine platform OAuth (Calendar/Drive integration scopes)
+# Backend accepts tokens from BOTH audiences via getAllowedAudiences()
+# in platform-auth.service.ts — this allows users signing in via either
+# the Lira frontend or the Creovine website to authenticate against the same backend
 
 # Lira AI Bot
 LIRA_BOT_GOOGLE_AUTH_STATE=.lira-bot-auth/google-state.json
@@ -1586,6 +1729,25 @@ LIRA_INBOUND_EMAIL_BUCKET=lira-inbound-email # S3 bucket for raw MIME emails fro
 
 # Vector search (Qdrant)
 QDRANT_URL=http://localhost:6333             # Qdrant REST API (Docker on EC2)
+
+# Integration OAuth credentials (per-provider)
+LINEAR_CLIENT_ID=...                    # Linear OAuth2 app credentials
+LINEAR_CLIENT_SECRET=...
+SLACK_CLIENT_ID=...                     # Slack OAuth V2 app credentials
+SLACK_CLIENT_SECRET=...
+SLACK_SIGNING_SECRET=...                # For verifying inbound Slack webhook signatures
+TEAMS_CLIENT_ID=...                     # Azure AD app registration
+TEAMS_CLIENT_SECRET=...
+TEAMS_TENANT_ID=...                     # Azure AD tenant (or "common" for multi-tenant)
+GOOGLE_INTEGRATIONS_CLIENT_ID=...       # Google OAuth for Calendar/Drive (falls back to GOOGLE_CLIENT_ID)
+GOOGLE_INTEGRATIONS_CLIENT_SECRET=...
+GITHUB_CLIENT_ID=...                    # GitHub OAuth app credentials
+GITHUB_CLIENT_SECRET=...
+HUBSPOT_CLIENT_ID=...                   # HubSpot OAuth2 app credentials
+HUBSPOT_CLIENT_SECRET=...
+SALESFORCE_CLIENT_ID=...                # Salesforce Connected App (OAuth2 + PKCE)
+SALESFORCE_CLIENT_SECRET=...
+# Note: Greenhouse uses API key auth, not OAuth — key is stored per-connection in DynamoDB
 ```
 
 **Frontend (Vercel environment):**
@@ -1593,7 +1755,8 @@ QDRANT_URL=http://localhost:6333             # Qdrant REST API (Docker on EC2)
 ```bash
 VITE_API_URL=https://api.creovine.com
 VITE_WS_URL=wss://api.creovine.com/lira/v1/ws
-VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+VITE_GOOGLE_LOGIN_CLIENT_ID=71053791265-...   # For @react-oauth/google sign-in button
+VITE_GOOGLE_CLIENT_ID=467839759761-...        # For Google Calendar/Drive OAuth consent
 ```
 
 ---
@@ -1825,9 +1988,16 @@ Here is the complete journey from a user clicking "Send Lira to Meeting" to Lira
 creovine-api/
 ├── src/
 │   ├── index.ts                    — Fastify server + Swagger + route registration
+│   ├── config/
+│   │   └── index.ts                — Zod-validated config (googleClientId, googleLoginClientId, etc.)
 │   ├── routes/
 │   │   ├── lira-bot.routes.ts      — Bot deploy/status/terminate REST API
-│   │   └── lira-meetings.routes.ts — Meeting CRUD + summaries REST API
+│   │   ├── lira-meetings.routes.ts — Meeting CRUD + summaries REST API
+│   │   ├── lira-integration.routes.ts — OAuth callbacks, connection CRUD, member mapping,
+│   │   │                               Google Calendar events, Drive operations
+│   │   ├── lira-usage.routes.ts    — Usage tracking & quota enforcement
+│   │   ├── lira-webhook-external.routes.ts — Inbound webhooks from Linear, Slack, Teams
+│   │   └── lira-email.routes.ts    — Email config, domain, inbound reply
 │   ├── services/
 │   │   ├── lira-bot/
 │   │   │   ├── index.ts            — Barrel exports
@@ -1838,16 +2008,33 @@ creovine-api/
 │   │   │   └── drivers/
 │   │   │       ├── google-meet.driver.ts
 │   │   │       └── zoom.driver.ts
+│   │   ├── integrations/
+│   │   │   ├── adapter.interface.ts    — Base integration adapter interface
+│   │   │   ├── linear.adapter.ts       — Linear OAuth2 + issue/team sync
+│   │   │   ├── slack.adapter.ts        — Slack OAuth V2 + channel/message ops
+│   │   │   ├── teams.adapter.ts        — MS Teams Azure AD OAuth + messaging
+│   │   │   ├── google.adapter.ts       — Google Calendar/Drive/Sheets/Docs
+│   │   │   ├── github.adapter.ts       — GitHub repos/issues/PRs/code search
+│   │   │   ├── greenhouse.adapter.ts   — Greenhouse API-key auth + ATS ops
+│   │   │   ├── hubspot.adapter.ts      — HubSpot OAuth2 + CRM ops
+│   │   │   └── salesforce.adapter.ts   — Salesforce OAuth2+PKCE + CRM ops
 │   │   ├── lira-sonic.service.ts   — Nova Sonic + wake word gating
 │   │   ├── lira-wakeword.service.ts — 4-layer wake word detection
 │   │   ├── lira-store.service.ts   — DynamoDB persistence
 │   │   ├── lira-ai.service.ts      — Meeting summaries (OpenAI GPT-4o-mini) + title generation
+│   │   ├── lira-email.service.ts   — Resend email, domain config, thread storage
+│   │   ├── lira-email-reply.service.ts — Inbound reply engine (SNS → GPT-4o-mini)
+│   │   ├── lira-context-builder.service.ts — Org context assembly for Nova Sonic
+│   │   ├── lira-crawl.service.ts   — Website crawling & KB summarization
+│   │   ├── platform-auth.service.ts — Dual Google OAuth (getAllowedAudiences)
 │   │   └── deepgram-diarization.service.ts — Real-time speaker diarization (Deepgram Nova-2)
 │   ├── models/
 │   │   ├── lira.models.ts          — Meeting, Message, SonicSession
 │   │   └── lira-bot.models.ts      — BotConfig, BotState
 │   └── middleware/
 │       └── auth.middleware.ts       — JWT authentication
+├── prisma/
+│   └── schema.prisma                — PostgreSQL schema (platform data)
 ├── deploy-auto.sh                   — One-command deployment
 ├── .lira-bot-auth/
 │   └── google-state.json           — Saved Google session (not in git)
@@ -1863,7 +2050,41 @@ lira_ai/
 │   ├── env.ts                      — Zod-validated environment config
 │   ├── pages/
 │   │   ├── HomePage.tsx            — Login + Bot Deploy
-│   │   └── MeetingPage.tsx         — Browser demo meeting
+│   │   ├── LandingPage.tsx         — Marketing landing (4 product tabs)
+│   │   ├── DashboardPage.tsx       — User dashboard
+│   │   ├── MeetingPage.tsx         — Browser demo meeting
+│   │   ├── MeetingsPage.tsx        — Meeting list
+│   │   ├── MeetingDetailPage.tsx   — Transcript + summary
+│   │   ├── OnboardingPage.tsx      — Org creation / join
+│   │   ├── OrganizationsPage.tsx   — Org list
+│   │   ├── OrgSettingsPage.tsx     — Org profile & settings
+│   │   ├── OrgMembersPage.tsx      — Member management
+│   │   ├── OrgEmailPage.tsx        — Email config + threads
+│   │   ├── WebhooksPage.tsx        — Webhook config
+│   │   ├── KnowledgeBasePage.tsx   — KB management
+│   │   ├── DocumentsPage.tsx       — Document management
+│   │   ├── TasksPage.tsx           — Task board
+│   │   ├── OrgTaskDetailPage.tsx   — Task detail
+│   │   ├── InterviewsPage.tsx      — Interview roles
+│   │   ├── InterviewRolePage.tsx   — Candidates per role
+│   │   ├── InterviewCreatePage.tsx — Create interview
+│   │   ├── InterviewDetailPage.tsx — Interview detail + evaluation
+│   │   ├── IntegrationsPage.tsx    — 9 integrations management
+│   │   ├── UsagePage.tsx           — Usage dashboard
+│   │   ├── MemberProfilePage.tsx   — Member profile + contributions
+│   │   ├── SettingsPage.tsx        — User settings
+│   │   ├── ProductSalesPage.tsx    — Sales coaching marketing
+│   │   ├── ProductInterviewsPage.tsx — Interviews marketing
+│   │   ├── ProductCustomerSupportPage.tsx — Support marketing
+│   │   ├── ResourcesPage.tsx       — Resources hub
+│   │   ├── SecurityPage.tsx        — Security overview
+│   │   ├── BlogPage.tsx            — Blog listing
+│   │   ├── BlogPostPage.tsx        — Blog post
+│   │   ├── PrivacyPage.tsx         — Privacy policy
+│   │   ├── TermsPage.tsx           — Terms of service
+│   │   ├── CookiePolicyPage.tsx    — Cookie policy
+│   │   ├── AcceptableUsePage.tsx   — Acceptable use policy
+│   │   └── UiLabPage.tsx           — Dev component playground
 │   ├── components/
 │   │   ├── bot-deploy/
 │   │   │   ├── BotDeployPanel.tsx  — Paste link → deploy → track
@@ -1871,16 +2092,20 @@ lira_ai/
 │   │   ├── common/                 — Reusable UI components
 │   │   └── ui/                     — Radix primitives
 │   ├── services/
-│   │   └── api/index.ts            — API client
+│   │   └── api/index.ts            — 200+ API wrappers (50+ integration APIs)
 │   ├── features/
 │   │   └── meeting/
 │   │       └── use-audio-meeting.ts — Audio meeting hook
 │   ├── app/
 │   │   ├── store/index.ts          — Zustand stores
-│   │   └── router/index.ts         — Routes
+│   │   └── router/index.ts         — 40+ routes
 │   └── lib/
 │       ├── audio.ts                — Mic capture + audio playback
 │       └── utils.ts                — Tailwind utilities
+├── docs/
+│   ├── INTEGRATION_VERIFICATION_TRACKER.md — Tracker for all 8 integration platform approvals
+│   └── features/
+│       └── SALES_COACHING_DESKTOP_APP.md   — Sales coaching Electron desktop app specification
 ├── vite.config.ts
 ├── vercel.json                     — SPA routing
 └── package.json
@@ -3281,6 +3506,279 @@ All routes mounted at `/lira/v1/orgs/:orgId/interviews`. JWT auth required on al
 **Product Marketing Page: `/products/sales` → `ProductSalesPage.tsx`**
 - Public-facing marketing page for Lira AI Sales Coaching
 - Three-step how-it-works, feature grid (real-time transcription, objection handling, battle cards, CRM auto-fill)
+
+---
+
+## 21. Third-Party Integrations
+
+> **9 integration adapters — shipped. Each adapter follows a shared interface (`adapter.interface.ts`) with OAuth connection management, encrypted token storage, and member mapping.**
+
+### 21.1 Overview
+
+Lira connects to the tools your team already uses. Every integration follows a consistent pattern:
+
+1. **OAuth flow** — User clicks "Connect" on the Integrations page → redirected to the provider's consent screen → callback stores encrypted tokens in DynamoDB
+2. **Connection management** — Status check, disconnect, token refresh
+3. **Member mapping** — Map org members to their accounts on each platform (e.g. "Alice in Lira" = "alice@company.slack.com")
+4. **Bidirectional operations** — Read data from the platform, push data back (e.g. post Slack messages, create Linear issues, update calendar events)
+
+All integration credentials (OAuth tokens, API keys) are **encrypted at rest** in DynamoDB using AES-256 before storage. Tokens are never exposed in API responses.
+
+### 21.2 Integration Providers
+
+| Provider | Auth Method | Key Features |
+|---|---|---|
+| **Linear** | OAuth2 | Issue sync, team listing, member mapping, default team selection |
+| **Slack** | OAuth V2 | Channel listing, DMs, message posting, default channel, inbound webhooks. Scopes: `chat:write`, `channels:read`, `groups:read`, `im:write`, `users:read`, `users:read.email`, `team:read` |
+| **Microsoft Teams** | Azure AD OAuth | Team/channel listing, message posting, default team/channel, inbound webhooks |
+| **Google Calendar** | OAuth2 (dual client) | List/set default calendar, list events, **create events**, **update events** |
+| **Google Drive** | OAuth2 (dual client) | List/search files, read file content (Docs, Sheets, raw), create folders, set default folder |
+| **Google Sheets** | OAuth2 (via Drive) | Read sheet data from connected spreadsheets |
+| **Google Docs** | OAuth2 (via Drive) | Read document content from connected docs |
+| **GitHub** | OAuth | Repos, branches, file browsing, file reading, issues, PRs, code search |
+| **Greenhouse** | API Key | Candidates, jobs, applications, scorecards — no OAuth, key stored per-connection |
+| **HubSpot** | OAuth2 | Contacts, companies, deals, pipelines, owners, notes (create + list) |
+| **Salesforce** | OAuth2 + PKCE | Contacts, accounts, opportunities, leads |
+
+### 21.3 Integration Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Frontend — IntegrationsPage.tsx                                │
+│  ┌───────┐ ┌───────┐ ┌──────┐ ┌────────┐ ┌────────┐ ┌───────┐ │
+│  │Linear │ │Slack  │ │Teams │ │Google  │ │GitHub  │ │Greenh.│ │
+│  │       │ │       │ │      │ │Cal+Drv │ │        │ │       │ │
+│  ├───────┤ ├───────┤ ├──────┤ ├────────┤ ├────────┤ ├───────┤ │
+│  │HubSpot│ │Salesf.│ │      │ │        │ │        │ │       │ │
+│  └───┬───┘ └───┬───┘ └──┬───┘ └───┬────┘ └───┬────┘ └───┬───┘ │
+└──────┼─────────┼────────┼────────┼──────────┼──────────┼──────┘
+       │ GET /auth-url    │        │          │          │
+       ▼                  ▼        ▼          ▼          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  lira-integration.routes.ts                                     │
+│                                                                 │
+│  OAuth Callbacks ← provider redirects back with auth code       │
+│  ↓                                                              │
+│  adapter.exchangeCode(code) → encrypted tokens → DynamoDB       │
+│                                                                 │
+│  Connection CRUD: status / disconnect / member-mappings         │
+│  Provider-specific: calendars, channels, repos, contacts, etc.  │
+└─────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  src/services/integrations/                                     │
+│  ┌──────────────────┐                                           │
+│  │ adapter.interface │ ← shared connect/disconnect/status       │
+│  └──────────────────┘                                           │
+│  ┌────────┐ ┌───────┐ ┌──────┐ ┌────────┐ ┌────────┐          │
+│  │linear  │ │slack  │ │teams │ │google  │ │github  │          │
+│  │adapter │ │adapter│ │adapter│ │adapter │ │adapter │          │
+│  └────────┘ └───────┘ └──────┘ └────────┘ └────────┘          │
+│  ┌──────────┐ ┌─────────┐ ┌────────────┐                      │
+│  │greenhouse│ │hubspot  │ │salesforce  │                      │
+│  │adapter   │ │adapter  │ │adapter     │                      │
+│  └──────────┘ └─────────┘ └────────────┘                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 21.4 Google Calendar Event CRUD
+
+The Google integration supports full Calendar event management:
+
+- **`POST /integrations/google/events`** — Create a calendar event with title, description, start/end time, attendees, location
+- **`PUT /integrations/google/events/:eventId`** — Update an existing event (reschedule, add attendees, change description)
+- **`GET /integrations/google/events`** — List upcoming events from the default calendar
+
+Events are created using the Google Calendar API v3 via the `googleapis` SDK. The adapter uses the org's stored OAuth tokens (refreshed automatically on 401).
+
+### 21.5 Member Mapping System
+
+Each integration supports a member mapping table that links Lira org members to their accounts on the external platform:
+
+```
+Lira Org Member     ←→     Platform Account
+"Alice Smith"               "alice@company.slack.com" (Slack)
+"Alice Smith"               "U12345" (Linear user ID)
+"Bob Johnson"               "bob@company.com" (HubSpot contact owner)
+```
+
+This enables:
+- Task assignments to flow to the right person in Linear/Slack
+- Meeting summaries tagged to the correct HubSpot contact
+- Calendar events created with the right attendees
+
+### 21.6 External Webhooks
+
+Three providers send real-time events to Lira:
+
+| Provider | Endpoint | Events |
+|---|---|---|
+| **Linear** | `POST /lira/v1/webhooks/inbound/linear` | Issue created/updated, comment added |
+| **Slack** | `POST /lira/v1/webhooks/inbound/slack` | Messages, app mentions, channel events |
+| **Teams** | `POST /lira/v1/webhooks/inbound/teams` | Activity notifications |
+
+Each webhook handler verifies the request signature using the provider's signing secret before processing.
+
+### 21.7 Integration Verification & Approval
+
+Every integration is tracked for official platform approval. The goal: **no red warnings, no "app not approved" banners** — ever. See `docs/INTEGRATION_VERIFICATION_TRACKER.md` for current status.
+
+| Platform | Approval Target | Status |
+|---|---|---|
+| Google | OAuth verification (sensitive scopes) | In Progress — awaiting review |
+| Slack | Slack App Directory listing | In Progress — public distribution activated |
+| Microsoft | Microsoft 365 Certification | Not Started |
+| GitHub | GitHub Marketplace | Not Started |
+| HubSpot | HubSpot Marketplace | Not Started |
+| Salesforce | Salesforce AppExchange | Not Started |
+| Greenhouse | Greenhouse Partner Program | Not Started |
+| Linear | Linear integration listing | Not Started |
+
+---
+
+## 22. Customer Support AI
+
+### 22.1 Overview
+
+Lira's Customer Support product provides AI-powered email support with knowledge base grounding. Instead of generic chatbot responses, Lira reads each support email in context, searches the org's knowledge base and uploaded documents, and responds with accurate, company-specific answers — or escalates to a human when it can't confidently answer.
+
+### 22.2 Key Features
+
+- **Custom email domain** — Org admins self-serve domain setup via the Resend domain API. Customers email `support@yourcompany.com`; Lira responds as the company brand.
+- **AI reply automation** — Toggle `ai_reply_enabled` per org. When enabled, inbound emails are processed automatically by GPT-4o-mini with full org context.
+- **Knowledge base grounding** — Every AI reply is informed by Qdrant vector search across the org's crawled website and uploaded documents.
+- **Escalation** — When GPT-4o-mini determines it can't answer confidently (novel topic, sensitive request, explicit "talk to a human"), the email is escalated to an org admin with the full thread forwarded.
+- **Thread management** — Full inbox UI showing all email threads with status badges (open / escalated / closed).
+- **Custom domain DNS verification** — Self-serve DNS record setup with live verification polling.
+
+### 22.3 Architecture
+
+The Customer Support system reuses the Email Integration architecture (Section 19) with these additions:
+
+- **`ProductCustomerSupportPage.tsx`** — Marketing page for the support product
+- **`OrgEmailPage.tsx`** — Email domain setup, thread inbox, notification preferences
+- **Email routes** (`/lira/v1/email/*`) handle both meeting notification replies and customer support threads
+- The same GPT-4o-mini reply engine handles both — context type distinguishes meeting replies from support queries
+
+### 22.4 Email Domain Setup Flow
+
+1. Admin navigates to Org Settings → Email → "Use custom domain"
+2. Enters domain (e.g. `yourcompany.com`)
+3. Frontend calls `POST /lira/v1/email/domain`
+4. Backend registers domain via Resend API → returns DNS records (MX, TXT, DKIM)
+5. Admin adds records to their DNS provider
+6. Frontend polls `GET /lira/v1/email/domain/status` until verified
+7. Once verified, all outbound emails use `lira@yourcompany.com`
+
+---
+
+## 23. Usage Tracking & Quotas
+
+### 23.1 Overview
+
+Lira tracks per-org usage to enforce beta limits and provide visibility into resource consumption. The Usage page shows meetings held, bots deployed, interviews conducted, documents uploaded, and API calls made.
+
+### 23.2 Implementation
+
+- **Backend**: `lira-usage.routes.ts` provides `GET /lira/v1/usage?orgId=<id>` returning usage stats
+- **Frontend**: `UsagePage.tsx` at `/usage` displays usage metrics with visual progress bars against quota limits
+- **API layer**: `getOrgUsage(orgId)` typed wrapper in the API service
+- **Quota enforcement**: A `BETA_LIMIT_REACHED` interceptor returns 429 when an org exceeds its beta allocation
+
+### 23.3 Usage Metrics
+
+| Metric | Description |
+|---|---|
+| Meetings | Total meetings created this billing period |
+| Bot deployments | Number of bot deploys (Google Meet joins) |
+| Interviews | AI interviews conducted |
+| Documents | Files uploaded to the knowledge base |
+| Website crawl pages | Pages crawled for KB |
+| API calls | Total API requests |
+
+---
+
+## 24. Sales Coaching
+
+### 24.1 Overview
+
+Lira's Sales Coaching product provides real-time assistance during sales calls. The system offers:
+
+- **Real-time transcription** — Live call transcript with speaker identification
+- **Objection handling** — AI-powered suggestions when prospects raise objections
+- **Battle cards** — Competitive intelligence surfaced at the right moment
+- **CRM auto-fill** — Meeting notes, next steps, and deal updates pushed to HubSpot/Salesforce automatically
+
+### 24.2 Product Marketing
+
+**Route**: `/products/sales` → `ProductSalesPage.tsx`
+
+The marketing page showcases the three-step workflow (Connect → Coach → Close) and feature grid.
+
+### 24.3 Desktop App Architecture
+
+A dedicated Electron desktop app is specified for always-on sales coaching. See `docs/features/SALES_COACHING_DESKTOP_APP.md` for the full specification including:
+
+- Electron + React + TypeScript architecture
+- System tray integration for always-available coaching
+- Screen overlay for real-time objection handling cards
+- CRM integration (HubSpot, Salesforce) for automatic deal updates
+- Audio capture from system audio (sales calls on any platform)
+
+### 24.4 CRM Integration for Sales
+
+The existing HubSpot and Salesforce integrations (Section 21) provide the data layer for sales coaching:
+
+- **HubSpot**: `listHubSpotContacts`, `listHubSpotDeals`, `listHubSpotPipelines`, `createHubSpotNote` — for auto-filling deal notes after sales calls
+- **Salesforce**: `listSalesforceContacts`, `listSalesforceOpportunities`, `listSalesforceLeads` — for syncing meeting context to opportunity records
+
+---
+
+## 25. Dual Google OAuth System
+
+### 25.1 Why Two Client IDs?
+
+Lira uses two separate Google OAuth client IDs to handle different authentication contexts:
+
+| Client ID | Purpose | Env Var (Backend) | Env Var (Frontend) |
+|---|---|---|---|
+| `71053791265-...` | **Platform login** — Lira app's OAuth consent screen. Used when signing in via the Lira frontend. | `GOOGLE_LOGIN_CLIENT_ID` | `VITE_GOOGLE_LOGIN_CLIENT_ID` |
+| `467839759761-...` | **Integration scopes** — Creovine platform's broader OAuth consent screen. Used for Google Calendar/Drive integration and for sign-in via the Creovine website. | `GOOGLE_CLIENT_ID` | `VITE_GOOGLE_CLIENT_ID` |
+
+### 25.2 Backend Implementation
+
+In `platform-auth.service.ts`, the `getAllowedAudiences()` function returns an array of both client IDs:
+
+```typescript
+function getAllowedAudiences(): string[] {
+  const audiences = [config.googleLoginClientId];
+  if (config.googleClientId) {
+    audiences.push(config.googleClientId);
+  }
+  return audiences;
+}
+```
+
+The `verifyIdToken()` call passes this array, so tokens issued by either Google OAuth consent screen are accepted:
+
+```typescript
+const ticket = await client.verifyIdToken({
+  idToken: token,
+  audience: getAllowedAudiences(),
+});
+```
+
+This enables users who sign in via the Lira frontend **or** the Creovine website to authenticate against the same backend without audience mismatch errors.
+
+### 25.3 Config Schema
+
+In `src/config/index.ts`, the Zod schema includes both:
+
+```typescript
+googleLoginClientId: z.string(),        // Required — Lira app login
+googleClientId: z.string().optional(),   // Optional — Creovine platform integration
+```
 
 ---
 
