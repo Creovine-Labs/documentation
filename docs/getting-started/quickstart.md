@@ -56,4 +56,4 @@ Don't have a Google Meet handy? Use the **Browser-based Demo Meeting** — it ru
 
 - [Set up integrations](/integrations/overview) — Connect Slack, Linear, Google Calendar, and more
 - [Configure your organization](/getting-started/concepts) — Knowledge base, custom domains, team members
-- [Explore the API](/api/overview) — Build on top of Lira programmatically
+- [App Navigation](/getting-started/navigation) — Find your way around the Lira platform

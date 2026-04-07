@@ -1,47 +1,72 @@
 ---
-slug: /getting-started/overview
+slug: /
 sidebar_position: 1
-title: What is Lira AI?
+title: What is Lira?
+description: Lira documentation — autonomous AI agents for meetings, interviews, sales coaching, and customer support.
 ---
 
-# What is Lira AI?
+<div className="hero-lira">
+  <h1>Lira Documentation</h1>
+  <p>Build with autonomous AI agents that join meetings, conduct interviews, coach sales reps, and handle customer support.</p>
+  <div className="hero-buttons">
+    <a className="button button--primary button--lg" href="/getting-started/quickstart">Get Started →</a>
+    <a className="button button--outline button--lg" href="/getting-started/navigation">App Navigation</a>
+  </div>
+</div>
 
-**Lira AI is your AI workforce** — autonomous AI agents that join your meetings, conduct your interviews, coach your sales reps, and handle your customer support. Lira integrates deeply with the tools your team already uses.
+---
 
-## Four Product Areas
+## Products
 
-### Meetings
-
-Paste a Google Meet link into the Lira dashboard, press **"Send Lira to Meeting,"** and within seconds a new participant named **Lira AI** appears. She listens in real-time, responds when addressed by name, captures action items, generates summaries, and pushes updates to your connected tools automatically.
-
-### Interviews
-
-Lira conducts AI-powered interviews autonomously — deploying a bot to a Google Meet call, asking structured questions, evaluating candidates against configurable criteria, and producing scored reports. No human interviewer needs to be present.
-
-### Sales Coaching
-
-Real-time transcription, objection handling guidance, battle cards, and CRM auto-fill during sales calls. A dedicated desktop app architecture is available for always-on sales coaching.
-
-### Customer Support
-
-AI-powered email support with custom domain management, knowledge base–grounded responses, and automatic escalation when Lira can't confidently answer.
+<div className="feature-grid">
+  <a className="feature-card" href="/platform/meetings">
+    <h3>🎙️ Meetings</h3>
+    <p>Send Lira to any Google Meet. She listens, responds by name, captures action items, generates summaries, and pushes updates to your connected tools — all in real time.</p>
+  </a>
+  <a className="feature-card" href="/platform/interviews">
+    <h3>📋 Interviews</h3>
+    <p>Fully autonomous AI interviews — structured questions, configurable rubrics, candidate evaluation, and scored reports. No human interviewer needed.</p>
+  </a>
+  <a className="feature-card" href="/platform/sales-coaching">
+    <h3>💼 Sales Coaching</h3>
+    <p>Real-time transcription, objection handling, battle cards, and CRM auto-fill during sales calls. Always-on coaching via a dedicated desktop app.</p>
+  </a>
+  <a className="feature-card" href="/platform/customer-support">
+    <h3>📧 Customer Support</h3>
+    <p>AI-powered email support with custom domains, knowledge base–grounded responses, and automatic escalation when confidence is low.</p>
+  </a>
+</div>
 
 ## Key Capabilities
 
-| Capability | Description |
-|:---|:---|
-| **Real-time voice participation** | Joins as a named participant, listens and speaks via WebRTC audio |
-| **Wake word activation** | Only responds when addressed by name (configurable) |
-| **4 personality modes** | Supportive, Challenger, Facilitator, Analyst |
-| **Speaker diarization** | Deepgram identifies who is speaking in real-time with real names |
-| **Meeting summaries** | AI-generated short and detailed summaries via GPT-4o-mini |
-| **Task extraction** | Automatically extracts action items and syncs to project tools |
-| **9 integrations** | Linear, Slack, Teams, Google Calendar/Drive, GitHub, HubSpot, Salesforce, Greenhouse |
-| **AI-conducted interviews** | Autonomous interviews with structured scoring and resume parsing |
-| **Customer support AI** | Email support grounded in your org's knowledge base |
-| **Usage tracking** | Per-org usage dashboard with beta limits and quota enforcement |
+<div className="feature-grid">
+  <div className="feature-card">
+    <h3>🗣️ Real-time Voice</h3>
+    <p>Joins as a named participant, listens and speaks via WebRTC audio powered by Amazon Nova Sonic speech-to-speech AI.</p>
+  </div>
+  <div className="feature-card">
+    <h3>👂 Wake Word</h3>
+    <p>Only responds when addressed by name. 3-layer detection with exact match, fuzzy, and phonetic matching.</p>
+  </div>
+  <div className="feature-card">
+    <h3>🎭 4 Personality Modes</h3>
+    <p>Supportive, Challenger, Facilitator, or Analyst — choose how Lira interacts in every meeting.</p>
+  </div>
+  <div className="feature-card">
+    <h3>👥 Speaker Diarization</h3>
+    <p>Deepgram Nova-2 identifies who is speaking in real time, tagging every transcript line with the speaker's name.</p>
+  </div>
+  <div className="feature-card">
+    <h3>✅ Task Extraction</h3>
+    <p>Automatically extracts action items and syncs them to Linear, GitHub, Slack, or email — with AI review and execution.</p>
+  </div>
+  <div className="feature-card">
+    <h3>🔗 9 Integrations</h3>
+    <p>Linear, Slack, Teams, Google Calendar, Google Drive, GitHub, HubSpot, Salesforce, and Greenhouse.</p>
+  </div>
+</div>
 
-## How It's Different
+## What Makes Lira Different
 
 | Feature | Traditional AI Tools | Lira AI |
 |:---|:---|:---|
@@ -53,8 +78,23 @@ AI-powered email support with custom domain management, knowledge base–grounde
 | Autonomous interviews | ❌ | ✅ |
 | 9 deep integrations | ❌ | ✅ |
 
-## Next Steps
+## Explore the Docs
 
-- [**Quickstart →**](/getting-started/quickstart) — Deploy Lira to your first meeting in 5 minutes
-- [**Authentication →**](/getting-started/authentication) — Set up Google Sign-In and API access
-- [**API Reference →**](/api/overview) — REST and WebSocket endpoints
+<div className="feature-grid">
+  <a className="feature-card" href="/getting-started/quickstart">
+    <h3>⚡ Quickstart</h3>
+    <p>Deploy Lira to your first meeting in 5 minutes.</p>
+  </a>
+  <a className="feature-card" href="/getting-started/authentication">
+    <h3>🔑 Authentication</h3>
+    <p>Set up Google Sign-In and API access.</p>
+  </a>
+  <a className="feature-card" href="/api/overview">
+    <h3>📡 API Reference</h3>
+    <p>REST and WebSocket endpoints for the Lira platform.</p>
+  </a>
+  <a className="feature-card" href="/architecture/overview">
+    <h3>🏗️ Architecture</h3>
+    <p>Deep dives into the audio pipeline, Nova Sonic, and infrastructure.</p>
+  </a>
+</div>

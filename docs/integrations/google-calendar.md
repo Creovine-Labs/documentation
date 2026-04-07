@@ -12,8 +12,33 @@ Sync meetings with Google Calendar — create events, list calendars, and set or
 
 1. Go to **Organization Settings → Integrations → Google Calendar**
 2. Click **Connect Google Calendar**
-3. Sign in with your Google account (uses the **integration** client ID, not the login one)
-4. Grant calendar access permissions
+3. A Google sign-in window will open — select your account
+4. If you see a verification warning, follow the steps below
+5. Grant calendar access permissions
+
+## Google OAuth Verification Notice
+
+When connecting Google Calendar, you may see a screen that says:
+
+> **"Google hasn't verified this app"**
+> The app is requesting access to sensitive info in your Google Account. Until the developer (NalaLabs) verifies this app with Google, you shouldn't use it.
+
+**This is expected.** Lira is currently going through Google's OAuth verification process. Your data is safe — this warning appears for all unverified apps during the review period.
+
+### How to proceed
+
+1. On the warning screen, click **"Advanced"** (bottom-left of the dialog)
+2. A second link will appear — click **"Go to Lira AI (unsafe)"**
+3. You'll be taken to the standard Google permissions screen
+4. Review the requested permissions and click **"Allow"**
+
+:::tip Why does this happen?
+Google requires apps that access user data to complete a formal security review before showing a clean consent screen. We've submitted for review and will update this notice once approved.
+:::
+
+:::info Questions?
+If you have concerns about data access, email us at **support@liraintelligence.com**.
+:::
 
 ## Capabilities
 

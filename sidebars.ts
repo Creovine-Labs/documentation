@@ -11,16 +11,30 @@ const sidebars: SidebarsConfig = {
         'getting-started/quickstart',
         'getting-started/authentication',
         'getting-started/concepts',
+        'getting-started/navigation',
       ],
     },
     {
       type: 'category',
       label: 'Platform',
       items: [
+        'platform/lira',
         'platform/meetings',
         'platform/interviews',
         'platform/sales-coaching',
         'platform/customer-support',
+        'platform/email',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Knowledge Base',
+      items: [
+        'knowledge-base/overview',
+        'knowledge-base/documents',
+        'knowledge-base/connected-sources',
+        'knowledge-base/web-sources',
+        'knowledge-base/query',
       ],
     },
     {
@@ -60,25 +74,7 @@ const sidebars: SidebarsConfig = {
         'infrastructure/aws-resources',
       ],
     },
-  ],
-  api: [
-    {
-      type: 'category',
-      label: 'API Reference',
-      collapsed: false,
-      items: [
-        'api/overview',
-        'api/authentication',
-        'api/bot',
-        'api/meetings',
-        'api/organizations',
-        'api/interviews',
-        'api/integrations',
-        'api/tasks',
-        'api/websocket',
-        'api/webhooks',
-      ],
-    },
+    'changelog',
   ],
 };
 

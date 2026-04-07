@@ -18,32 +18,44 @@ Lira AI is a full-stack platform with a React frontend hosted on Vercel, a Fasti
 | TypeScript ~5.9 | Type safety |
 | Vite 7 | Build tool and dev server |
 | Tailwind CSS 3 | Utility-first styling |
-| Zustand 5 | State management |
-| Zod 4 | Runtime schema validation |
+| Zustand 5 | State management (11 stores) |
+| Zod 4 | Runtime schema validation (env, forms) |
 | React Router 7 | Client-side routing |
 
 ### Backend
 
 | Technology | Purpose |
 |:---|:---|
-| Fastify 4 | Node.js HTTP framework |
-| TypeScript 5.3 | Type safety |
+| Fastify 4.29.1 | Node.js HTTP framework |
+| TypeScript 5.3.3 | Type safety |
 | Playwright 1.58 | Headless Chromium browser automation |
+| Zod | Request body validation (all routes) |
 | @fastify/websocket | Real-time audio streaming |
-| @fastify/jwt | JWT authentication |
+| @fastify/jwt | JWT authentication (7-day expiry) |
 | @fastify/swagger | OpenAPI documentation |
 | Resend | Transactional email delivery |
+| AWS KMS | OAuth token encryption |
 
 ### AI & Audio
 
 | Technology | Purpose |
 |:---|:---|
-| Amazon Nova Sonic | Speech-to-speech model (STT + LLM + TTS) |
-| AWS Bedrock | Streaming inference API |
-| OpenAI GPT-4o-mini | Summaries, titles, evaluations, resume parsing |
+| Amazon Nova Sonic `v1:0` | Speech-to-speech model (STT + LLM + TTS) |
+| AWS Bedrock | Streaming inference via `InvokeModelWithBidirectionalStreamCommand` |
+| OpenAI GPT-4o | Summaries, evaluations, task extraction, scoring |
+| OpenAI `text-embedding-3-small` | 1536-dim embeddings for semantic search |
 | Deepgram Nova-2 | Real-time speaker diarization |
+| Qdrant | Vector database for knowledge base search |
 | Web Audio API | Browser audio capture and injection |
 | WebRTC | Meeting audio transport |
+
+### Storage
+
+| Technology | Purpose |
+|:---|:---|
+| DynamoDB | Primary database (single-table design, PK/SK pattern) |
+| Qdrant | Vector database (1536-dim embeddings) |
+| S3 | Document storage, email archives |
 
 ## High-Level Architecture
 
@@ -53,8 +65,9 @@ Lira AI is a full-stack platform with a React frontend hosted on Vercel, a Fasti
 │                                             │
 │   liraintelligence.com (Vercel)             │
 │   ┌─────────────────────────────────────┐   │
-│   │  React SPA                          │   │
-│   │  Bot Deploy Panel | Demo Meeting    │   │
+│   │  React SPA (11 Zustand stores)      │   │
+│   │  2,528-line API client layer        │   │
+│   │  Bot Deploy | Demo Meeting | KB     │   │
 │   └──────────┬──────────────┬───────────┘   │
 │              │ REST          │ WSS           │
 └──────────────┼──────────────┼───────────────┘
@@ -62,16 +75,17 @@ Lira AI is a full-stack platform with a React frontend hosted on Vercel, a Fasti
                ▼              ▼
 ┌─────────────────────────────────────────────┐
 │      EC2 BACKEND (api.creovine.com)         │
+│      t3.small · Node.js 20+                │
 │                                             │
 │   Fastify Server                            │
-│   ├── Bot Manager → Meeting Bot             │
+│   ├── Bot Manager (max 3 active, 2/user)    │
 │   │   ├── Playwright (headless Chromium)    │
 │   │   ├── Google Meet Driver                │
-│   │   └── Audio Bridge (PCM ↔ WebRTC)      │
-│   ├── Nova Sonic Service (AWS Bedrock)      │
-│   ├── Wake Word Service (4-layer detection) │
+│   │   └── AudioBridge (PCM ↔ WebRTC)       │
+│   ├── Nova Sonic Service (Bedrock)          │
+│   ├── Wake Word Service (3-layer detection) │
 │   ├── Deepgram Service (speaker diarization)│
-│   ├── DynamoDB Store                        │
+│   ├── DynamoDB + Qdrant                     │
 │   └── Integration Services (9 providers)    │
 └─────────────────────────────────────────────┘
 ```

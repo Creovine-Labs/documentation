@@ -82,4 +82,4 @@ No manual intervention needed — just schedule and forget.
 
 ## API Reference
 
-See the [Interviews API](/api/interviews) for creating, listing, and managing interviews programmatically.
+Contact your Lira account manager for programmatic access to the Interviews feature.

@@ -3,9 +3,9 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Lira AI Docs',
+  title: 'Lira Docs',
   tagline: 'Your AI workforce — meetings, interviews, sales coaching, and customer support.',
-  favicon: 'img/favicon.png',
+  favicon: 'img/lira_black_with_white_backgound.png',
 
   future: {
     v4: true,
@@ -16,6 +16,45 @@ const config: Config = {
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
+
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content: 'Lira AI, AI meetings, AI interviews, sales coaching, customer support, API, documentation, Amazon Nova Sonic, real-time AI',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'author',
+        content: 'Creovine Labs',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossorigin: 'anonymous',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
+      },
+    },
+  ],
 
   i18n: {
     defaultLocale: 'en',
@@ -38,16 +77,38 @@ const config: Config = {
     ],
   ],
 
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexBlog: false,
+        docsRouteBasePath: '/',
+        highlightSearchTermsOnTargetPage: true,
+        searchResultLimits: 8,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
+
   themeConfig: {
     image: 'img/lira_logo.png',
+    metadata: [
+      { name: 'og:title', content: 'Lira Docs — Your AI Workforce' },
+      { name: 'og:description', content: 'Documentation for Lira — autonomous AI agents for meetings, interviews, sales coaching, and customer support.' },
+      { name: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: 'Lira Docs' },
+      { name: 'twitter:description', content: 'Build with autonomous AI agents that join meetings, conduct interviews, coach sales reps, and handle customer support.' },
+    ],
     colorMode: {
       defaultMode: 'light',
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Lira AI',
+      title: 'Lira',
       logo: {
-        alt: 'Lira AI',
+        alt: 'Lira',
         src: 'img/lira_black.png',
         srcDark: 'img/lira_white.png',
       },
@@ -59,10 +120,10 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'api',
+          type: 'doc',
+          docId: 'changelog',
           position: 'left',
-          label: 'API Reference',
+          label: 'Changelog',
         },
         {
           href: 'https://liraintelligence.com',
@@ -82,9 +143,8 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            { label: 'Getting Started', to: '/getting-started/overview' },
+            { label: 'Getting Started', to: '/' },
             { label: 'Platform', to: '/platform/meetings' },
-            { label: 'API Reference', to: '/api/overview' },
           ],
         },
         {
