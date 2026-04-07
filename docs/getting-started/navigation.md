@@ -228,7 +228,7 @@ Edit your organization's profile — name, logo, website, and industry. Changes 
 
 **Path:** Settings → **Calendar Sync**
 
-Connect Google Calendar so Lira can automatically join scheduled meetings. See [Calendar Sync](/integrations/calendar) for setup details.
+Connect Google Calendar so Lira can automatically join scheduled meetings. See the Calendar Sync guide in Integrations for setup details.
 
 ### Subscription & Billing {#settings-billing}
 
