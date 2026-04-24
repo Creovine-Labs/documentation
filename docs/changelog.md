@@ -10,6 +10,32 @@ All notable changes to the Lira AI platform are documented here. Dates use **YYY
 
 ---
 
+## 2026-04-13 — Customer Support Module
+
+- **Full customer support documentation** — 8 new pages covering every aspect of the support module: activation, portal, widget, inbox, actions, proactive outreach, analytics, and settings reference
+- **Docs buttons in app** — Docs links added to the Support page header and activation wizard, linking directly to the relevant documentation sections
+- **Support Portal** — Branded self-service page at `support.liraintelligence.com/<slug>` where customers can submit tickets, track status, and chat with Lira; can be embedded as an iframe
+- **Portal save fix** — Portal enabled/disabled state, portal slug, and SLA hours now correctly persist after saving (backend Zod schema was silently stripping these fields)
+- **Porter reorder in Settings** — Support Portal is now listed first in the Channels tab (above Chat Widget, Voice, and Email), with an inline Docs link
+- **Voice card update** — Voice Support description updated to "Inbound phone support powered by Lira's voice"; removed outdated Twilio reference
+
+---
+
+## 2026-04-08 — Customer Support AI (Phase 1–5)
+
+- **Inbox** — Unified conversation view across email, chat widget, voice, and portal channels; status filters (all / open / pending / escalated / resolved); full-text search by subject, customer name, email, and intent; sentiment indicators and CSAT scores per conversation
+- **Support Portal** — Public self-service page at `support.liraintelligence.com/<slug>`; customers can submit tickets, track status, and chat; embeddable via iframe
+- **Chat Widget** — Single `<script>` tag embed; floating chat button with Lira AI responses; customisable colour and greeting message; live animated preview during activation
+- **Activation Wizard** — 5-step onboarding: email setup (with custom domain forwarding option), channel selection, integration connections, Knowledge Base seed, and live activation
+- **Actions** — Approval queue for autonomous actions Lira proposes (e.g. create Linear issue, update HubSpot contact); approve or reject with full history log
+- **Proactive Outreach** — Event-triggered automated messaging; configurable event type, message template with `{{variables}}`, channel (email/voice), cooldown, and daily cap; activity log
+- **Analytics** — CSAT scores, autonomous vs escalated resolution breakdown, average first response time, monthly usage tracking, weekly report with top intents and KB improvement stats
+- **Escalation engine** — Confidence threshold slider (0–100%); force-escalate intents list (always escalate regardless of confidence); Slack channel alerts; Linear issue creation; SLA target (hours)
+- **Knowledge Base drafts** — Lira creates draft KB entries when it encounters questions it can't answer well; admins approve to improve future responses
+- **Support Settings** — Four-tab settings panel (Widget / Channels / Behaviour / Escalation) accessible from the main Settings page
+
+---
+
 ## 2026-03-29 — Documentation Site Launch
 
 - Launched **docs.liraintelligence.com** — comprehensive documentation for the Lira AI platform

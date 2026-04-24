@@ -2,81 +2,80 @@
 slug: /platform/customer-support
 sidebar_position: 4
 title: Customer Support
+description: Complete guide to Lira's AI-powered customer support — inbox, portal, widget, proactive outreach, autonomous actions, and analytics.
 ---
 
-# Customer Support AI
+# Customer Support
 
-AI-powered email support with custom domain management, knowledge base–grounded responses, and automatic escalation.
+Lira's Customer Support module gives your organisation a fully autonomous AI support operation — handling inbound emails, live chat, voice calls, and a branded self-service portal, all grounded in your Knowledge Base.
 
-## Overview
+Once activated, Lira reads every incoming message, searches your documentation for the best answer, and responds confidently — or escalates to a human when it's not sure. Your team reviews escalations, approves autonomous actions, and monitors everything through a unified inbox.
 
-Lira handles inbound customer support emails autonomously:
+---
 
-1. Customer emails your support address (e.g., `support@yourdomain.com`)
-2. Lira reads the email in context
-3. Searches your organization's knowledge base for relevant information
-4. Generates a response grounded in your docs and policies
-5. If confidence is low → escalates to a human admin
+## What's included
 
-## Key Features
+| Module | What it does |
+|--------|-------------|
+| [**Inbox**](/platform/customer-support/inbox) | Manage all conversations — open, pending, escalated, resolved |
+| [**Support Portal**](/platform/customer-support/portal) | Branded self-service page where customers submit tickets and track status |
+| [**Chat Widget**](/platform/customer-support/widget) | Embeddable floating chat button for your website |
+| [**Actions**](/platform/customer-support/actions) | Review and approve autonomous actions Lira wants to take on behalf of customers |
+| [**Proactive**](/platform/customer-support/proactive) | Automated outreach — trigger messages based on customer events |
+| [**Analytics**](/platform/customer-support/analytics) | CSAT scores, resolution rates, response times, and weekly reports |
+| [**Settings**](/platform/customer-support/settings) | Configure channels, behaviour, escalation rules, and widget appearance |
 
-### Custom Email Domain
+---
 
-Set up a custom support email domain for your organization:
+## How it works
 
-- Connect your domain via DNS records
-- Lira sends and receives from your domain (e.g., `lira@yourdomain.com`)
-- Professional appearance — customers see your brand, not Lira's
-
-### Knowledge Base Grounding
-
-Every AI response is grounded in your organization's knowledge base:
-
-- Website crawl content
-- Uploaded documents (PDFs, DOCX)
-- Vector search finds the most relevant passages
-- Responses cite sources when appropriate
-
-### Thread Management
-
-Lira maintains conversation threads:
-
-- Tracks the full email thread history
-- Understands context from previous messages
-- Handles follow-up questions without repeating information
-
-### Automatic Escalation
-
-When Lira can't confidently answer:
-
-- Flags the ticket for human review
-- Notifies admins via email or Slack
-- Preserves the full thread context for the human agent
-
-### Reply Engine
-
-The inbound reply engine handles customer responses:
+When support is activated, Lira listens across every channel you've enabled:
 
 ```
-Customer replies to Lira's email
-  → AWS SES receives the email
-  → SNS notification triggers webhook
-  → Lira parses the reply, extracts context
-  → Searches knowledge base for relevant info
-  → Decides: respond directly or escalate
+Customer message (email / chat / voice / portal)
+  → Lira retrieves relevant content from your Knowledge Base
+  → Generates a grounded response
+  → Confidence ≥ threshold  →  sends reply autonomously
+  → Confidence   < threshold  →  escalates to your team
 ```
 
-## Email Domain Setup
+Every conversation — regardless of channel — lands in the same **Inbox**, so your team has one place to review, reply, and resolve.
 
-1. Navigate to **Organization Settings → Email**
-2. Add your custom domain
-3. Configure DNS records (MX, SPF, DKIM)
-4. Verify domain ownership
-5. Set the default support email address
+---
 
-Lira supports two sending modes:
+## Channels
 
-| Mode | From Address | Setup |
-|:---|:---|:---|
-| **Platform** | `noreply@liraintelligence.com` | No setup needed |
-| **Custom Domain** | `lira@yourdomain.com` | DNS verification required |
+Lira supports four support channels, each independently toggleable from **Settings → Channels**:
+
+### Email
+Lira is assigned a platform support address the moment you activate (e.g. `support-yourcompany-a1b2@liraintelligence.com`). You can share this directly with customers, or configure your own address (e.g. `support@yourcompany.com`) and set up a forwarding rule — Lira handles everything from there.
+
+### Chat Widget
+A floating chat button embedded on any page of your website. Install it with a single `<script>` tag. Customers get instant AI responses without leaving your site. Fully customisable colour and greeting message.
+
+### Voice
+Inbound phone support powered by Lira's real-time voice AI. Customers call your support line; Lira answers, understands their issue, and either resolves it or escalates to a human in the same workflow.
+
+### Support Portal
+A branded, publicly accessible page at `support.liraintelligence.com/your-slug` where customers can submit tickets, track their conversation status, and chat. Can also be embedded as an iframe on your own website or help centre. [→ Full portal guide](/platform/customer-support/portal)
+
+---
+
+## Getting started
+
+If you haven't activated the support module yet, the app will guide you through a short setup wizard covering email, channels, integrations, and knowledge base seeding.
+
+[→ Activation guide](/platform/customer-support/activation)
+
+---
+
+## Related pages
+
+- [Activation](/platform/customer-support/activation) — Step-by-step setup wizard
+- [Support Portal](/platform/customer-support/portal) — Branded self-service page
+- [Chat Widget](/platform/customer-support/widget) — Website embed
+- [Inbox](/platform/customer-support/inbox) — Conversation management
+- [Actions](/platform/customer-support/actions) — Autonomous action approvals
+- [Proactive Outreach](/platform/customer-support/proactive) — Event-triggered messaging
+- [Analytics](/platform/customer-support/analytics) — Reporting and CSAT
+- [Settings Reference](/platform/customer-support/settings) — All configuration options
