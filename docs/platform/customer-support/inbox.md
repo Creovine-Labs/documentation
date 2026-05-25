@@ -1,116 +1,97 @@
 ---
-sidebar_position: 4
-title: Inbox
-description: Navigate the support inbox — filter conversations, understand statuses, reply to customers, and manage escalations.
+sidebar_position: 5
+title: Chat history (formerly Inbox)
+description: Read-only audit log of every AI chat. Use it to QA Lira's answers and spot accuracy drift.
 ---
 
-# Inbox
+# Chat history
 
-The Inbox is the nerve centre of customer support. Every conversation — regardless of whether it arrived via email, chat widget, voice, or the support portal — lands here in a unified view.
+The Chat history surface (previously called **Inbox**) is your read-only audit log of every AI ↔ visitor conversation, across email, the Web SDK / chat widget, and the hosted portal. It is **not** the primary operator queue — that's [Tickets](/platform/customer-support/tickets). (Voice is currently disabled behind a feature flag; voice transcripts will reappear here when voice is re-enabled.)
 
-Navigate to **Support → Inbox** (the default tab when you open the Support section).
+Navigate to **Support → Chat history** (sits below Analytics in the sidebar).
+
+---
+
+## What it's for
+
+Use Chat history to:
+
+- **Audit Lira's accuracy.** Spot-check a sample of recent chats. Did the AI give the right answer?
+- **Investigate complaints.** A customer says "your AI told me wrong info" — pull the thread and see exactly what was said.
+- **Find drift.** If CSAT drops, browsing recent chats often reveals what Lira got confused about.
+- **Discover KB gaps.** Patterns of vague or hedged replies signal missing content in your Knowledge Base.
+
+Use **Tickets** instead when you need to:
+
+- Reply to a customer
+- Track open work
+- Mark something resolved
+
+---
+
+## Why both exist
+
+| | **Chat history** | **Tickets** |
+|---|---|---|
+| Volume | Every chat (huge — most resolved by AI silently) | Only when Lira can't answer (small) |
+| Purpose | QA / audit | Operator work queue |
+| State | open / pending / resolved | open / in_progress / resolved / closed |
+| Replies | Read-only by default | Reply triggers visitor email |
+
+A single conversation in Chat history may have **spawned** one or more tickets (the agent calls `lira_create_support_ticket`). Where this happens, the ticket number is shown on the conversation detail page so you can jump between the two views.
 
 ---
 
 ## Conversation statuses
 
-Each conversation moves through a lifecycle:
-
 | Status | What it means |
 |--------|--------------|
 | **Open** | Active — Lira is handling it or waiting for a customer reply |
 | **Pending** | Waiting — Lira sent a response and is waiting to hear back |
-| **Escalated** | Flagged for human review — Lira wasn't confident enough or an escalation rule triggered |
-| **Resolved** | Closed — the customer's issue has been addressed |
+| **Escalated** | (Legacy) Flagged for human review. The new ticketing flow uses **Tickets**, not this status. |
+| **Resolved** | Closed — the conversation has finished |
 
 ---
 
-## Metrics at a glance
+## Filtering and search
 
-At the top of the Inbox panel are four metric cards (collapse or expand with the chevron button):
-
-- **Open** — how many conversations are currently active
-- **Autonomous** — how many have been resolved by Lira without human intervention
-- **Escalated** — how many are currently waiting for a human response
-- **Avg CSAT** — average customer satisfaction score across all rated conversations (on a 1–5 scale)
-
-These update in real time as conversations come in and change state.
-
----
-
-## Filtering conversations
-
-Use the status filter buttons to narrow the view:
-
-- **All** — every conversation
-- **Open** — active conversations
-- **Pending** — awaiting customer reply
-- **Escalated** — flagged for human review
-- **Resolved** — closed conversations
-
-The search bar lets you filter by **subject**, **customer name**, **customer email**, or **detected intent**. This is useful when a customer follows up and you want to find their original thread quickly.
+Use the status filter buttons to narrow the view. The search bar matches on **subject**, **customer name**, **email**, or **detected intent**.
 
 ---
 
 ## Reading a conversation row
 
-Each conversation card shows:
+Each row shows:
 
-- **Customer name** (or "Chat visitor" for anonymous widget conversations), with a coloured initial avatar
-- **Sentiment indicator** — an emoji reflecting the customer's last message tone (😊 positive, 😐 neutral, 😠 frustrated)
-- **Status badge** — colour-coded by status
-- **Subject / intent** — what the conversation is about (derived from the subject line, detected intent, or first message)
-- **Tags** — up to four classification tags, with a "+N" indicator if there are more
-- **Preview** — a short summary or the last message snippet
-- **Time ago** — how recently the last activity occurred
-- **CSAT stars** — if the customer has rated the conversation
+- Customer name (or "Chat visitor" for anonymous widget conversations)
+- Sentiment emoji (😊 positive, 😐 neutral, 😠 frustrated)
+- Status badge
+- Subject / detected intent
+- Tags (up to four)
+- Short preview of the last message
+- Time-ago
+- CSAT stars (if rated)
 
 ---
 
 ## Viewing a conversation
 
-Click any row to open the full conversation thread. From there you can:
+Click any row to open the full thread. You can:
 
 - Read the full message history
-- See which channel the conversation came through (email, chat, voice, portal)
+- See the channel (email / chat / portal; voice when re-enabled)
 - View Lira's confidence score for each AI reply
-- Reply manually as your team
-- Escalate or resolve the conversation
-- View the customer profile (name, email, conversation history, CRM links)
+- See the customer profile (name, email, history)
+- (If applicable) Jump to the spawned ticket
+
+Replies from this surface are de-emphasised by design — if a thread needs human follow-up, it should be a ticket, not a manual reply on an in-flight AI chat. Use Tickets for active operator work.
 
 ---
 
-## Escalated conversations
+## Tips
 
-When Lira escalates a conversation, it means one of the following happened:
+**Sample, don't read everything.** Pick 20 chats from the last week and audit them. Look for hedges, "I don't know" replies, and tonal misses.
 
-1. **Confidence was below your threshold** — Lira didn't have enough certainty to respond autonomously
-2. **A force-escalate intent was detected** — the conversation matched an intent you've configured to always require human review (e.g. `data_privacy`, `account_security`, `legal`, `fraud`)
-3. **Your escalation Slack channel or email was notified** — your team receives an alert wherever you've configured escalation notifications
+**Filter by CSAT \< 3.** Customers who rated below 3 stars often signal a gap in your Knowledge Base or a wrong answer.
 
-To handle an escalated conversation: open it in the Inbox, write your reply, and mark it resolved when done.
-
----
-
-## Customer profiles
-
-Each conversation is linked to a customer profile. You can access the full profile by clicking the customer's name in the conversation list. The profile shows:
-
-- Contact details (name, email)
-- Conversation history
-- CRM links (HubSpot contact, Salesforce contact — if integrations are connected)
-- Sentiment trend over time
-
-The **Customers** tab at the top of the Support page gives you a searchable directory of all customers who have contacted support.
-
----
-
-## Tips for your team
-
-**Process escalated tickets first** — filter by "Escalated" status to prioritise conversations that have been flagged.
-
-**Use tags** — Lira automatically tags conversations based on detected intent (e.g. `billing`, `onboarding`, `bug-report`). Use these tags when searching for similar past tickets.
-
-**Check CSAT regularly** — conversations where customers rate below 3 stars often signal a gap in your Knowledge Base. Opening the conversation can reveal what Lira got wrong, so you can improve your docs.
-
-**Expand the stats panel** — if you're managing a busy team, keep the metrics panel visible to stay on top of open and escalated counts at a glance.
+**Cross-reference with Tickets.** If a ticket exists for a conversation, the chat history is the "before" of how Lira tried before opening the ticket. That's gold for prompt tuning and KB authoring.

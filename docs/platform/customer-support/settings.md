@@ -1,22 +1,51 @@
 ---
 sidebar_position: 8
 title: Settings Reference
-description: Complete reference for all Support settings — Widget tab, Channels tab, Behaviour tab, and Escalation tab.
+description: Complete reference for all Support settings — Web SDK, Secret, Channels, Hosted fallback, Behaviour, and Escalation.
 ---
 
 # Settings Reference
 
-All Support settings are accessible from **Support → Settings** (the gear icon in the section header). Settings are grouped into four tabs: **Widget**, **Channels**, **Behaviour**, and **Escalation**. Changes take effect immediately after clicking **Save Support Settings**.
+All Support settings are accessible from **Settings → Support**. Settings are grouped into tabs including **Web SDK**, **Secret**, **Channels**, **Hosted**, **Behaviour**, and **Escalation**. Changes take effect after clicking **Save**.
 
 ---
 
-## Widget tab
+## Web SDK tab
 
-Configure the appearance of your chat widget and manage your widget secret.
+Copy SDK snippets and configure the appearance of your web support surfaces.
 
-### Embed Code
+### Full-page Support SDK
 
-The complete `<script>` snippet to install the chat widget on your website. Your `data-org-id` is pre-filled and permanent. Copy this code and paste it before the `</body>` tag on any page where you want the widget to appear.
+The recommended B2B install snippet. Copy this into a customer-owned route such
+as `/support` so Lira renders inside their app instead of sending users to a
+hosted Lira URL.
+
+[→ Full Web SDK guide](/platform/customer-support/web-sdk)
+
+### JavaScript SDK API
+
+Use this snippet when the product needs signed visitor identity and live product
+context. It shows `window.Lira.init(...)`, `window.Lira.identify(...)`,
+`window.Lira.setContext(...)`, and `window.Lira.mountSupportPage(...)`.
+
+### NPM package
+
+Use `@liraintelligence/support` when the customer wants typed imports, React components, and
+registered customer actions. The package is publish-ready, but must be published
+to your npm registry before customer projects can install it by name.
+
+```bash
+# After @liraintelligence/support is published to your npm registry
+npm install @liraintelligence/support
+```
+
+The React entrypoint is `@liraintelligence/support/react` and exports `LiraProvider`,
+`useLira`, `useLiraAction`, `LiraSupportPage`, and `LiraWidget`.
+
+### Floating Chat Widget
+
+The optional launcher snippet for pages where you want a compact support button.
+It uses the same Lira runtime as the full-page SDK.
 
 [→ Full widget installation guide](/platform/customer-support/widget)
 
@@ -34,6 +63,10 @@ The first message Lira sends when a customer opens the chat widget. Keep it brie
 
 Default: *"Hello! How can I help you today?"*
 
+---
+
+## Secret tab
+
 ### Widget Secret
 
 The widget secret is used to verify the identity of logged-in visitors on your website. It is only needed if you want Lira to recognise your logged-in users and access their account information — anonymous chat support does not require it.
@@ -49,7 +82,7 @@ When a visitor is logged in to your website, your server uses the widget secret 
 
 The secret must only ever exist on your server — never in your frontend code or HTML.
 
-[→ Full guide: Identifying visitors](/platform/customer-support/widget#identifying-visitors-optional)
+[→ Full guide: Web SDK identity](/platform/customer-support/web-sdk#signed-identity)
 :::
 
 :::warning If your secret is exposed
@@ -62,21 +95,26 @@ If the secret is ever accidentally committed to a repository, logged, or visible
 
 Enable or disable each support channel and configure channel-specific settings.
 
-### Support Portal
+### Web Chat Runtime
 
-Enable a branded self-service page where customers can submit tickets and track status.
+Enables or disables the runtime used by both:
+
+- The full-page Support SDK
+- The floating chat widget
+
+If this is disabled, new web chat sessions are not accepted.
+
+### Hosted Portal
+
+Enable the optional Lira-hosted fallback page.
 
 | Field | Description |
 |-------|-------------|
-| **Enabled** | Toggle to turn the portal on or off |
+| **Enabled** | Toggle to turn the hosted fallback on or off |
 | **Portal URL slug** | Lowercase identifier for your portal URL (e.g. `acme-corp` → `support.liraintelligence.com/acme-corp`) |
 | **Open portal** | Link to open your live portal (appears once your slug is saved) |
 
-[→ Full portal guide](/platform/customer-support/portal)
-
-:::info Why the portal is listed first
-The Support Portal is listed at the top of the Channels tab because it requires a unique slug configuration and has more setup implications than toggle-only channels. Enable it here, then share the URL with customers or embed it on your website.
-:::
+[→ Hosted portal guide](/platform/customer-support/portal)
 
 ### Chat Widget
 
@@ -86,7 +124,7 @@ An embeddable floating chat button for your website.
 |-------|-------------|
 | **Enabled** | Toggle to enable or disable live chat on your embedded widget |
 
-The widget's appearance (colour and greeting) is configured in the **Widget tab**. The install snippet is in the **Widget tab → Embed Code**.
+The widget's appearance, full-page SDK snippet, and floating widget snippet are configured in the **Web SDK tab**.
 
 ### Email Support
 
@@ -110,15 +148,11 @@ Customer → support@yourcompany.com
 
 Lira will display the "Forwarding setup required" instructions in Settings whenever a custom address is entered, as a reminder.
 
-### Voice Support
-
-Inbound phone support powered by Lira's real-time AI voice.
-
-| Field | Description |
-|-------|-------------|
-| **Enabled** | Toggle to enable AI voice support |
-
-Voice support requires a phone number to be configured for your organisation. Contact support if you need a dedicated number provisioned.
+:::info Voice support
+Inbound voice (AI phone agent) is currently disabled behind a feature flag while we
+polish the call quality. The UI may still show a toggle in some plans; expect it to
+return as a generally available feature in a future release.
+:::
 
 ---
 
@@ -171,37 +205,31 @@ Contact your account manager to increase limits.
 
 ---
 
-## Escalation tab
+## Ticketing tab
 
-Configure where escalation alerts go and how SLA thresholds are managed.
+Configure where ticket notifications go when Lira can't answer a question on its own. (The legacy "Escalation" tab was renamed — same field, new framing.)
 
-### Escalation Email
+### Ticketing Email
 
-An email address that receives a notification whenever Lira escalates a conversation. This should be a monitored inbox — typically a team email address or the manager responsible for support.
+The address that receives a notification every time Lira opens a ticket. Defaults to your account email; switch to a shared inbox like `support@yourcompany.com` if your team handles tickets together.
 
 Example: `support-team@yourcompany.com`
 
+### Additional recipients (Enterprise)
+
+CC up to two extra teammates on every ticket notification. Available on the Enterprise plan only. Configure them in this tab or during activation Step 3.
+
 ### SLA Target (hours)
 
-The maximum number of hours before an escalated ticket is considered to be breaching SLA. Valid range: 1–720 hours.
+The maximum number of hours before a ticket is considered to be breaching SLA. Valid range: 1–720 hours.
 
-When a conversation is escalated and hasn't been resolved within this window, it's flagged in Lira's internal tracking. (Future versions will surface SLA breach alerts directly in the Inbox.)
+When a ticket hasn't been resolved within this window, it's flagged in Lira's internal tracking. (Future versions will surface SLA breach alerts directly in the Tickets view.)
 
 Default: **4 hours**
 
-### Slack Channel
-
-The Slack channel where escalation notifications are posted. Format: `#channel-name`.
-
-Requires the **Slack integration** to be connected from the Integrations page. [→ Slack integration guide](/integrations/slack)
-
-Example: `#support-escalations`
-
-### Linear Team
-
-The Linear team ID or name where an issue is created when a conversation is escalated.
-
-Requires the **Linear integration** to be connected from the Integrations page. [→ Linear integration guide](/integrations/linear)
+:::info Slack / Linear / HubSpot / Salesforce
+Previous versions of Lira routed escalations to Slack, Linear, HubSpot, or Salesforce. Those channels have been removed from the activation flow in favour of the unified **Ticketing Email** plus the in-app [Tickets](/platform/customer-support/tickets) queue. The underlying integrations may return as KB connected sources in the future, but they are no longer used for escalation alerts.
+:::
 
 ---
 

@@ -19,10 +19,10 @@ Activation does several things behind the scenes:
 - Provisions your unique support email address on Lira's sending infrastructure (AWS SES)
 - Stores your channel configuration (which channels you're enabling and how)
 - Seeds the AI with your Knowledge Base so it can answer immediately after going live
-- Connects your escalation destinations (Slack, Linear, or email) so alerts fire correctly
-- Flags your organisation's support module as active, unlocking the Inbox, Analytics, Proactive, and Actions tabs
+- Configures your Ticketing Email so Lira knows where to send new-ticket notifications
+- Flags your organisation's support module as active, unlocking the Tickets, Analytics, Proactive, and Actions tabs
 
-You can change any of these settings later from **Support → Settings**, but completing all five steps before activating gives Lira the best possible starting context.
+You can change any of these settings later from **Settings → Support**, but completing all five steps before activating gives Lira the best possible starting context.
 
 ---
 
@@ -58,57 +58,91 @@ Even if you use your own domain, keep the Lira address — you'll need it as the
 
 ---
 
-## Step 2 — Channels
+## Step 2 — Web surfaces and channels
 
-Choose which support channels to enable. You can turn any of these on or off at any time after activation from **Settings → Channels**.
+Choose which support surfaces to enable. For B2B products, the primary web
+surface is the **Web SDK** mounted inside the customer's own app, for example
+`lemonpay.com/support`. You can still enable the floating widget and hosted
+portal fallback when useful.
+
+You can turn these on or off later from **Settings → Support**.
+
+### Web SDK and full-page support embed
+
+The Web SDK lets the customer's product own the route, domain, layout, and
+navigation while Lira powers the support runtime.
+
+After activation, copy the full-page SDK snippet and give it to the customer's
+engineering team. They create their own support route and mount Lira into a
+container:
+
+```html
+<div id="lira-support-root" style="height: 720px;"></div>
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-mode="fullscreen"
+  data-target="#lira-support-root">
+</script>
+```
+
+[→ Full Web SDK guide](/platform/customer-support/web-sdk)
 
 ### Chat Widget
 
-An embeddable floating chat button for your website. When enabled, you'll see a **live preview** of the widget with an animated demo conversation so you can see exactly what your customers will experience.
+An optional floating chat button for your website. It uses the same Lira runtime
+as the full-page SDK, but appears as a compact launcher instead of filling a
+support route.
 
 You can customise:
 
 - **Greeting message** — the first message Lira sends when a customer opens the chat (default: *"Hi! How can we help you today?"*)
-- **Widget colour** — any hex colour, set from **Settings → Widget**
+- **Widget colour** — any hex colour, set from **Settings → Support → Web SDK**
 
 After activation, you'll receive the install `<script>` snippet. [→ Full widget guide](/platform/customer-support/widget)
 
-### Support Portal
+### Hosted portal fallback
 
-A branded, publicly hosted page at:
+A branded, publicly hosted fallback page at:
 
 ```
 https://support.liraintelligence.com/your-slug
 ```
 
-During activation, set your **portal slug** — a short lowercase identifier for your organisation (e.g. `acme-corp`). The slug becomes part of your portal URL and can be changed later from **Settings → Channels**.
+During activation, set your **portal slug** if you need a temporary no-code page
+or a link to send in email. The slug becomes part of your portal URL and can be
+changed later from **Settings → Support → Hosted**.
 
-The portal lets customers:
+The hosted fallback lets customers:
 
 - Submit new support tickets
 - Track the status of existing conversations
 - Live-chat with Lira
 
-You can also embed the portal as an `<iframe>` inside your own help centre or website.
+Do not iframe the hosted portal into a customer product. If the customer wants
+support inside their own app or domain, use the Web SDK.
 
-[→ Full portal guide](/platform/customer-support/portal)
+[→ Hosted portal guide](/platform/customer-support/portal)
 
 ---
 
-## Step 3 — Connect integrations
+## Step 3 — Ticket notifications
 
-Connecting integrations means Lira knows where to route escalations and can pull in additional context.
+When Lira can't confidently answer a customer, it opens a **ticket** — a discrete async thread the team picks up on its own time. The customer keeps chatting with Lira in parallel; the ticket is purely a queue for human follow-up.
 
-| Integration | What it unlocks |
-|-------------|----------------|
-| **Slack** | Real-time escalation alerts in a channel of your choice |
-| **Linear** | Automatically creates issues in your team when conversations are escalated |
-| **HubSpot** | Links conversations to HubSpot contact and deal records |
-| **Salesforce** | Associates tickets with Salesforce contacts and opportunities |
+This step has two things:
 
-You can connect or disconnect any integration at any time from the **Integrations** page. None of these are required to activate — you can skip this step and connect integrations later.
+### Ticketing Email (required)
 
-You can also set an **Escalation Email** here: the email address that receives a notification whenever Lira escalates a conversation to a human. This is separate from your support address — it goes to whoever on your team handles urgent tickets.
+The address that receives the notification every time Lira opens a ticket. Defaults to your account email — switch to a shared inbox like `support@yourcompany.com` if your team handles tickets together.
+
+### Additional recipients — Enterprise
+
+CC up to two extra teammates on every ticket notification. Available on the Enterprise plan only.
+
+:::info Where ticketing replaces the old "escalation" flow
+The previous version of Lira handed off live chats to a human (silencing the AI). That flow has been replaced by tickets: the AI never goes silent, and your team handles the harder questions asynchronously. Existing `escalation_email` settings continue to work — they now route ticket-created notifications.
+:::
 
 ---
 
@@ -134,53 +168,57 @@ Review your configuration, then click **Activate Support**. Lira will:
 
 1. Confirm all settings
 2. Provision your email address on the sending infrastructure
-3. Sync your portal slug (if you enabled a portal)
+3. Save the Web SDK and hosted fallback settings
 4. Mark your organisation's support module as active
 
 Activation is immediate. There's no waiting period.
 
 ---
 
-## After activation — what you'll see
+## After activation — what to send your customer
 
-Once you click **Activate Support**, a success screen appears with:
+The success screen lists every artifact you'll hand over to the customer's dev team. Think of it as a deliverable: copy each one and share.
 
-- Your **support email address** (copy it to share with customers)
-- The **chat widget install code** (if you enabled the chat widget)
-- Your **portal URL** (if you enabled the portal), plus an iframe embed code
+- **Support Email** — the address customers email
+- **Full-page Support SDK snippet** — mount inside the customer's own `/support` route
+- **NPM package example** — install `@liraintelligence/support` in bundled apps and register customer actions
+- **Chat Widget install snippet** — optional floating launcher for other pages
+- **Widget Secret** — server-side key for signing identified visitors (only needed if the customer's platform has logged-in users; skip for fully public sites)
+- **Hosted Portal URL** — optional no-code fallback link
 
-After closing this screen, you'll land in the **Inbox** — ready to receive conversations.
+Activation is immediate. After closing the screen you land in **Tickets** — your team's work queue.
 ---
 
 ## What to do next
 
 The basics are live. Here's what most organisations set up next, in order of priority:
 
-### 1. Install the chat widget on your website
+### 1. Install the full-page support SDK
 
-Copy the `<script>` snippet from the success screen (or from **Support → Settings → Widget tab → Embed Code**) and paste it into your site's layout before the closing `</body>` tag. It takes one minute.
+Create a route such as `/support` in the customer product and paste the
+full-page SDK snippet from the success screen or **Settings → Support → Web SDK**.
 
-[→ Full widget installation guide](/platform/customer-support/widget)
+[→ Full Web SDK guide](/platform/customer-support/web-sdk)
 
 ### 2. Share your support email
 
-If you enabled email support, forward your support email address to customers. You can also configure a custom address (e.g. `support@yourcompany.com`) from **Support → Settings → Channels tab → Email section**.
+If you enabled email support, forward your support email address to customers. You can also configure a custom address (e.g. `support@yourcompany.com`) from **Settings → Support → Channels tab → Email section**.
 
-### 3. Check your escalation destination
+### 3. Check your ticketing email
 
-When Lira can't resolve a conversation, it escalates to your team. Make sure the right destination is configured — Slack channel, email, or Linear — so your team gets notified immediately.
+When Lira can't resolve a question, it opens a ticket and emails this address. Make sure it's set to an inbox somebody actually watches.
 
-Go to **Support → Settings → Escalation tab**.
+Go to **Settings → Support → Ticketing tab** (or revisit Step 3 in the activation wizard).
 
 ### 4. (Optional) Identify your logged-in users
 
 By default, the widget treats every visitor as anonymous. If your website has logged-in users and you want Lira to greet them by name and access their account details, you can enable **identified visitor mode**.
 
-This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature as attributes on the `<script>` tag. The widget secret is available from **Support → Settings → Widget tab → Widget Secret**.
+This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature to the SDK. The widget secret is available from **Settings → Support → Secret**.
 
 This is optional and can be set up any time after going live.
 
-[→ Full guide: Identifying visitors](/platform/customer-support/widget#identifying-visitors-optional)
+[→ Full guide: Web SDK identity](/platform/customer-support/web-sdk#signed-identity)
 ---
 
 ## Changing settings after activation
@@ -189,14 +227,14 @@ Every setting you configure during activation can be changed later:
 
 | What to change | Where to find it |
 |----------------|-----------------|
-| Enable/disable channels | Support → Settings → Channels tab |
-| Custom support email / forwarding | Support → Settings → Channels tab → Email section |
-| Portal slug | Support → Settings → Channels tab → Support Portal section |
-| Widget colour & greeting | Support → Settings → Widget tab |
-| Widget secret (identified visitors) | Support → Settings → Widget tab → Widget Secret section |
-| Auto-reply & confidence threshold | Support → Settings → Behaviour tab |
-| Escalation email, Slack, Linear | Support → Settings → Escalation tab |
-| Integrations | Integrations page in sidebar |
+| Enable/disable channels | Settings → Support → Channels tab |
+| Custom support email / forwarding | Settings → Support → Channels tab → Email section |
+| Web SDK snippets | Settings → Support → Web SDK tab |
+| Portal slug | Settings → Support → Hosted tab |
+| Widget colour & greeting | Settings → Support → Web SDK tab |
+| Widget secret (identified visitors) | Settings → Support → Secret tab |
+| Auto-reply & confidence threshold | Settings → Support → Behaviour tab |
+| Ticketing email + CC recipients | Settings → Support → Ticketing tab (or activation Step 3) |
 
 ---
 
@@ -208,8 +246,8 @@ Yes. Your email address and configuration are preserved. Just go back to the act
 **What if my Knowledge Base is empty when I activate?**
 Lira will still respond, but answers will be less specific. Add documents or connect a source from the Knowledge Base section, then Lira begins using the new content for future conversations immediately — no reactivation needed.
 
-**Can I change my portal slug after activation?**
-Yes — update it from **Settings → Channels → Support Portal**. The old URL will stop working, so update any links you've published.
+**Can I change my hosted portal slug after activation?**
+Yes — update it from **Settings → Support → Hosted**. The old URL will stop working, so update any links you've published.
 
 **Does activation cost anything?**
 Lira tracks monthly conversation and AI reply limits per your plan. You can see your current usage at any time in **Settings → Behaviour → Volume & Limits**.

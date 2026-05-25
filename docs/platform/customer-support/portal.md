@@ -1,12 +1,18 @@
 ---
-sidebar_position: 2
-title: Support Portal
-description: Set up your branded self-service portal — what it is, why it matters, how to configure your slug, and how to embed it on your website.
+sidebar_position: 5
+title: Hosted Portal
+description: Configure the Lira-hosted fallback support page for temporary no-code launches and support links.
 ---
 
-# Support Portal
+# Hosted Portal
 
-The Support Portal is a publicly hosted, branded page where your customers can submit support tickets, track the status of their existing conversations, and live-chat with Lira — all without emailing or calling anyone.
+The Hosted Portal is a Lira-hosted fallback page where customers can submit
+support tickets, track conversations, and live-chat with Lira.
+
+For production B2B apps, the recommended integration is the
+[Web SDK and full-page support embed](/platform/customer-support/web-sdk). That
+lets a company run support inside its own app route, such as
+`lemonpay.com/support`, while Lira provides the support runtime.
 
 Your portal lives at:
 
@@ -16,14 +22,17 @@ https://support.liraintelligence.com/your-slug
 
 ---
 
-## Why a support portal?
+## When to use the hosted portal
 
-Email and chat widget are great for reactive support — a customer has a problem and reaches out. The portal adds a **structured, self-service layer**:
+Use the hosted portal when:
 
-- Customers can track ticket status without needing to reply to an email thread
-- Reduces "any update?" follow-up emails
-- Gives customers a single destination to bookmark as your help hub
-- Can be embedded directly into your own website so customers never leave your domain
+- You need a temporary no-code support link.
+- The customer cannot ship a product change yet.
+- You want a fallback link in email signatures or onboarding docs.
+- You are testing the support workflow before installing the SDK.
+
+Do not use the hosted portal as the main integration for customers who want
+support inside their own product. Use the Web SDK instead.
 
 ---
 
@@ -31,11 +40,11 @@ Email and chat widget are great for reactive support — a customer has a proble
 
 ### During activation
 
-In [Step 2 of the activation wizard](/platform/customer-support/activation#step-2--channels), check the **Support Portal** option and enter your portal slug.
+In [Step 2 of the activation wizard](/platform/customer-support/activation#step-2--web-surfaces-and-channels), check the **Hosted Portal Fallback** option and enter your portal slug.
 
 ### After activation
 
-Go to **Support → Settings → Channels tab**. The **Support Portal** section is at the top of the tab. Toggle the switch to enable it, then set your slug.
+Go to **Settings → Support → Hosted**. Toggle the hosted fallback on, then set your slug.
 
 ---
 
@@ -63,7 +72,7 @@ If you update the slug after publishing your portal URL (in emails, help docs, o
 
 ---
 
-## What customers see on the portal
+## What customers see on the hosted portal
 
 When a customer visits your portal URL they can:
 
@@ -71,7 +80,7 @@ When a customer visits your portal URL they can:
 2. **Chat with Lira** — get immediate AI responses without waiting for email
 3. **Track ticket status** — see whether their ticket is open, pending, escalated, or resolved
 
-Every ticket submitted through the portal lands in your **Inbox** alongside email and chat conversations — your team manages everything from one place.
+Every ticket submitted through the portal lands in your **Tickets** queue alongside email and chat conversations.
 
 ---
 
@@ -79,61 +88,56 @@ Every ticket submitted through the portal lands in your **Inbox** alongside emai
 
 After enabling the portal, you can find the live URL any time:
 
-- In **Settings → Channels → Support Portal** — click **Open portal**
+- In **Settings → Support → Hosted** — click **Open portal**
 - In the **Success screen** immediately after activation (with a copy button)
 
 Share the URL:
 
-- In your product's help menu or footer
 - In email signatures and auto-replies
 - On your website's contact or support page
 - As a link when customers ask "how do I reach support?"
 
 ---
 
-## Embedding the portal on your website
+## Do not iframe the hosted portal
 
-You can embed the portal directly in your site as an iframe so customers never navigate away. After activation, you'll see an iframe snippet in the success screen. You can also generate it manually:
+The older iframe approach is no longer the recommended path. If customers should
+stay on their own domain, mount Lira with the Web SDK:
 
 ```html
-<iframe
-  src="https://support.liraintelligence.com/your-slug?embed=true"
-  width="100%"
-  height="700"
-  frameborder="0"
-  style="border: none; border-radius: 12px;">
-</iframe>
+<div id="lira-support-root" style="height: 720px;"></div>
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-mode="fullscreen"
+  data-target="#lira-support-root">
+</script>
 ```
 
-Replace `your-slug` with your actual portal slug. The `?embed=true` parameter adjusts the portal layout to fit cleanly inside an iframe.
-
-**Tips for embedded portals:**
-
-- Set `height` to at least `600px` for comfortable ticket browsing
-- Use `width="100%"` so it's responsive across screen sizes
-- Place it on a dedicated "Support" or "Help" page rather than inline on product pages
+[→ Full Web SDK guide](/platform/customer-support/web-sdk)
 
 ---
 
-## Portal vs chat widget — which to use?
+## Hosted portal vs Web SDK vs chat widget
 
-Both let customers contact support through Lira. They serve slightly different purposes:
+All three use Lira's support runtime, but they serve different product needs:
 
-| | Chat Widget | Support Portal |
-|--|-------------|----------------|
-| **Best for** | Quick questions while on your site | Formal ticket submission & tracking |
-| **Installation** | Script tag in HTML | Share URL or embed iframe |
-| **Branding** | Uses your widget colour | Full branded page |
-| **Ticket tracking** | Conversation history in chat | Status tracking by ticket |
-| **Customer auth** | Anonymous or email | Email identified |
+| | Web SDK | Chat Widget | Hosted Portal |
+|--|---------|-------------|---------------|
+| **Best for** | Main in-app support route | Quick support launcher | Temporary no-code fallback |
+| **Installation** | Mount inside your route | Script tag in HTML | Share URL |
+| **Domain** | Your domain | Your domain | Lira or custom fallback domain |
+| **Identity/context** | Full signed identity + live context | Signed identity supported | Email/magic-link based |
+| **Recommended for B2B** | Yes | As an add-on | Fallback only |
 
-Most organisations enable **both** — the widget for quick help, and the portal linked from their help centre.
+Most B2B products use the Web SDK for `/support`, then add the floating widget
+on pages where a compact launcher helps.
 
 ---
 
 ## Portal settings reference
 
-All portal settings live in **Support → Settings → Channels tab → Support Portal**:
+All hosted portal settings live in **Settings → Support → Hosted**:
 
 | Setting | Description |
 |---------|-------------|

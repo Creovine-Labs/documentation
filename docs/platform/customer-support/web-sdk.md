@@ -1,0 +1,327 @@
+---
+sidebar_position: 3
+title: Web SDK and Full-page Support Embed
+description: Integrate Lira into your own web app route, with full-page support, signed identity, live context, tickets, and optional floating chat.
+---
+
+# Web SDK and Full-page Support Embed
+
+The Web SDK is the recommended integration path for B2B products. Your company
+owns the route, layout, navigation, and domain, while Lira provides the support
+runtime: AI chat, tickets, escalation, Knowledge Base answers, signed identity,
+live product context, and action execution.
+
+For example, LemonPay should create its own route such as:
+
+```txt
+https://lemonpay.com/support
+```
+
+Inside that route, LemonPay mounts Lira. Customers never need to leave LemonPay's
+product or visit a Lira-hosted URL.
+
+---
+
+## Recommended architecture
+
+| Surface | Use it for | Who owns the page |
+|--------|------------|-------------------|
+| Full-page Support SDK | Main in-app support center, ticket history, long conversations | Your product |
+| Floating widget | Quick support entry point on marketing pages or dashboards | Your product |
+| Hosted portal | Temporary no-code fallback only | Lira |
+
+For production customer apps, use the full-page SDK. The hosted portal is useful
+when a team cannot ship product code yet, but it should not be the primary B2B
+integration.
+
+---
+
+## Option 1: Script tag, no framework
+
+Create a support route in your app, add a container, and load the Lira runtime:
+
+```html
+<div id="lira-support-root" style="height: 720px;"></div>
+
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-mode="fullscreen"
+  data-target="#lira-support-root"
+  data-greeting="Hi! How can we help you?">
+</script>
+```
+
+This renders the full support conversation inside `#lira-support-root`. There is
+no floating launcher bubble in fullscreen mode.
+
+---
+
+## Option 2: JavaScript SDK API
+
+Use the SDK API when you need to identify logged-in users and provide account
+context.
+
+```html
+<div id="lira-support-root" style="height: 720px;"></div>
+<script src="https://widget.liraintelligence.com/v1/widget.js"></script>
+<script>
+  window.Lira.init({
+    orgId: 'YOUR_ORG_ID',
+    orgName: 'LemonPay',
+    primaryColor: '#111827',
+    greeting: 'Hi! How can we help you?'
+  })
+
+  window.Lira.identify({
+    email: currentUser.email,
+    name: currentUser.name,
+    sig: serverGeneratedHmac
+  })
+
+  window.Lira.setContext({
+    route: window.location.pathname,
+    account: {
+      id: currentUser.accountId,
+      plan: currentUser.plan,
+      status: currentUser.subscriptionStatus
+    }
+  })
+
+  window.Lira.mountSupportPage('#lira-support-root')
+</script>
+```
+
+The CDN runtime exposes:
+
+```ts
+window.Lira.init(config)
+window.Lira.identify(visitor)
+window.Lira.setContext(context)
+window.Lira.track(eventName, payload)
+window.Lira.registerAction(name, handler)
+window.Lira.unregisterAction(name)
+window.Lira.mountWidget(options)
+window.Lira.mountSupportPage(target, options)
+window.Lira.destroy()
+```
+
+---
+
+## Option 3: NPM package
+
+Use the NPM package when your app is bundled with React, Next.js, Vue, Remix, or
+another modern frontend toolchain. The package is built as `@liraintelligence/support`; it
+must be published to your npm registry before `npm install @liraintelligence/support` works
+for customer projects.
+
+```bash
+# After @liraintelligence/support is published to your npm registry
+npm install @liraintelligence/support
+```
+
+Framework-agnostic usage:
+
+```ts
+import { init, identify, setContext, mountSupportPage, registerAction } from '@liraintelligence/support'
+
+await init({ orgId: 'YOUR_ORG_ID', orgName: 'LemonPay' })
+await identify({
+  email: currentUser.email,
+  name: currentUser.name,
+  sig: serverGeneratedHmac
+})
+await setContext({
+  route: window.location.pathname,
+  account: {
+    id: currentUser.accountId,
+    plan: currentUser.plan,
+    status: currentUser.subscriptionStatus
+  }
+})
+
+registerAction('billing.open_checkout', async ({ payload }) => {
+  await openCheckout(payload)
+  return { ok: true, message: 'Checkout opened' }
+})
+
+await mountSupportPage('#lira-support-root')
+```
+
+React usage:
+
+```tsx
+import { LiraProvider, LiraSupportPage, useLiraAction } from '@liraintelligence/support/react'
+
+function BillingActions() {
+  useLiraAction('billing.open_checkout', async ({ payload }) => {
+    await openCheckout(payload)
+    return { ok: true, message: 'Checkout opened' }
+  })
+  return null
+}
+
+export function SupportRoute() {
+  return (
+    <LiraProvider
+      config={{ orgId: 'YOUR_ORG_ID', orgName: 'LemonPay' }}
+      identity={{ email: currentUser.email, name: currentUser.name, sig: serverGeneratedHmac }}
+      context={{ route: window.location.pathname, account: currentUser.account }}
+    >
+      <BillingActions />
+      <LiraSupportPage style={{ minHeight: 720 }} />
+    </LiraProvider>
+  )
+}
+```
+
+Package exports:
+
+| Import | Use |
+|--------|-----|
+| `@liraintelligence/support` | Headless client, identity, context, mounting, action registration |
+| `@liraintelligence/support/react` | `LiraProvider`, `useLira`, `useLiraAction`, `LiraSupportPage`, `LiraWidget` |
+
+---
+
+## Customer actions
+
+Customer actions let your product safely handle app-specific work when Lira asks
+the page to do something, such as opening checkout, pre-filling an onboarding
+field, or starting a customer-owned workflow.
+
+```ts
+registerAction('account.refresh_billing_status', async ({ payload }) => {
+  const status = await refreshBillingStatus(payload.accountId)
+  return {
+    ok: true,
+    message: 'Billing status refreshed',
+    data: { status }
+  }
+})
+```
+
+Use namespaced action names:
+
+- `billing.open_checkout`
+- `account.refresh_billing_status`
+- `onboarding.prefill_domain`
+- `support.create_internal_ticket`
+
+The SDK emits a `lira:action_result` browser event after an action succeeds or
+fails. Backend-visible action-result ingestion is planned as the next action
+layer upgrade; the current SDK gives the customer a typed registration API while
+preserving the existing safe host-page bridge.
+
+---
+
+## Signed identity
+
+If your product has logged-in users, sign each visitor server-side. This lets
+Lira know the user is real and prevents someone from spoofing another customer's
+email.
+
+1. Store your Lira widget secret on your backend only.
+2. Compute `HMAC-SHA256(LIRA_WIDGET_SECRET, user.email)`.
+3. Pass the user email, name, and signature to `window.Lira.identify(...)`.
+
+Example Node.js signing endpoint:
+
+```ts
+import crypto from 'node:crypto'
+
+export function signLiraVisitor(email: string) {
+  return crypto
+    .createHmac('sha256', process.env.LIRA_WIDGET_SECRET!)
+    .update(email.trim().toLowerCase())
+    .digest('hex')
+}
+```
+
+Never expose the widget secret in browser code.
+
+---
+
+## Live product context
+
+Use `setContext` whenever important product state changes. This is how Lira can
+answer account-specific questions and guide users based on what is happening in
+your app.
+
+Good context includes:
+
+- Current route and page name
+- Account ID, plan, subscription status, and billing state
+- Feature flags or enabled modules
+- Recent errors or failed actions
+- Current onboarding step
+- Safe summaries of relevant records, not private raw data
+
+Example:
+
+```js
+window.Lira.setContext({
+  route: '/billing',
+  account: {
+    id: 'acct_123',
+    plan: 'Growth',
+    nextInvoiceDate: '2026-06-01',
+    paymentMethod: 'Visa ending 4242'
+  },
+  ui: {
+    page: 'Billing settings',
+    lastError: null
+  }
+})
+```
+
+Call it again after route changes, plan changes, billing events, or onboarding
+progress changes.
+
+---
+
+## Floating widget on other pages
+
+You can use the same runtime as a floating support launcher:
+
+```html
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-position="bottom-right"
+  data-greeting="Hi! How can we help you?">
+</script>
+```
+
+Most teams use both:
+
+- `/support` route: full-page SDK
+- Dashboard or marketing pages: optional floating widget
+
+---
+
+## LemonPay integration checklist
+
+1. Create `lemonpay.com/support` inside the LemonPay app.
+2. Add `<div id="lira-support-root"></div>` to that route.
+3. Either load `https://widget.liraintelligence.com/v1/widget.js` or install
+   `@liraintelligence/support`.
+4. Call `window.Lira.init({ orgId: '...' })` or `await init({ orgId: '...' })`.
+5. Generate visitor signatures on LemonPay's backend.
+6. Call `window.Lira.identify(...)` after login state is known.
+7. Call `window.Lira.setContext(...)` with account and route context.
+8. Call `window.Lira.mountSupportPage('#lira-support-root')`.
+9. Test account-aware Q&A, Knowledge Base answers, action cards, ticket creation,
+   and escalation.
+
+---
+
+## Where to find install values
+
+In the Lira dashboard:
+
+- **Support → Activate** shows the SDK snippet after activation.
+- **Settings → Support → Web SDK** shows full-page SDK, JavaScript API, and
+  floating widget snippets.
+- **Settings → Support → Secret** shows the server-side widget secret for signed
+  visitors.

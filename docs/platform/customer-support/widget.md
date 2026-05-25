@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Chat Widget
 description: Install and customise the Lira chat widget on your website — one script tag, instant AI responses, full customisation.
 ---
@@ -7,6 +7,8 @@ description: Install and customise the Lira chat widget on your website — one 
 # Chat Widget
 
 The chat widget adds a floating chat button to your website. Visitors click it, type their question, and Lira responds instantly — grounded in your Knowledge Base — without the visitor needing to navigate away or send an email.
+
+For a full support center inside your own app route, use the [Web SDK and full-page support embed](/platform/customer-support/web-sdk). The floating widget is best as an additional launcher on pages where a compact entry point makes sense.
 
 ---
 
@@ -20,7 +22,7 @@ Visitor opens chat widget
   → If confidence is low → escalates to your team's inbox
 ```
 
-Every chat conversation is visible in **Support → Inbox** alongside your email and portal tickets. Your team can jump in to reply manually at any point.
+Every chat conversation is visible in **Support → Tickets** alongside your email and portal tickets. Your team can jump in to reply manually at any point.
 
 ---
 
@@ -39,7 +41,7 @@ The widget is a single `<script>` tag. Paste it before the closing `</body>` tag
 
 ### Getting your snippet
 
-After activation, the complete snippet with your actual `data-org-id` pre-filled is shown on the success screen. You can copy it again later from **Support → Settings → Widget tab → Embed Code**.
+After activation, the complete snippet with your actual `data-org-id` pre-filled is shown on the success screen. You can copy it again later from **Settings → Support → Web SDK tab → Floating Chat Widget**.
 
 ### Where to add it
 
@@ -63,7 +65,7 @@ The only thing you might want to change after the initial install is the `data-g
 - Edit the `data-greeting` value in your site's HTML
 - **Changes take effect immediately** — no reinstall required
 
-You can also change the widget's appearance (colour) from **Support → Settings → Widget tab** — these changes are fetched automatically by the widget on every load, so you don't need to touch the script tag.
+You can also change the widget's appearance (colour) from **Settings → Support → Web SDK tab** — these changes are fetched automatically by the widget on every load, so you don't need to touch the script tag.
 
 ---
 
@@ -71,7 +73,7 @@ You can also change the widget's appearance (colour) from **Support → Settings
 
 ### Widget colour
 
-Set the primary colour of the widget header and chat button from **Support → Settings → Widget tab**. You can:
+Set the primary colour of the widget header and chat button from **Settings → Support → Web SDK tab**. You can:
 
 - Enter any 6-digit hex code (e.g. `#3730a3`)
 - Pick from a curated palette of preset colours
@@ -83,7 +85,7 @@ The colour applies to the widget button, the header bar, and Lira's message bubb
 
 The greeting message is what Lira sends the moment a visitor opens the chat. You can set it from:
 
-- **Settings → Widget tab → Greeting Message** — applies globally
+- **Settings → Web SDK tab → Greeting Message** — applies globally
 - **The `data-greeting` attribute** in your script tag — overrides the global setting for that specific page
 
 Keep it short and welcoming. You can ask a question to prompt the visitor:
@@ -98,7 +100,7 @@ or announce what Lira can help with:
 
 ## Live preview during activation
 
-During the [activation wizard (Step 2)](/platform/customer-support/activation#step-2--channels), you'll see a live interactive preview of the widget running an animated demo conversation. Switch between **Desktop** and **Mobile** views to see how it looks on different screen sizes.
+During the [activation wizard (Step 2)](/platform/customer-support/activation#step-2--web-surfaces-and-channels), you'll see a live interactive preview of the widget running an animated demo conversation. Switch between **Desktop** and **Mobile** views to see how it looks on different screen sizes.
 
 This preview updates in real time as you change the greeting message, so you can finalise the wording before going live.
 
@@ -137,11 +139,11 @@ The `data-sig` is a cryptographic signature that **proves your server generated 
 
 ### The widget secret
 
-The widget secret is a unique hex key tied to your organisation. It lives in **Support → Settings → Widget Secret section**.
+The widget secret is a unique hex key tied to your organisation. It lives in **Settings → Support → Secret**.
 
 **Your server uses this key to compute the signature.** The secret itself must **never** appear in your frontend code, your HTML, or the browser — it should only ever exist on your backend.
 
-To find your secret: open the Lira dashboard → click **Support** in the sidebar → click the **Settings** tab → scroll to the **Widget Secret** section → click **Show**.
+To find your secret: open the Lira dashboard → click **Support** in the sidebar → click the **Settings** tab → open **Secret** → click **Show**.
 
 ---
 
@@ -199,7 +201,7 @@ If `data-sig` is missing or doesn't match, Lira silently falls back to anonymous
 
 ### Rotating the secret
 
-If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Support → Settings → Widget Secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
+If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Settings → Support → Secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
 
 ---
 
