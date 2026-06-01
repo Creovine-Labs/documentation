@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Lira Docs',
-  tagline: 'Your AI workforce — meetings, interviews, sales coaching, and customer support.',
+  tagline: 'An AI customer support platform that learns your product, replies in your voice, and escalates only when it should.',
   favicon: 'img/lira_black_with_white_backgound.png',
 
   future: {
@@ -22,7 +22,7 @@ const config: Config = {
       tagName: 'meta',
       attributes: {
         name: 'keywords',
-        content: 'Lira AI, AI meetings, AI interviews, sales coaching, customer support, API, documentation, Amazon Nova Sonic, real-time AI',
+        content: 'Lira AI, AI customer support, autonomous support agent, AI chat widget, support portal, ticket automation, proactive support, knowledge base AI, documentation',
       },
     },
     {
@@ -48,10 +48,15 @@ const config: Config = {
       },
     },
     {
+      // Plus Jakarta Sans is the canonical UI font used across the Lira app
+      // (lira-ai/src/index.css) and the marketing site (lira-ai/index.html).
+      // We load the same weights here so the docs match the rest of the
+      // product visually. JetBrains Mono for inline + block code matches the
+      // app's monospace token.
       tagName: 'link',
       attributes: {
         rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
+        href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap',
       },
     },
   ],
@@ -94,12 +99,12 @@ const config: Config = {
   themeConfig: {
     image: 'img/lira_logo.png',
     metadata: [
-      { name: 'og:title', content: 'Lira Docs — Your AI Workforce' },
-      { name: 'og:description', content: 'Documentation for Lira — autonomous AI agents for meetings, interviews, sales coaching, and customer support.' },
+      { name: 'og:title', content: 'Lira Docs — AI Customer Support' },
+      { name: 'og:description', content: 'Documentation for Lira — an autonomous AI customer support platform that learns your product, replies in your voice, runs in-product actions, and escalates only when it should.' },
       { name: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: 'Lira Docs' },
-      { name: 'twitter:description', content: 'Build with autonomous AI agents that join meetings, conduct interviews, coach sales reps, and handle customer support.' },
+      { name: 'twitter:description', content: 'AI customer support that learns your product, replies in your voice, runs actions, and escalates only when it should.' },
     ],
     colorMode: {
       defaultMode: 'light',
@@ -144,24 +149,26 @@ const config: Config = {
           title: 'Documentation',
           items: [
             { label: 'Getting Started', to: '/' },
-            { label: 'Platform', to: '/platform/meetings' },
+            { label: 'Quickstart', to: '/getting-started/quickstart' },
+            { label: 'Get an Account', to: '/getting-started/get-an-account' },
+            { label: 'Customer Support', to: '/platform/customer-support' },
           ],
         },
         {
-          title: 'Products',
+          title: 'Build',
           items: [
-            { label: 'Meetings', to: '/platform/meetings' },
-            { label: 'Interviews', to: '/platform/interviews' },
-            { label: 'Sales Coaching', to: '/platform/sales-coaching' },
-            { label: 'Customer Support', to: '/platform/customer-support' },
+            { label: 'Chat widget', to: '/platform/customer-support/widget' },
+            { label: 'Support SDK', to: '/platform/customer-support/web-sdk' },
+            { label: 'Integration guides', to: '/platform/customer-support/integration-guides' },
+            { label: 'Knowledge base', to: '/knowledge-base/overview' },
           ],
         },
         {
           title: 'Integrations',
           items: [
             { label: 'Slack', to: '/integrations/slack' },
-            { label: 'Google Calendar', to: '/integrations/google-calendar' },
             { label: 'Linear', to: '/integrations/linear' },
+            { label: 'GitHub', to: '/integrations/github' },
             { label: 'All Integrations', to: '/integrations/overview' },
           ],
         },

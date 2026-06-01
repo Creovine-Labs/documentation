@@ -1,96 +1,231 @@
 /**
  * Lira AI Documentation — Custom Theme
- * Clean, professional look inspired by docs.slack.dev
+ *
+ * Mirrors the design tokens used by the main Lira app
+ * (lira-ai/src/index.css) and marketing site (lira-ai/index.html):
+ *
+ *   • Font: 'Plus Jakarta Sans' for UI / 'JetBrains Mono' for code
+ *   • Palette: shadcn neutral (white / near-black / gray scale).
+ *     No blue accents — the rest of the product is monochrome and
+ *     the docs should feel like the same surface.
+ *
+ * If lira-ai's tokens change, mirror them here. The values below
+ * come from `:root` and `.dark` in lira-ai/src/index.css.
  */
 
 :root {
-  --ifm-color-primary: #0f172a;
-  --ifm-color-primary-dark: #0d1424;
-  --ifm-color-primary-darker: #0c1222;
-  --ifm-color-primary-darkest: #0a0e1c;
-  --ifm-color-primary-light: #111a30;
-  --ifm-color-primary-lighter: #121c32;
-  --ifm-color-primary-lightest: #142038;
-  --ifm-code-font-size: 95%;
-  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* ── Brand palette (shadcn neutral, light mode) ─────────────── */
+  /* These match the HSL tokens in lira-ai/src/index.css verbatim. */
+  --lira-background: #ffffff;          /* hsl(0 0% 100%) */
+  --lira-foreground: #0a0a0a;          /* hsl(0 0% 3.9%) */
+  --lira-primary: #171717;             /* hsl(0 0% 9%)  — buttons, accents */
+  --lira-primary-foreground: #fafafa;  /* hsl(0 0% 98%) */
+  --lira-muted: #f5f5f5;               /* hsl(0 0% 96.1%) */
+  --lira-muted-foreground: #737373;    /* hsl(0 0% 45.1%) */
+  --lira-border: #e5e5e5;              /* hsl(0 0% 89.8%) */
+  --lira-input: #e5e5e5;
+  --lira-ring: #0a0a0a;
+
+  /* ── Docusaurus / Infima overrides ──────────────────────────── */
+  --ifm-color-primary: var(--lira-primary);
+  --ifm-color-primary-dark: #131313;
+  --ifm-color-primary-darker: #101010;
+  --ifm-color-primary-darkest: #0a0a0a;
+  --ifm-color-primary-light: #2a2a2a;
+  --ifm-color-primary-lighter: #3a3a3a;
+  --ifm-color-primary-lightest: #525252;
+
+  --ifm-background-color: var(--lira-background);
+  --ifm-background-surface-color: var(--lira-background);
+  --ifm-color-content: var(--lira-foreground);
+  --ifm-color-content-secondary: var(--lira-muted-foreground);
+
+  --ifm-color-emphasis-100: var(--lira-muted);
+  --ifm-color-emphasis-200: var(--lira-border);
+  --ifm-color-emphasis-300: #d4d4d4;
+  --ifm-color-emphasis-400: #a3a3a3;
+  --ifm-color-emphasis-500: var(--lira-muted-foreground);
+
+  /* Typography — Plus Jakarta Sans matches the app + landing site. */
+  --ifm-font-family-base:
+    'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --ifm-font-family-monospace:
+    'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+  --ifm-heading-font-family: var(--ifm-font-family-base);
   --ifm-heading-font-weight: 700;
   --ifm-font-weight-bold: 600;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-code-font-size: 92%;
+
+  /* Layout */
   --ifm-navbar-height: 3.75rem;
+  --ifm-navbar-background-color: var(--lira-background);
   --ifm-footer-padding-vertical: 2rem;
+  --ifm-link-color: var(--lira-foreground);
+  --ifm-link-hover-color: var(--lira-foreground);
+  --ifm-link-decoration: none;
+  --ifm-link-hover-decoration: underline;
+  --ifm-toc-border-color: var(--lira-border);
+  --ifm-hr-border-color: var(--lira-border);
+
+  --docusaurus-highlighted-code-line-bg: rgba(15, 15, 15, 0.06);
 }
 
+/* ── Dark mode — mirrors .dark in lira-ai/src/index.css ──────── */
 [data-theme='dark'] {
-  --ifm-color-primary: #e2e8f0;
-  --ifm-color-primary-dark: #cdd6e4;
-  --ifm-color-primary-darker: #c5d0de;
-  --ifm-color-primary-darkest: #a7b5cb;
-  --ifm-color-primary-light: #eef2f7;
-  --ifm-color-primary-lighter: #f3f6f9;
+  --lira-background: #0a0a0a;          /* hsl(0 0% 3.9%) */
+  --lira-foreground: #fafafa;          /* hsl(0 0% 98%) */
+  --lira-primary: #fafafa;
+  --lira-primary-foreground: #171717;
+  --lira-muted: #262626;               /* hsl(0 0% 14.9%) */
+  --lira-muted-foreground: #a3a3a3;    /* hsl(0 0% 63.9%) */
+  --lira-border: #262626;
+  --lira-input: #262626;
+  --lira-ring: #d4d4d4;
+
+  --ifm-color-primary: var(--lira-primary);
+  --ifm-color-primary-dark: #ebebeb;
+  --ifm-color-primary-darker: #e0e0e0;
+  --ifm-color-primary-darkest: #c4c4c4;
+  --ifm-color-primary-light: #ffffff;
+  --ifm-color-primary-lighter: #ffffff;
   --ifm-color-primary-lightest: #ffffff;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  --ifm-background-color: #0f172a;
-  --ifm-background-surface-color: #1e293b;
+
+  --ifm-background-color: var(--lira-background);
+  --ifm-background-surface-color: #141414;
+  --ifm-navbar-background-color: var(--lira-background);
+  --ifm-color-content: var(--lira-foreground);
+  --ifm-color-content-secondary: var(--lira-muted-foreground);
+
+  --ifm-color-emphasis-100: var(--lira-muted);
+  --ifm-color-emphasis-200: var(--lira-border);
+  --ifm-color-emphasis-300: #404040;
+  --ifm-color-emphasis-400: #525252;
+  --ifm-color-emphasis-500: var(--lira-muted-foreground);
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
 }
 
-/* Navbar */
+/* ── Navbar ─────────────────────────────────────────────────── */
 .navbar {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 0 var(--lira-border);
+  font-family: var(--ifm-font-family-base);
 }
 
 .navbar__title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
 }
 
 .navbar__logo img {
   height: 28px;
 }
 
-/* Sidebar */
+.navbar__link {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────── */
 .menu__link {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   border-radius: 6px;
+  color: var(--lira-muted-foreground);
+}
+
+.menu__link:hover {
+  color: var(--lira-foreground);
+  background-color: var(--lira-muted);
 }
 
 .menu__link--active:not(.menu__link--sublist) {
-  background-color: rgba(15, 23, 42, 0.06);
+  background-color: var(--lira-muted);
+  color: var(--lira-foreground);
+  font-weight: 600;
 }
 
-[data-theme='dark'] .menu__link--active:not(.menu__link--sublist) {
-  background-color: rgba(226, 232, 240, 0.08);
+.menu__list-item-collapsible:hover {
+  background-color: var(--lira-muted);
 }
 
-/* Content */
+/* ── Content typography ─────────────────────────────────────── */
+.markdown {
+  font-family: var(--ifm-font-family-base);
+}
+
 .markdown h1:first-child {
   font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .markdown h2 {
   margin-top: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* Code blocks */
+.markdown h3 {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.markdown a {
+  text-decoration: underline;
+  text-decoration-color: var(--lira-border);
+  text-underline-offset: 3px;
+}
+
+.markdown a:hover {
+  text-decoration-color: var(--lira-foreground);
+}
+
+/* ── Code ───────────────────────────────────────────────────── */
 .prism-code {
   border-radius: 8px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 13px;
 }
 
-/* Table styling */
+code {
+  font-family: var(--ifm-font-family-monospace);
+  background-color: var(--lira-muted);
+  border: 1px solid var(--lira-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+[data-theme='dark'] code {
+  background-color: var(--lira-muted);
+  border-color: #303030;
+}
+
+/* ── Tables ─────────────────────────────────────────────────── */
 table {
   display: table;
   width: 100%;
+  border-collapse: collapse;
 }
 
 table th {
-  background-color: rgba(15, 23, 42, 0.04);
+  background-color: var(--lira-muted);
   font-weight: 600;
+  text-align: left;
 }
 
 [data-theme='dark'] table th {
-  background-color: rgba(226, 232, 240, 0.06);
+  background-color: #1a1a1a;
 }
 
-/* Hero section for landing */
+table th,
+table td {
+  border: 1px solid var(--lira-border);
+}
+
+/* ── Hero (landing) ─────────────────────────────────────────── */
 .hero-lira {
   padding: 4rem 0 2rem;
   text-align: center;
@@ -99,117 +234,165 @@ table th {
 .hero-lira h1 {
   font-size: 2.8rem;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, var(--ifm-color-primary), #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-[data-theme='dark'] .hero-lira h1 {
-  background: linear-gradient(135deg, #e2e8f0, #60a5fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--lira-foreground);
 }
 
 .hero-lira p {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   max-width: 640px;
   margin: 0 auto 2rem;
-  opacity: 0.75;
+  color: var(--lira-muted-foreground);
   line-height: 1.6;
 }
 
 .hero-buttons {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
+/* Primary CTA — solid foreground / background-on-hover, matches app */
 .hero-buttons .button--primary {
-  background-color: #0f172a;
-  border-color: #0f172a;
-  color: #fff;
+  background-color: var(--lira-primary);
+  border-color: var(--lira-primary);
+  color: var(--lira-primary-foreground);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
 }
 
 .hero-buttons .button--primary:hover {
-  background-color: #1e293b;
-  border-color: #1e293b;
-}
-
-[data-theme='dark'] .hero-buttons .button--primary {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
-}
-
-[data-theme='dark'] .hero-buttons .button--primary:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: var(--lira-foreground);
+  border-color: var(--lira-foreground);
+  color: var(--lira-primary-foreground);
 }
 
 .hero-buttons .button--outline {
-  color: var(--ifm-color-primary);
-  border-color: var(--ifm-color-emphasis-300);
+  color: var(--lira-foreground);
+  border-color: var(--lira-border);
+  border-width: 1px;
+  background-color: var(--lira-background);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
 }
 
 .hero-buttons .button--outline:hover {
-  background-color: var(--ifm-color-emphasis-100);
+  background-color: var(--lira-muted);
+  border-color: var(--lira-foreground);
+  color: var(--lira-foreground);
 }
 
-/* Feature cards grid */
+/* ── Feature cards ──────────────────────────────────────────── */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
   padding: 1.5rem 0;
 }
 
 .feature-card {
   display: block;
-  border: 1px solid var(--ifm-color-emphasis-200);
+  border: 1px solid var(--lira-border);
+  background-color: var(--lira-background);
   border-radius: 12px;
   padding: 1.5rem;
-  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
   text-decoration: none;
   color: inherit;
 }
 
 .feature-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
-  transform: translateY(-2px);
+  border-color: var(--lira-foreground);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
   text-decoration: none;
   color: inherit;
 }
 
+[data-theme='dark'] .feature-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
 .feature-card h3 {
   margin-top: 0;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 .feature-card p {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   margin-bottom: 0;
-  opacity: 0.75;
-  line-height: 1.5;
+  color: var(--lira-muted-foreground);
+  line-height: 1.55;
 }
 
-/* Admonition / callout overrides */
+/* ── Admonitions ────────────────────────────────────────────── */
 .alert {
   border-radius: 8px;
+  border-width: 1px;
 }
 
-/* Footer */
+/* ── Footer ─────────────────────────────────────────────────── */
 .footer--dark {
-  background-color: #0f172a;
+  background-color: var(--lira-foreground);
+  color: #d4d4d4;
 }
 
-/* Breadcrumbs */
+.footer--dark .footer__title {
+  color: #ffffff;
+}
+
+.footer--dark .footer__link-item {
+  color: #a3a3a3;
+}
+
+.footer--dark .footer__link-item:hover {
+  color: #ffffff;
+}
+
+/* ── Breadcrumbs ────────────────────────────────────────────── */
 .breadcrumbs__link {
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--lira-muted-foreground);
+}
+
+.breadcrumbs__link--active {
+  color: var(--lira-foreground);
+}
+
+/* ── Pagination links ───────────────────────────────────────── */
+.pagination-nav__link {
+  border-color: var(--lira-border);
+  border-radius: 10px;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--lira-foreground);
+}
+
+.pagination-nav__sublabel {
+  color: var(--lira-muted-foreground);
+  font-weight: 500;
+}
+
+.pagination-nav__label {
+  font-weight: 600;
+  color: var(--lira-foreground);
+}
+
+/* ── TOC ─────────────────────────────────────────────────────── */
+.table-of-contents__link {
+  color: var(--lira-muted-foreground);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--lira-foreground);
 }
