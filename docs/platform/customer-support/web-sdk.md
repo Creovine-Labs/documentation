@@ -57,6 +57,53 @@ no floating launcher bubble in fullscreen mode.
 
 ---
 
+## Fullscreen layouts
+
+Fullscreen mode (`mountSupportPage`) supports two layouts:
+
+| Layout            | What it renders                                                                                   |
+|-------------------|---------------------------------------------------------------------------------------------------|
+| `support_center` (default) | An **answer-first help page**: a describe-your-issue input at the top, then inline AI answers, knowledge-base source cards, suggestion buttons, browse-topics, popular articles, an account panel, and your tickets. Free-text chat is opt-in, and ticket escalation is the fallback. |
+| `messenger`  | The Home/Chat conversational surface — the widget experience without a floating bubble. Opt in with `layout: 'messenger'`. |
+
+Choose `support_center` when you want a real help-center page rather than a chat
+panel. The visitor types their issue once; Lira answers in place with steps,
+linked articles, and tappable next-step suggestions. If the visitor would rather
+type, a chat composer appears inline; if Lira can't resolve it, it offers to
+draft and file a ticket — and human follow-up happens in your Tickets section,
+never on the page itself.
+
+**Script tag:**
+
+```html
+<div id="lira-support-root" style="min-height: 720px;"></div>
+
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-mode="fullscreen"
+  data-layout="support_center"
+  data-target="#lira-support-root">
+</script>
+```
+
+**JavaScript SDK:**
+
+```js
+window.Lira.mountSupportPage('#lira-support-root', { layout: 'support_center' })
+```
+
+**React:**
+
+```tsx
+<LiraSupportPage config={{ layout: 'support_center' }} />
+```
+
+Fullscreen embeds render the `support_center` layout by default. To keep the
+legacy Home/Chat surface, pass `layout: 'messenger'` explicitly.
+
+---
+
 ## Option 2: JavaScript SDK API
 
 Use the SDK API when you need to identify logged-in users and provide account
@@ -97,6 +144,7 @@ The CDN runtime exposes:
 ```ts
 window.Lira.init(config)
 window.Lira.identify(visitor)
+window.Lira.logout()
 window.Lira.setContext(context)
 window.Lira.track(eventName, payload)
 window.Lira.registerAction(name, handler)
@@ -242,6 +290,41 @@ Never expose the widget secret in browser code.
 
 ---
 
+## Logout & identity transitions
+
+Tell the SDK when a user logs out. This is the missing piece most teams forget, and it's what stops one user's chat from leaking to the next person on a shared device.
+
+```ts
+// In your logout handler, after you've cleared your own session:
+window.Lira?.logout()
+// or, if you imported the package:
+//   import { logout } from '@liraintelligence/support'
+//   await logout()
+```
+
+`logout()` is equivalent to `identify({ email: null, name: null, sig: null })` — either form works. Both:
+
+- wipe the current user's chat history off this device,
+- rotate the anonymous chat scope so the next anonymous visitor starts clean,
+- close any active WebSocket session and reconnect anonymously.
+
+### What the SDK does automatically across identity transitions
+
+The SDK scopes everything (localStorage, WebSocket session, suggestion chips) to identity. You don't need to manage this — just call `identify(...)` on login and `logout()` on logout, and the rest takes care of itself:
+
+| When | What the SDK does |
+|---|---|
+| Anonymous visitor → `identify(...)` (login) | Drops the anonymous cache, switches to the identified storage key, **calls the server to hydrate this user's recent conversation** (so chat history follows them across devices). |
+| User A → `identify(B)` (switch on same browser) | A's local cache wiped. B's cache (or server-fetched history) loaded. A's session is fully scrubbed. |
+| Identified user → `logout()` | Identified cache wiped. Anonymous scope rotated. Next visitor on this browser sees nothing of the previous user's chat. |
+| `identify(...)` with the same email again | No-op (safe to call on every page load). |
+
+### Cross-device history
+
+When an identified visitor opens the widget on a new device (different browser, mobile, etc.), the SDK calls `GET /lira/v1/support/chat/history/<orgId>?email=…&sig=…` on `identify()`. Lira validates the signature against your widget secret and returns the user's most recent conversation, which the widget hydrates into its UI. No extra wiring on your side — as long as you sign each user's email correctly, their history follows them.
+
+---
+
 ## Live product context
 
 Use `setContext` whenever important product state changes. This is how Lira can
@@ -307,12 +390,13 @@ Most teams use both:
 3. Either load `https://widget.liraintelligence.com/v1/widget.js` or install
    `@liraintelligence/support`.
 4. Call `window.Lira.init({ orgId: '...' })` or `await init({ orgId: '...' })`.
-5. Generate visitor signatures on LemonPay's backend.
-6. Call `window.Lira.identify(...)` after login state is known.
+5. Generate visitor signatures on LemonPay's backend (HMAC of the user's email with the widget secret).
+6. Call `window.Lira.identify({ email, name, sig })` after login state is known.
 7. Call `window.Lira.setContext(...)` with account and route context.
-8. Call `window.Lira.mountSupportPage('#lira-support-root')`.
-9. Test account-aware Q&A, Knowledge Base answers, action cards, ticket creation,
-   and escalation.
+8. **Call `window.Lira.logout()` on the logout handler** so the next user on a shared device doesn't see the previous user's chat.
+9. Call `window.Lira.mountSupportPage('#lira-support-root')`.
+10. Test account-aware Q&A, Knowledge Base answers, action cards, ticket creation,
+    and escalation.
 
 ---
 
@@ -321,7 +405,7 @@ Most teams use both:
 In the Lira dashboard:
 
 - **Support → Activate** shows the SDK snippet after activation.
-- **Settings → Support → Web SDK** shows full-page SDK, JavaScript API, and
+- **Settings → Support → Get connected** shows full-page SDK, JavaScript API, and
   floating widget snippets.
-- **Settings → Support → Secret** shows the server-side widget secret for signed
-  visitors.
+- **Settings → Support → Get connected → Widget secret** shows the server-side
+  widget secret for signed visitors.

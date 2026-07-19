@@ -44,7 +44,7 @@ In [Step 2 of the activation wizard](/platform/customer-support/activation#step-
 
 ### After activation
 
-Go to **Settings → Support → Hosted**. Toggle the hosted fallback on, then set your slug.
+Go to **Settings → Support → Channels → Hosted page**. Toggle the hosted fallback on, then set your slug.
 
 ---
 
@@ -88,7 +88,7 @@ Every ticket submitted through the portal lands in your **Tickets** queue alongs
 
 After enabling the portal, you can find the live URL any time:
 
-- In **Settings → Support → Hosted** — click **Open portal**
+- In **Settings → Support → Channels → Hosted page** — click **Open portal**
 - In the **Success screen** immediately after activation (with a copy button)
 
 Share the URL:
@@ -137,7 +137,7 @@ on pages where a compact launcher helps.
 
 ## Portal settings reference
 
-All hosted portal settings live in **Settings → Support → Hosted**:
+All hosted portal settings live in **Settings → Support → Channels → Hosted page**:
 
 | Setting | Description |
 |---------|-------------|

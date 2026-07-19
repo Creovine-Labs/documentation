@@ -22,7 +22,7 @@ Visitor opens chat widget
   → If confidence is low → escalates to your team's inbox
 ```
 
-Every chat conversation is visible in **Support → Tickets** alongside your email and portal tickets. Your team can jump in to reply manually at any point.
+Every chat conversation is visible in the **Inbox** (sidebar → Work → Inbox), and anything Lira escalates lands in **Tickets** alongside your email and portal tickets. Your team can jump in to reply manually at any point.
 
 ---
 
@@ -41,7 +41,7 @@ The widget is a single `<script>` tag. Paste it before the closing `</body>` tag
 
 ### Getting your snippet
 
-After activation, the complete snippet with your actual `data-org-id` pre-filled is shown on the success screen. You can copy it again later from **Settings → Support → Web SDK tab → Floating Chat Widget**.
+After activation, the complete snippet with your actual `data-org-id` pre-filled is shown on the success screen. You can copy it again later from **Settings → Support → Get connected → Floating Chat Widget**.
 
 ### Where to add it
 
@@ -65,7 +65,7 @@ The only thing you might want to change after the initial install is the `data-g
 - Edit the `data-greeting` value in your site's HTML
 - **Changes take effect immediately** — no reinstall required
 
-You can also change the widget's appearance (colour) from **Settings → Support → Web SDK tab** — these changes are fetched automatically by the widget on every load, so you don't need to touch the script tag.
+You can also change the widget's appearance (colour) from **Settings → Support → Get connected** — these changes are fetched automatically by the widget on every load, so you don't need to touch the script tag.
 
 ---
 
@@ -73,7 +73,7 @@ You can also change the widget's appearance (colour) from **Settings → Support
 
 ### Widget colour
 
-Set the primary colour of the widget header and chat button from **Settings → Support → Web SDK tab**. You can:
+Set the primary colour of the widget header and chat button from **Settings → Support → Get connected → Widget Color**. You can:
 
 - Enter any 6-digit hex code (e.g. `#3730a3`)
 - Pick from a curated palette of preset colours
@@ -85,7 +85,7 @@ The colour applies to the widget button, the header bar, and Lira's message bubb
 
 The greeting message is what Lira sends the moment a visitor opens the chat. You can set it from:
 
-- **Settings → Web SDK tab → Greeting Message** — applies globally
+- **Settings → Support → Get connected → Greeting Message** — applies globally
 - **The `data-greeting` attribute** in your script tag — overrides the global setting for that specific page
 
 Keep it short and welcoming. You can ask a question to prompt the visitor:
@@ -139,11 +139,11 @@ The `data-sig` is a cryptographic signature that **proves your server generated 
 
 ### The widget secret
 
-The widget secret is a unique hex key tied to your organisation. It lives in **Settings → Support → Secret**.
+The widget secret is a unique hex key tied to your organisation. It lives in **Settings → Support → Get connected → Widget secret**.
 
 **Your server uses this key to compute the signature.** The secret itself must **never** appear in your frontend code, your HTML, or the browser — it should only ever exist on your backend.
 
-To find your secret: open the Lira dashboard → click **Support** in the sidebar → click the **Settings** tab → open **Secret** → click **Show**.
+To find your secret: open the Lira dashboard → **Settings** (bottom of the sidebar) → **Support** tab → **Get connected** → scroll to **Widget secret** → click **Show**.
 
 ---
 
@@ -199,9 +199,106 @@ If `data-sig` is missing or doesn't match, Lira silently falls back to anonymous
 
 ---
 
+### SPAs / post-load identity: `window.Lira.identify()`
+
+Most modern apps don't know who the visitor is when the page first loads — auth state arrives later from a session call, an OAuth redirect, a `useEffect`, etc. For these cases, set the script tag with **just the org id**, then call `window.Lira.identify(...)` whenever your auth state resolves.
+
+```js
+// Anywhere your auth-resolved callback runs (Next.js useEffect, React Query
+// onSuccess, Vue created, Supabase onAuthStateChange, etc.):
+async function onUserResolved(user) {
+  // 1) Ask YOUR backend to compute the signature — never compute it in the browser.
+  const { sig } = await fetch('/api/lira-sig', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: user.email }),
+  }).then((r) => r.json())
+
+  // 2) Hand Lira the identity. Safe to call multiple times — re-identifies in place.
+  window.Lira?.identify({
+    email: user.email,
+    name: user.name,
+    sig,
+  })
+}
+```
+
+On your backend, the `/api/lira-sig` endpoint is a thin wrapper over the same HMAC you'd run for server-rendered pages:
+
+```js
+// Node.js / Express
+app.post('/api/lira-sig', requireAuth, (req, res) => {
+  const sig = crypto
+    .createHmac('sha256', process.env.LIRA_WIDGET_SECRET)
+    .update(req.user.email)
+    .digest('hex')
+  res.json({ sig })
+})
+```
+
+The widget queues the identity call until the script has finished loading — `window.Lira?.identify(...)` is safe to call any time after the script tag is in the DOM, before or after page load.
+
+---
+
+### Logout: `window.Lira.logout()`
+
+When your user logs out, tell the widget. Lira wipes the chat history off this device and rotates the anonymous chat scope, so the next visitor on a shared computer doesn't see anything the previous user did.
+
+```js
+// In your logout handler, after you've cleared your own session:
+window.Lira?.logout()
+```
+
+This is the missing piece most teams forget. Without it, a user can chat with Lira while signed in, log out, hand the laptop to a teammate, and the teammate sees the previous user's conversation. Calling `logout()` solves that.
+
+`logout()` is equivalent to `identify({ email: null, name: null, sig: null })` — either form works.
+
+---
+
+### Chat history & identity scope — what the widget remembers
+
+The widget scopes its local chat cache to identity, so two users on the same browser never see each other's history. Specifically:
+
+| Visitor state | Local cache scope | Cross-device |
+|---|---|---|
+| **Identified** (you called `identify(...)` with a valid `sig`) | `lira_chat_<orgId>_u_<email>` localStorage entry, **+ server-side history fetched on identify** | ✅ The widget pulls the visitor's recent conversation from the server on `identify()`. Log in on a phone after chatting on desktop → history follows. |
+| **Anonymous** (no identify, or pre-chat form) | `lira_chat_<orgId>_anon_<anonChatId>` — anon id is rotating | ❌ Lives on this device only. Rotated when an identified user logs out, so a shared device starts clean for the next visitor. |
+| **After logout** | Identified cache wiped, anon id rotated, fresh empty chat | n/a |
+| **Switching identity** (different user logs in on same browser) | Previous user's cache wiped, new user's cache fetched | The new user sees only their own history. |
+
+All of this is automatic — you don't configure anything. The widget does the right thing as long as you call `identify()` on login and `logout()` on logout.
+
+---
+
+### Live product context: `window.Lira.setContext()`
+
+Identity tells Lira **who** the visitor is. Live context tells her **what they're doing right now**. Call it from your app whenever the relevant state changes — current page, current plan, current open invoice, whatever might matter to the support conversation.
+
+```js
+window.Lira?.setContext({
+  page: window.location.pathname,
+  account: {
+    plan: 'Growth',
+    billing_status: 'overdue',
+    open_invoices: 1,
+  },
+  ui: { active_modal: 'upgrade-prompt' },
+})
+```
+
+Call `setContext` whenever a relevant state changes. Lira reads the most recent context on every visitor turn — so by the time someone clicks the chat bubble, she already knows their plan is overdue and can lead with that.
+
+---
+
+### Anonymous-visitor fallback: pre-chat form
+
+If you haven't wired identity yet (or the visitor genuinely isn't logged in), Lira can ask for name + email before the chat starts. This is on by default for new orgs. Without it, anonymous visitors land straight in chat and Lira has no identity context to work with. There is currently no dashboard toggle for the pre-chat form — contact the Lira team if you need it changed.
+
+---
+
 ### Rotating the secret
 
-If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Settings → Support → Secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
+If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Settings → Support → Get connected → Widget secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
 
 ---
 

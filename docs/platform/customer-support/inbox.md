@@ -1,14 +1,14 @@
 ---
 sidebar_position: 5
-title: Chat history (formerly Inbox)
+title: Inbox (chat history)
 description: Read-only audit log of every AI chat. Use it to QA Lira's answers and spot accuracy drift.
 ---
 
-# Chat history
+# Inbox
 
-The Chat history surface (previously called **Inbox**) is your read-only audit log of every AI ↔ visitor conversation, across email, the Web SDK / chat widget, and the hosted portal. It is **not** the primary operator queue — that's [Tickets](/platform/customer-support/tickets). (Voice is currently disabled behind a feature flag; voice transcripts will reappear here when voice is re-enabled.)
+The Inbox is your read-only audit log of every AI ↔ visitor conversation, across email, the Web SDK / chat widget, and the hosted portal. It is **not** the primary operator queue — that's [Tickets](/platform/customer-support/tickets). (Voice is currently disabled behind a feature flag; voice transcripts will reappear here when voice is re-enabled.)
 
-Navigate to **Support → Chat history** (sits below Analytics in the sidebar).
+Navigate to **Work → Inbox** (the first entry in the sidebar's Work group).
 
 ---
 

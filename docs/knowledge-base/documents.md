@@ -9,7 +9,7 @@ description: Upload files directly to feed Lira's knowledge — supported format
 
 The **Documents** tab is the most direct way to put knowledge into Lira. Upload any file from your computer and Lira will read, chunk, embed, and index it — making the content searchable and available as context in every session.
 
-**Path:** Sidebar → Workspace → Knowledge Base → **Documents**
+**Path:** Sidebar → Grow → Knowledge Base → **Documents**
 
 ---
 

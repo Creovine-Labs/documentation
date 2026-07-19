@@ -4,7 +4,7 @@ sidebar_label: Email
 
 # Email Settings
 
-Lira uses email to keep your team informed — sending meeting summaries, task assignments, and follow-ups automatically. This page covers all email configuration options available under **Workspace → Email → Settings**.
+Lira uses email to keep your team informed — sending meeting summaries, task assignments, and follow-ups automatically. This page covers all email configuration options available under **Admin → Email → Settings** in the sidebar.
 
 :::tip Navigation
 In the left sidebar, expand **Workspace** and click **Email**. At the top of the Email page you'll see two tabs: **Settings** and **Inbox**. Click **Settings**, then use the sub-tabs — **General**, **Sender Identity**, **Sending Domain**, **Notifications**, **Auto-Reply** — to configure each option.
@@ -105,7 +105,7 @@ You can independently enable or disable each event. For example, you might enabl
 
 ## AI Auto-Reply {#auto-reply}
 
-AI Auto-Reply allows Lira to autonomously respond to inbound email replies using GPT-4o.
+AI Auto-Reply allows Lira to autonomously respond to inbound email replies using updated frontier language models (Claude and GPT families), routed through the same provider-agnostic adapter as live chat — including automatic fallback so a single API outage never silences the reply path.
 
 ### How it works
 

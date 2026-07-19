@@ -8,6 +8,20 @@ title: Changelog
 
 All notable changes to the Lira AI platform are documented here. Dates use **YYYY-MM-DD** format.
 
+:::note Platform focus
+Lira is now exclusively a **customer support platform**. The Meetings, Interviews, and Sales Coaching products that appear in earlier entries below have been retired — they were part of an earlier iteration of Lira and are not available on the current platform. Their historical entries are preserved for context.
+:::
+
+---
+
+## 2026-05-26 — Concierge onboarding + per-employee invites
+
+- **Self-serve org creation removed** — new organizations are now provisioned by the Lira team after a scoping call. The in-app "New organization" entry opens a contact-team modal instead.
+- **Per-employee invite system** — org admins generate one-time, expiring invite links scoped to a specific email + role. Invitees set a password (if new) and land directly in the org. Replaces the static LRA-XXXX shared-code join flow.
+- **Resend-powered invite emails** — invite links are now emailed automatically when an admin generates them.
+- **Public sign-up disabled** — the marketing site routes prospects through "Speak to an expert" instead of a self-serve form. `/login` is the only public auth path; `/signup?invite=…` works only with a valid concierge invite code.
+- **Admin: provision org for existing user** — the Lira-team admin dashboard can now spin up a new organization under an existing user account.
+
 ---
 
 ## 2026-04-13 — Customer Support Module

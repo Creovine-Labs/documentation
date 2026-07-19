@@ -9,7 +9,7 @@ description: Crawl and index your website or any public URL so Lira can referenc
 
 The **Web Sources** tab lets you crawl any public website and index its content into the Knowledge Base. Lira will visit each page, extract the text, and embed it — making the site's content searchable alongside your documents and connected sources.
 
-**Path:** Sidebar → Workspace → Knowledge Base → **Web Sources**
+**Path:** Sidebar → Grow → Knowledge Base → **Web Sources**
 
 ---
 
@@ -30,7 +30,7 @@ For **internal knowledge** — policies, specs, playbooks — use [Documents](/k
 
 ## Starting a crawl
 
-1. Go to **Sidebar → Workspace → Knowledge Base → Web Sources**
+1. Go to **Sidebar → Grow → Knowledge Base → Web Sources**
 2. Enter the **starting URL** in the URL field (e.g. `https://yourdomain.com`)
 3. Set the **Max Pages** limit — how many pages Lira will visit before stopping (default 20, maximum 50)
 4. Click **Crawl**

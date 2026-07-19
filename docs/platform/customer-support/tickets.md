@@ -1,137 +1,281 @@
 ---
 sidebar_position: 4
 title: Tickets
-description: How Lira's ticketing system works — async human follow-up that runs in parallel to live AI chat.
+description: "Lira's ticketing system: AI-assisted triage, async human ownership, customer-visible threads, SLAs, CSAT, and integration outbox events."
 ---
 
 # Tickets
 
-Tickets are how Lira hands a question to your team **without breaking the conversation with the customer**.
+Tickets are how Lira turns a support conversation into an accountable support
+case. Lira keeps answering what it can, but when an issue needs ownership,
+follow-up, attachments, SLA tracking, or a human decision, it creates a ticket
+with the right summary, category, queue, priority, and customer-visible thread.
 
-When Lira can't confidently answer something on its own — a billing edge case, a feature request, anything outside the Knowledge Base — it opens a ticket. The visitor gets an email confirmation; your team gets notified at your **Ticketing Email**; and Lira keeps chatting with the visitor about anything else they want to discuss. No silent hand-off, no live-chat takeover, no awkward "a human will be with you shortly".
+Tickets are not a replacement for chat history. Chat history is the full
+conversation record. Tickets are the work items your team operates.
 
 ---
 
-## How tickets differ from chat history
+## How tickets are created
 
-| | **Chat history** (was "Inbox") | **Tickets** |
+Tickets can be created in three ways:
+
+| Source | When it happens | Result |
 |---|---|---|
-| What it is | The raw AI ↔ visitor chat log | A discrete async task for your team |
-| State | open / pending / resolved | open / in_progress / resolved / closed |
-| Volume | Every chat — mostly resolved by Lira silently | Only when Lira can't answer — small queue |
-| Reader | QA / audit ("was the AI accurate?") | Operators actually work these |
-| Lifetime | Closes when the visitor stops talking | Stays open until a teammate resolves it |
+| Lira chat | Lira needs async follow-up or human ownership | Lira creates a ticket with conversation context and keeps helping where it can |
+| Manual operator action | A teammate creates a ticket in Support -> Tickets | The ticket enters the same routing, SLA, notification, and analytics flow |
+| Customer ticket page | A verified customer replies or follows up | The existing ticket thread updates and can reopen when appropriate |
 
-**Tickets are the primary surface for your support team.** Chat history is the audit log behind it.
+Lira should not create ticket noise for questions it can answer confidently from
+the knowledge base or live customer context. Tickets are for issues that need
+accountability.
 
 ---
 
 ## Lifecycle
 
-```
-Visitor asks Lira something it can't answer
-  → Lira calls lira_create_support_ticket (with visitor's approval)
-  → Backend creates ticket LIRA-XXXX with subject + summary + visitor email
-  → Visitor receives confirmation email + sees the ticket at /tickets
-  → Team gets notified at your Ticketing Email (+ CC list on Enterprise)
-  → Team opens it in Support → Tickets, types a reply
-  → Visitor gets an email + sees the reply at /tickets/LIRA-XXXX
-  → When done, team clicks "Mark resolved"
-```
-
-Lira's live chat keeps running in parallel the whole time.
-
----
-
-## The ticket number
-
-Every ticket gets a short human-readable identifier:
-
-```
-LIRA-A1B2
+```txt
+Customer asks for help
+  -> Lira answers from knowledge/context when possible
+  -> If follow-up is needed, Lira creates a ticket
+  -> Ticket is classified and routed into a queue
+  -> SLA timers and notifications start
+  -> Agent replies, adds notes, escalates, or resolves
+  -> Customer can reply from the secure ticket link
+  -> Resolved tickets collect CSAT and feed learning loops
 ```
 
-Four characters, dropped-look-alike alphabet (no `0/O/1/I/L`). Easy to read over the phone or copy-paste into Slack. The visitor sees this in their email and on their portal; your team sees it in the operator inbox.
+Customer replies reopen `pending` tickets automatically. Resolved tickets reopen
+only inside the configured reopen window. Closed, merged, and snoozed tickets do
+not reopen automatically.
 
 ---
 
-## Ticket statuses
+## Statuses
 
-| Status | What it means |
-|--------|---------------|
-| **Open** | Just opened. Nobody on the team has replied yet. |
-| **In progress** | A teammate replied — moves out of the unread queue. |
-| **Resolved** | Closed by a teammate. Visitor can't reply unless reopened. |
-| **Closed** | Archived (rarely set manually). |
+| Status | Meaning |
+|---|---|
+| `new` | Created and waiting for first triage or first response |
+| `open` | Active and waiting on the support team |
+| `in_progress` | A teammate is working the issue |
+| `pending` | Waiting on the customer; SLA can pause or change based on policy |
+| `on_hold` | Waiting on an internal team, vendor, or system dependency |
+| `escalated` | Moved to a higher tier, specialist, queue, or named owner |
+| `resolved` | Marked solved, still eligible for customer reopen during the reopen window |
+| `closed` | Final archive state |
+| `merged` | Duplicate or related case merged into another ticket |
+| `snoozed` | Hidden until a future time, then returns to the active queue |
 
-The transition from **open → in_progress** is automatic the first time an agent posts a reply.
-
----
-
-## Operator: working tickets
-
-Navigate to **Support → Tickets**.
-
-**The list view** shows every ticket for the org, sorted active-first. Click the status tabs to filter. Each row shows the ticket number, subject, visitor, source (`lira_onboarding` / `customer_widget` / `email`), and a one-line summary preview.
-
-**The detail view** shows the full thread (visitor on the left, agent on the right) plus:
-
-- Ticket metadata (visitor email, source, opened-at)
-- Reply textarea — typing here sends an email to the visitor automatically
-- "Mark resolved" button
-
-**To reply:** open the ticket, type, click **Send reply**. The visitor gets an email with your message and a link back to the thread.
-
-**To resolve:** click the **Mark resolved** button at the top. The visitor sees the ticket close and gets a polite "this ticket is resolved" notice.
+The frontend should treat `new`, `open`, `in_progress`, and `escalated` as
+active work. `pending`, `on_hold`, and `snoozed` are waiting states. `resolved`,
+`closed`, and `merged` are completion states.
 
 ---
 
-## Visitor: their tickets
+## Classification and routing
 
-Each visitor sees only their own tickets at:
+Every ticket can carry structured classification:
 
+- Category and subcategory
+- Product area
+- Language
+- Priority and priority reason
+- Confidence score
+- Dedupe key
+- Handoff brief
+
+The classifier is used for routing, reporting, and better agent context. An
+operator can still override category, priority, queue, or assignee.
+
+Queues and SLA policies are configured per organization. Routing can send a
+ticket to the default queue, a category-specific queue, a specialist queue, or a
+manual assignee.
+
+---
+
+## Operator workspace
+
+Go to **Support -> Tickets**.
+
+Operators can:
+
+- List and filter tickets by status, category, queue, assignee, and priority.
+- Open a ticket detail view with public messages, internal notes, metadata, and
+  event timeline.
+- Reply to the customer. Replies are sent by email and stored on the public
+  ticket thread.
+- Add internal notes that never appear to the customer.
+- Change status, priority, category, queue, or assignee.
+- Escalate and acknowledge escalation.
+- Resolve, reopen, close, mark pending, or put a ticket on hold.
+- Upload attachments.
+- Regenerate the handoff brief.
+- Request CSAT.
+
+Internal notes and internal events are operator-only. Customer-facing APIs strip
+operator identifiers, internal notes, queue details, handoff internals, and SLA
+breach metadata.
+
+---
+
+## Customer ticket access
+
+Customer ticket access uses secure magic-link tokens or verified SDK identity.
+Do not build new customer UI on raw email lookup.
+
+### Magic-link access
+
+Use this for unauthenticated customer ticket pages:
+
+```http
+POST /lira/v1/support/tickets/public/:orgId/tickets/access-link
 ```
-https://liraintelligence.com/tickets               # list
-https://liraintelligence.com/tickets/LIRA-A1B2     # single ticket
+
+Body:
+
+```json
+{
+  "email": "customer@example.com",
+  "ticket_number": "LIRA-A1B2"
+}
 ```
 
-Identity is keyed by email — there's no separate login. The visitor's email is captured during the conversation that created the ticket. When they visit `/tickets`, the page reads their auth email and filters to tickets they opened.
+`ticket_number` is optional. If provided, the link is scoped to one ticket.
 
-The visitor can reply to any unresolved ticket from this page. Their reply lands as a `visitor` message on the thread and the next teammate to look at the ticket sees it.
+The response is always generic:
+
+```json
+{ "ok": true }
+```
+
+This prevents account enumeration. The UI should say: "If this email has
+tickets, we sent a secure access link."
+
+### Token-scoped customer routes
+
+```http
+GET  /lira/v1/support/tickets/public/:orgId/tickets?access_token=...
+GET  /lira/v1/support/tickets/public/:orgId/tickets/:ticketNumber?access_token=...
+POST /lira/v1/support/tickets/public/:orgId/tickets/:ticketNumber/reply?access_token=...
+POST /lira/v1/support/tickets/public/:orgId/tickets/:ticketNumber/attachments?access_token=...
+POST /lira/v1/support/tickets/public/:orgId/tickets/:ticketNumber/csat?access_token=...
+```
+
+Tokens are signed, time-bounded, and scoped by organization, email, and
+optionally ticket number.
+
+### Verified SDK access
+
+Use verified SDK access when the support surface is embedded inside a logged-in
+customer app.
+
+```http
+GET  /lira/v1/support/tickets/verified/:orgId/tickets?email=...&sig=...
+GET  /lira/v1/support/tickets/verified/:orgId/tickets/:ticketNumber?email=...&sig=...
+POST /lira/v1/support/tickets/verified/:orgId/tickets/:ticketNumber/reply?email=...&sig=...
+```
+
+`sig` is an HMAC-SHA256 signature generated by the customer backend using the
+organization's widget secret. Never compute this signature in browser code.
+
+Example:
+
+```ts
+import crypto from 'node:crypto'
+
+export function signLiraVisitor(email: string) {
+  return crypto
+    .createHmac('sha256', process.env.LIRA_WIDGET_SECRET!)
+    .update(email.trim().toLowerCase())
+    .digest('hex')
+}
+```
 
 ---
 
-## Ticketing Email
+## Deprecated legacy routes
 
-Set during activation Step 3 (or in **Settings → Support → Ticketing**). Every new ticket triggers an email to this address with the subject `Ticket LIRA-XXXX: {subject}` and the visitor's original message.
+These routes are deprecated:
 
-### Additional recipients (Enterprise)
+```http
+GET  /lira/v1/support/tickets/visitor/:orgId/:email
+GET  /lira/v1/support/tickets/by-number/:ticketNumber?org_id=...
+POST /lira/v1/support/tickets/by-number/:ticketNumber/reply
+POST /lira/v1/support/tickets/by-number/:ticketNumber/attachments
+```
 
-Enterprise plans can CC up to two more teammates on every ticket notification. Configure them in the same Step 3 / Settings → Ticketing tab.
-
----
-
-## Where tickets fit relative to the old "Escalation" flow
-
-Previous versions of Lira had an `escalate_to_human` move that handed the live chat to a human and silenced the AI. That flow has been deprecated.
-
-- `escalate_to_human` still exists as a tool but the agent is instructed never to call it in the onboarding flow — it calls `lira_create_support_ticket` instead.
-- For customer-facing widgets, the same shift is rolling out: tickets replace silent live-chat hand-offs.
-- The existing `escalation_email` config field is reused as the **Ticketing Email** — no migration needed.
+In production, they are blocked by default with `410 Gone` unless
+`LIRA_ALLOW_LEGACY_PUBLIC_TICKET_ACCESS=true` is intentionally enabled for a
+temporary migration window. New integrations must use magic-link access or
+verified SDK identity.
 
 ---
 
-## API surface
+## Notifications, CSAT, and learning
 
-Operator-only (JWT + org membership):
+Lifecycle emails are automatic:
 
-- `GET  /lira/v1/support/tickets/orgs/:orgId` — list
-- `GET  /lira/v1/support/tickets/orgs/:orgId/:ticketId` — detail + messages
-- `POST /lira/v1/support/tickets/orgs/:orgId/:ticketId/reply` — agent reply (fires visitor email)
-- `POST /lira/v1/support/tickets/orgs/:orgId/:ticketId/resolve` — mark resolved
+- New ticket confirmation
+- Agent replies
+- Pending customer reminder
+- Escalation notification
+- Resolved notification
+- Reopened notification
+- CSAT request
 
-Visitor-facing (no JWT; identity by email):
+Negative CSAT can create an internal recovery note. Resolved tickets with
+knowledge gaps can feed the knowledge-draft review loop so the team can improve
+future Lira answers.
 
-- `GET  /lira/v1/support/tickets/visitor/:orgId/:email` — list my tickets
-- `GET  /lira/v1/support/tickets/by-number/:ticketNumber?org_id=...` — fetch by number + thread
-- `POST /lira/v1/support/tickets/by-number/:ticketNumber/reply` — visitor reply (verifies `visitor_email` matches)
+---
+
+## Integration outbox
+
+Ticket events can fan out to connected systems through the integration outbox.
+The outbox is durable and retries failed delivery with backoff.
+
+Supported event types include:
+
+- `ticket.created`
+- `ticket.escalated`
+- `ticket.resolved`
+
+Configured providers can include Slack, Linear, and generic signed webhooks.
+External links are stored on the ticket so operators can jump from Lira to the
+matching Slack thread, Linear issue, or customer-owned workflow.
+
+---
+
+## Analytics and audit
+
+Ticket analytics include:
+
+- Backlog overview
+- SLA hit rate, at-risk, and breached counts
+- Average first-response and resolution time
+- Category volume and reopen rate
+- Per-agent workload
+- AI-to-ticket conversion rate
+- CSAT average and negative CSAT count
+
+Audit export supports JSON and CSV for ticket-level review.
+
+---
+
+## Smoke testing
+
+The backend repo includes:
+
+```bash
+scripts/smoke-test-ticketing.sh
+```
+
+For local or staging API runs, set:
+
+```bash
+LIRA_DEBUG_TICKET_ACCESS_TOKEN=true
+```
+
+That lets the smoke test verify successful public list/detail/reply paths
+without opening the test inbox. The API ignores this debug token echo in
+production.

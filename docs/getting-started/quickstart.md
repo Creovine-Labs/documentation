@@ -1,59 +1,79 @@
 ---
 slug: /getting-started/quickstart
-sidebar_position: 2
+sidebar_position: 3
 title: Quickstart
+description: From your first Lira invite to a working chat widget on your site — in under 30 minutes.
 ---
 
 # Quickstart
 
-Get Lira AI running in your meeting in under 5 minutes.
+This walks you through the first 30 minutes after we provision your Lira account. By the end you'll have:
+
+- An account, signed in
+- An organization with at least one knowledge source
+- A working Lira widget on a page you control (staging is fine)
+
+If you don't have an account yet, start at **[Get an Account](/getting-started/get-an-account)**.
 
 ## Prerequisites
 
-- A Google account
-- A Google Meet link (or use the built-in demo meeting)
-- Access to the Lira platform at [liraintelligence.com](https://liraintelligence.com)
+- An invite link from the Lira team (delivered by email after your scoping call)
+- A site or app you can paste a `<script>` tag into — staging is fine
+- A help center URL, a few PDFs, or a Google Drive folder with docs (any one of these works)
 
-## Step 1: Sign In
+## Step 1 — Accept your invite
 
-Navigate to [liraintelligence.com](https://liraintelligence.com) and sign in with your Google account. Lira uses Google OAuth for authentication.
+Click the invite link in your email. You'll land on `/accept-invite?token=…`, set a password, and get dropped into the Lira dashboard with your organization already set up.
 
-## Step 2: Create or Join an Organization
+If you're inviting teammates next, go to **Members** in the sidebar and click **Invite a teammate**. Each invite is a one-time, expiring link tied to a specific email — they set their own password when they accept.
 
-If you're new, you'll be guided through onboarding to create your first organization. Organizations are the central unit in Lira — they hold your settings, knowledge base, integrations, and team members.
+## Step 2 — Feed Lira your knowledge
 
-## Step 3: Deploy Lira to a Meeting
+Lira's quality is a direct function of what it knows about your product. Open **Knowledge Base** in the sidebar (under **Grow**) and add at least one source:
 
-1. From the dashboard, find the **Bot Deploy Panel**
-2. Paste your Google Meet link (e.g., `https://meet.google.com/abc-defg-hij`)
-3. Click **"Send Lira to Meeting"**
-4. Within seconds, **Lira AI** will appear as a participant in your meeting
+- **Web crawl** — paste your help center / docs URL. Lira crawls, summarizes, and stores each page. Re-runs on demand.
+- **Documents** — drop in PDFs, DOCX, Markdown, or CSV files.
+- **Connected sources** — connect Google Drive or GitHub once and Lira reads from them directly. New files appear in your KB automatically.
 
-## Step 4: Talk to Lira
+You can mix all three. See [Knowledge Base](/knowledge-base/overview) for the full picture.
 
-Lira listens to the entire conversation but only responds when addressed by name:
+## Step 3 — Activate the support module
 
-> "Hey Lira, can you summarize what we've discussed so far?"
+In the sidebar, click **Customer Support** (or the activation prompt on the dashboard). The activation wizard covers:
 
-> "Lira, what do you think about this approach?"
+1. **Email setup** — pick a Lira-hosted support address or forward from your own domain.
+2. **Channel** — chat widget, full support page, or both.
+3. **Ticket notifications** — the email address that hears about every ticket Lira opens.
+4. **Test & activate** — chat with Lira in test mode, then flip the toggle live.
 
-> "Lira, create a task for the homepage redesign and assign it to Sarah."
+Full reference: [Activation guide](/platform/customer-support/activation).
 
-## Step 5: Review After the Meeting
+## Step 4 — Drop the widget on a page
 
-After the meeting ends, navigate to **Meetings** in the dashboard to find:
+Once activated, copy the embed snippet from **Settings → Support → Get connected** (or from the activation success screen). It looks like this:
 
-- **Short summary** — 4-6 sentence overview
-- **Detailed summary** — 400-700 word breakdown with per-person contributions
-- **Full transcript** — Speaker-attributed, timestamped
-- **Extracted tasks** — Action items with assignees, pushed to your integrations
+```html
+<script
+  src="https://widget.liraintelligence.com/v1/widget.js"
+  data-org-id="YOUR_ORG_ID"
+  data-position="bottom-right">
+</script>
+```
 
-## Try the Demo Meeting
+Paste it before the closing `</body>` tag of your site. Reload — a Lira bubble appears in the bottom corner. Click it and chat.
 
-Don't have a Google Meet handy? Use the **Browser-based Demo Meeting** — it runs entirely in your browser with your microphone, connecting directly to Lira via WebSocket. No Google Meet required.
+For framework-specific setup (Next.js, Vite, Remix, Rails, Django, Express, plain HTML), see [Integration guides](/platform/customer-support/integration-guides). For logged-in users with signed identity, see [Identified visitors on the widget page](/platform/customer-support/widget).
 
-## What's Next?
+## Step 5 — Go further
 
-- [Set up integrations](/integrations/overview) — Connect Slack, Linear, Google Calendar, and more
-- [Configure your organization](/getting-started/concepts) — Knowledge base, custom domains, team members
-- [App Navigation](/getting-started/navigation) — Find your way around the Lira platform
+You have a working widget. Here's what most teams do next, in roughly this order:
+
+- **[Capabilities](/platform/customer-support/capabilities)** — review and register the real operations Lira can run on a visitor's behalf (cancel, upgrade, retry payment, refund), with per-capability risk and approval policy. This is where Lira stops being a chatbot and starts being a support agent.
+- **[Go live](/platform/customer-support/sandbox-and-going-live)** — when testing in sandbox is done, flip the workspace live from the Environment card in Settings → Support to start serving real customers on your plan.
+- **[Proactive](/platform/customer-support/proactive)** — trigger contextual nudges when visitors hit an error state, get stuck on onboarding, or match any condition you define.
+- **[Inbox](/platform/customer-support/inbox)** — review what Lira said, learn from edge cases, correct anything that should be answered differently next time.
+- **[Analytics](/platform/customer-support/analytics)** — resolution rate, deflection, response time, top intents, CSAT.
+
+## Got stuck?
+
+The chat widget on the Lira dashboard is **the same widget you'll embed on your site** — pointed at Lira's own onboarding context. Ask it. If it can't answer (genuinely product, billing, or roadmap), it opens an async ticket with our team and we reply by email.

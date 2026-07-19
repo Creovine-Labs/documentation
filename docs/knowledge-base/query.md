@@ -9,7 +9,7 @@ description: Ask questions and get AI-generated answers grounded in your Knowled
 
 The **Query** tab is where your Knowledge Base pays off. Ask any question and Lira will search across everything you've indexed — documents, connected sources, and crawled web pages — and generate a grounded, source-cited answer.
 
-**Path:** Sidebar → Workspace → Knowledge Base → **Query**
+**Path:** Sidebar → Grow → Knowledge Base → **Query**
 
 ---
 

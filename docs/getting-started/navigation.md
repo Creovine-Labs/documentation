@@ -1,271 +1,233 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 title: Navigating the App
-description: A guide to finding your way around the Lira platform — sidebar sections, key pages, and common tasks.
+description: Where everything lives in the Lira dashboard — sidebar sections, key pages, and common tasks.
 ---
 
 # Navigating the App
 
-This guide walks you through the Lira app layout so you can find what you need quickly — whether you're on web or mobile.
+This guide walks you through the Lira dashboard so you know where to find what you need.
 
 ---
 
-## App Layout
+## App layout
 
-The Lira app has a **left sidebar** that stays visible on all pages. It is divided into three sections:
+The Lira app has a **left sidebar** that's visible on every page. From top to bottom:
 
 | Section | What's inside |
-|---------|--------------|
+|---|---|
 | **Top** | Home (Dashboard) |
-| **Conversations** | Meetings, Interviews |
-| **Workspace** | Knowledge Base, Tasks, Email, Integrations, Usage |
-| **Members** | Team members list |
+| **Work** | The pages you touch daily — Inbox, Tickets, Customers |
+| **Grow** | The pages you tune weekly — Knowledge Base, Proactive, Analytics |
+| **Admin** | Set-up-once surfaces — Members, Integrations, Email, Customer portal, Queues, SLA policies, Tasks, Delivery log |
 | **Bottom** | Settings |
 
-On mobile, the sidebar collapses into a bottom navigation bar. Tap the menu icon in the top-left to expand the full sidebar.
+If Customer Support isn't activated yet, the Work / Grow / Admin groups are replaced by a single **Customer Support** entry pointing at the activation wizard. Once you activate, the full structure appears.
+
+On mobile, the sidebar collapses into a hamburger menu in the top-left.
+
+A header bar across the top shows your current organization (click to switch), notifications, and your profile menu. While your workspace is in sandbox, the header also shows a **SANDBOX** pill — click-through details are in [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
 
 ---
 
-## Home — Dashboard {#dashboard}
+## Home — Dashboard
 
 **Path:** Sidebar → **Home**
 
-The dashboard gives you an at-a-glance view of recent activity across your organization — latest meetings, pending tasks, and quick-access shortcuts.
+The dashboard greets you with the Lira onboarding widget (the same widget you'll embed on your site, but pointed at your setup state) and an at-a-glance view of recent activity — pending tickets, escalation alerts, and quick-access shortcuts.
 
 ---
 
-## Conversations {#conversations}
+## Work
 
-### Meetings {#meetings}
+The daily-driver pages.
 
-**Path:** Sidebar → Conversations → **Meetings**
+### Inbox
 
-This is where all recorded meeting sessions live. Each meeting card shows the title, date, participants, and processing status.
+**Path:** Sidebar → Work → **Inbox**
 
-- **Start a meeting:** Click the **New Meeting** button or invite Lira to your Google Meet from the meeting controls.
-- **View a meeting:** Click any meeting card to see the full transcript, summary, and extracted action items.
-- **Meeting detail:** Inside a meeting you can read the transcript, view the AI summary, see tasks that were created, and replay the audio.
+The read-only log of every AI conversation across chat, email, and the portal. Use it to QA what Lira told customers, investigate complaints, and learn from edge cases.
 
-### Interviews {#interviews}
+See: [Inbox guide](/platform/customer-support/inbox).
 
-**Path:** Sidebar → Conversations → **Interviews**
+### Tickets
 
-Manage AI-conducted interviews. Interviews are organized by **Role** (job position).
+**Path:** Sidebar → Work → **Tickets**
 
-- **Create a role:** Go to Sidebar → Conversations → Interviews → click **New Role**. Define the job title, description, and evaluation rubric.
-- **Run an interview:** Share the interview link with a candidate. Lira conducts the session autonomously.
-- **View results:** After an interview completes, open the role and click the candidate's entry to see scores, transcript, and AI evaluation.
+The operator's daily queue. Every async piece of work — escalations, tickets opened by Lira, tickets you create manually — appears here. Click a ticket to read the thread, reply, change status, or reassign.
 
----
+### Customers
 
-## Workspace {#workspace}
+**Path:** Sidebar → Work → **Customers**
 
-### Knowledge Base {#knowledge-base}
-
-**Path:** Sidebar → Workspace → **Knowledge Base**
-
-The Knowledge Base is where Lira learns about your organisation. Everything you add here — documents, connected sources, and crawled web pages — becomes context Lira can draw on during meetings, interviews, and AI queries.
-
-The Knowledge Base has four tabs:
-
-#### Documents {#documents}
-
-Upload files directly from your computer — PDFs, Word docs, spreadsheets, plain text, CSV, and Markdown. Uploaded files are processed and indexed automatically. Once indexed, Lira can retrieve and reference any content inside them.
-
-- **Upload:** Drag and drop files onto the upload zone, or click Browse to pick files
-- **Supported formats:** PDF, DOCX, DOC, TXT, MD, CSV, XLSX (max 50 MB per file)
-- **Delete:** Click the trash icon on any document row to remove it permanently
-- **Reprocess:** If a document shows a Failed status, click the retry icon to reprocess it
-
-See the full guide: [Documents](/knowledge-base/documents)
-
-#### Connected Sources {#connected-sources}
-
-Connect your Google Drive or GitHub account and import documents directly — no manual download required. Lira lists the available files from your connected account so you can import them with one click.
-
-- **Google Drive:** Connect via OAuth and import Docs, Sheets, and PDFs from your Drive
-- **GitHub:** Authorize the Lira GitHub app and import Markdown, text, and code files from your repos
-- **Import All:** Import every available file at once using the Import All button
-- **Re-import:** Delete the old version in Documents and re-import when source files change
-
-See the full guide: [Connected Sources](/knowledge-base/connected-sources)
-
-#### Web Sources {#web-sources}
-
-Enter any public URL and Lira will crawl it — visiting pages, extracting text, and indexing the content. Best used for your company website, product docs site, or public help centre.
-
-- **Start a crawl:** Enter the URL, set a max page limit (up to 50), and click Crawl
-- **Progress:** A status banner shows live crawl progress
-- **Delete pages:** Remove individual indexed pages or clear everything with Clear All
-
-See the full guide: [Web Sources](/knowledge-base/web-sources)
-
-#### Query {#query}
-
-Ask questions and get AI-generated answers grounded in everything you've indexed. Lira runs a semantic search across all your knowledge sources and generates a sourced, factual response.
-
-- **Multi-turn chat:** Ask follow-up questions naturally — Lira remembers the conversation
-- **Source citations:** Each answer shows which documents or pages the information came from
-- **No hallucinations:** If the answer isn't in your Knowledge Base, Lira will say so
-
-See the full guide: [Query](/knowledge-base/query)
+Every identified visitor that has chatted with Lira. Filter by account, plan, or recent activity. Click a customer to see their conversation history, open tickets, and any identity context the SDK sent.
 
 ---
 
-For a complete guide to the Knowledge Base, see [Knowledge Base Overview](/knowledge-base).
+## Grow
 
-### Tasks {#tasks}
+The pages that improve answer quality and coverage over time.
 
-**Path:** Sidebar → Workspace → **Tasks**
+### Knowledge Base
 
-All action items extracted by Lira from meetings and interviews appear here. Tasks can be assigned to team members, updated, and marked complete.
+**Path:** Sidebar → Grow → **Knowledge Base**
 
-- **View a task:** Click any task row to open the detail page.
-- **Update status:** Inside the task detail, change the status via the dropdown.
-- **Integrations:** If you have Linear or GitHub connected, tasks can be pushed directly to those tools.
+The Knowledge Base is what Lira reads to answer visitor questions. It has four tabs:
 
-### Email {#email}
+- **Documents** — drag-and-drop PDFs, DOCX, MD, CSV (max 50 MB per file).
+- **Connected Sources** — link Google Drive or GitHub; Lira pulls files directly.
+- **Web Sources** — paste a URL; Lira crawls and indexes the site.
+- **Query** — ask questions against the KB to verify what Lira will see.
 
-**Path:** Sidebar → Workspace → **Email**
+Full reference: [Knowledge Base](/knowledge-base/overview).
 
-Configure how Lira sends and receives emails on behalf of your organization. The Email page has two tabs at the top:
+### Proactive
 
-- **Settings** — configure sender identity, custom domain, notifications, and AI auto-reply. sub-tabs: General, Sender Identity, Sending Domain, Notifications, Auto-Reply.
-- **Inbox** — view inbound email threads that Lira has handled.
+**Path:** Sidebar → Grow → **Proactive**
 
-For full details, see the [Email Settings guide](/platform/email).
+Configure triggers that fire contextual Lira messages when a visitor matches a condition — error state, abandoned step, idle on a high-intent screen.
 
-### Integrations {#integrations}
+See: [Proactive guide](/platform/customer-support/proactive).
 
-**Path:** Sidebar → Workspace → **Integrations**
+### Analytics
 
-Connect third-party tools like Slack, Google Calendar, Linear, GitHub, HubSpot, Salesforce, and Greenhouse.
+**Path:** Sidebar → Grow → **Analytics**
 
-- **Connect a tool:** Click the **Connect** button on any integration card. You'll be redirected to authorize the connection.
-- **Disconnect:** Click the connected integration card and select **Disconnect**.
-- **Docs:** Each integration card has a **Docs** link that opens the relevant documentation.
-
-For per-integration setup guides, see [Integrations](/integrations/overview).
-
-### Usage {#usage}
-
-**Path:** Sidebar → Workspace → **Usage**
-
-View your organization's usage stats — meeting minutes, interview sessions, API calls, and plan limits.
+Resolution rate, deflection rate, response time, CSAT, top intents, and per-action performance.
 
 ---
 
-## Members {#members}
+## Admin
 
-**Path:** Sidebar → **Members**
+Things you set up once and rarely revisit. The group is collapsed by default.
 
-Manage who is part of your organization.
+### Members
 
-### Invite a member
+**Path:** Sidebar → Admin → **Members**
 
-1. Go to **Members** in the sidebar.
-2. Click **Invite Member**.
-3. Enter the person's email address and select a role (Admin or Member).
-4. They'll receive an email invitation with a link to join.
+Manage who has access.
 
-### View a member profile
+- **Invite a teammate** — enter the email, pick a role (admin / member), Lira generates a one-time invite link.
+- **Pending invites** — see active links, copy them again, or revoke.
+- **Role change** — admins can promote/demote (owner-only for the owner role).
+- **Remove** — admins can remove non-owner members.
 
-Click any member row to open their profile — showing their activity, meetings attended, interviews conducted, and tasks assigned.
+To **leave** an org, scroll to the bottom of the Members page (non-owners only). Owners must transfer ownership first.
 
-### Remove a member
+### Integrations
 
-Open a member's profile and click **Remove from Organization** (Admin only).
+**Path:** Sidebar → Admin → **Integrations**
 
----
+Connect Slack, Microsoft Teams, Google Drive, Linear, GitHub, HubSpot, Salesforce. Click any integration card to start the OAuth flow.
 
-## Settings {#settings}
+Full reference: [Integrations](/integrations/overview).
 
-**Path:** Sidebar → **Settings** (bottom of sidebar)
+### Email
 
-Settings is split into tabs in a left sub-navigation panel. The app opens on the **Account** tab by default.
+**Path:** Sidebar → Admin → **Email**
 
-### Account {#settings-account}
+Configure how Lira sends and receives email — sender identity, custom domain, notifications, auto-reply.
 
-Personal account management divided into four sections:
+- **Settings tab** — General, Sender Identity, Sending Domain, Notifications, Auto-Reply.
+- **Inbox tab** — inbound email threads Lira has handled.
 
-#### Profile
+Full reference: [Email settings](/platform/email).
 
-- **Display Name** — edit the name shown to teammates and in the meeting room. Type a new name and click **Save**.
-- **Profile Picture** — click your avatar to open your device's file picker. Select any image (PNG, JPG, WebP — max 2 MB). A preview appears immediately; click **Save** to upload it.
+### Customer portal
 
-#### Security
+**Path:** Sidebar → Admin → **Customer portal**
 
-- **Change Email** — enter a new email address and confirm with your current password. After saving, a verification link is sent to the new address.
-- **Change Password** — enter your current password, then a new password (minimum 8 characters), and confirm it.
+Preview the hosted customer portal and share its URL. The portal's configuration (slug, branding, features) lives in **Settings → Support → Channels → Hosted page**.
 
-#### Organizations
+### Queues and SLA policies
 
-Lists every organization you belong to alongside your role. Members and Admins can **Leave** any org directly from this panel. Owners must transfer ownership in the Members page before leaving.
+**Path:** Sidebar → Admin → **Queues** / **SLA policies**
 
-#### Danger Zone
+Route tickets into queues and define response-time policies.
 
-- **Delete Account** — permanently removes your account, all your data, and all your org memberships. You will be asked to confirm with your password. If you are the sole owner of an org that has other members and no other admins, you must transfer ownership first.
+### Tasks
 
----
+**Path:** Sidebar → Admin → **Tasks**
 
-### Lira Configuration {#settings-ai}
+Internal task tracker. Tasks created from tickets or directly inside your org land here. Push them to Linear / GitHub Issues if those integrations are connected.
 
-**Path:** Settings → **Lira Configuration**
+### Delivery log
 
-Customise the AI participant's name, voice, and personality for your workspace.
+**Path:** Sidebar → Admin → **Delivery log**
 
-- **AI Name** — change what Lira is called during meetings. Pick from suggestions or type a custom name.
-- **Voice** — choose between four voices (Tiffany, Ruth, Matthew, Stephen).
-- **Personality** — pick the communication style: Supportive, Challenger, Facilitator, or Analyst.
-
-### Organization {#settings-organization}
-
-**Path:** Settings → **Organization**
-
-Edit your organization's profile — name, logo, website, and industry. Changes apply to all members.
-
-### Calendar Sync {#settings-calendar}
-
-**Path:** Settings → **Calendar Sync**
-
-Connect Google Calendar so Lira can automatically join scheduled meetings. See the Calendar Sync guide in Integrations for setup details.
-
-### Subscription & Billing {#settings-billing}
-
-Plan management and billing is coming soon.
-
-:::note
-Organization-wide membership and invite settings are in **Members** (sidebar). Per-integration setup is in **Workspace → Integrations**.
-:::
+The audit trail of integration deliveries — Slack notifications, Linear issues, and webhook calls Lira sent on your behalf.
 
 ---
 
-## Switching Organizations {#org-switcher}
+## Settings
 
-If you belong to multiple organizations, click your **organization name / avatar at the top of the sidebar**. A dropdown appears listing all your organizations — click any to switch.
+**Path:** Sidebar → **Settings** (bottom)
+
+Tabs along the left of the Settings page:
+
+### Account
+
+- **Profile** — display name, profile picture.
+- **Security** — change email, change password.
+- **Organizations** — every org you belong to, with a Leave button for non-owners.
+- **Danger Zone** — delete your account.
+
+### Organization
+
+Edit your organization's profile — name, logo, website, industry, custom instructions. This profile is read by Lira on every conversation.
+
+### Support
+
+Module-level support settings. An **Environment card** at the top shows whether the workspace is in **SANDBOX** or **LIVE** mode, with the go-live switch. Below it, five grouped tabs:
+
+- **Get connected** — Web SDK snippets (full-page, JavaScript API, NPM, floating widget), widget colour and greeting, the widget secret for signed identity (show / copy / rotate), and mobile SDKs.
+- **Channels** — toggle web chat, voice, and email; connect WhatsApp; configure the Lira-hosted page.
+- **AI behavior** — auto-reply, confidence threshold, force-escalate intents, volume limits, and the [Capabilities](/platform/customer-support/capabilities) catalog.
+- **Escalation** — escalation email, SLA target, Slack channel, Linear team.
+- **Health & audit** — integration diagnostics plus the [agent audit log](/platform/customer-support/audit): every action run the agent made, with policy decision, redacted input/output, and estimated cost.
+
+Full reference: [Settings Reference](/platform/customer-support/settings).
+
+### Subscription
+
+Your current plan and entitlements, live monthly usage, launch status (sandbox or live), plan change requests, and sandbox extension requests. See [Plans & Billing](/getting-started/plans-and-billing) and [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+
+### Billing
+
+Invoicing details. Billing is currently handled directly by the Lira team alongside plan approval.
 
 ---
 
-## Common Tasks — Quick Reference
+## Switching organizations
 
-| Task | Where to go |
-|------|------------|
-| Start a meeting | Meetings → New Meeting |
-| View meeting summary | Meetings → click the meeting |
-| Create an interview role | Interviews → New Role |
-| Invite a team member | Members → Invite Member |
-| Remove a team member | Members → click member → Remove (Admin/Owner only, with confirmation) |
-| Connect Slack / Linear / GitHub | Workspace → Integrations |
-| Set up custom email domain | Workspace → Email → Settings → Sending Domain |
-| Configure email notifications | Workspace → Email → Settings → Notifications |
-| Upload company knowledge | Workspace → Knowledge Base → Upload |
-| View/assign tasks | Workspace → Tasks |
-| Check usage & limits | Workspace → Usage |
+If you belong to multiple orgs, the **org name at the top of the sidebar** is a dropdown. Click it, pick the other org, you switch.
+
+---
+
+## Common tasks — quick reference
+
+| Task | Where |
+|---|---|
+| Invite a teammate | Admin → Members → Invite a teammate |
+| Remove a teammate | Admin → Members → row → Remove |
+| Activate customer support | Customer Support → Activate (one-time wizard) |
+| Get the widget snippet | Settings → Support → Get connected |
+| Get the widget secret | Settings → Support → Get connected → Widget secret |
+| Connect Slack / Linear / GitHub | Admin → Integrations |
+| Set up a custom support email | Settings → Support → Channels → Email Support |
+| Upload company docs | Grow → Knowledge Base → Documents |
+| Crawl your help center | Grow → Knowledge Base → Web Sources |
+| Connect Google Drive | Grow → Knowledge Base → Connected Sources |
+| Review what Lira said today | Work → Inbox |
+| Reply to a ticket | Work → Tickets → click ticket |
+| Override a capability's risk or scope | Settings → Support → AI behavior → Capabilities → row → Edit |
+| Review every action the agent ran | Settings → Support → Health & audit → Agent audit log |
+| Disable a capability for your org | Settings → Support → AI behavior → Capabilities → row → toggle Enabled |
+| See deflection / CSAT | Grow → Analytics |
+| Check plan and usage | Settings → Subscription |
+| Go live / return to sandbox | Settings → Support → Environment card |
+| Request a plan change or sandbox extension | Settings → Subscription |
 | Change your display name | Settings → Account → Profile |
-| Change your profile picture | Settings → Account → Profile → click avatar |
-| Change your email | Settings → Account → Security → Change Email |
-| Change your password | Settings → Account → Security → Change Password |
-| Leave an organization | Settings → Account → Organizations → Leave |
-| Delete your account | Settings → Account → Danger Zone → Delete Account |
-| Customise Lira's name / voice | Settings → Lira Configuration |
+| Change your password | Settings → Account → Security |
+| Leave an organization | Admin → Members → Leave (non-owner) |
 | Switch organization | Click org name at top of sidebar |

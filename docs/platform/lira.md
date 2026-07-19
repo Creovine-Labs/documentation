@@ -1,264 +1,140 @@
 ---
 sidebar_label: Lira
 title: Talking to Lira
-description: Everything you need to know about how Lira behaves in meetings and interviews — voice commands, personality modes, do's and don'ts.
+description: How Lira speaks to your customers, how to shape her tone, when she escalates, and what to expect from a typical conversation.
 ---
 
 # Talking to Lira
 
-Lira is an AI participant that joins your meetings and conducts interviews. This guide covers everything about how to interact with her — what to say, what she understands, how she responds, and what to avoid.
+Lira is the AI agent that handles conversations with your customers — in your chat widget, on your support portal, in proactive nudges. This page covers how she talks, how to shape her tone, when she hands off, and what your customers can expect.
 
 ---
 
-## How Lira Listens {#listening}
+## How Lira sounds by default
 
-Lira joins your meeting as a participant but **stays silent by default**. She listens to the entire conversation and builds context, but won't speak until you say her name.
+Lira is conversational and direct. She isn't chirpy. She doesn't open with "Sure!", "Absolutely!", "Great question!" or other filler. She uses short sentences and only the words a competent product support person would use to a real customer.
 
-### Activating Lira
+Specifically, by default she:
 
-Simply say **"Lira"** at any point in the conversation. She'll respond using everything she's heard so far — she's been paying attention the whole time.
+- Greets by first name on the first reply only — never repeats the name after that.
+- Answers in 1–3 sentences when she can. Chips below the message do the heavy lifting for "what next?".
+- Asks a clarifying question instead of guessing when something is genuinely ambiguous.
+- Says "I don't know" out loud (and opens a ticket) instead of inventing an answer.
+- Never uses em-dashes or closers like "feel free to reach out".
 
-:::tip Pronunciation
-Lira responds to many pronunciations: **Lira**, **Lyra**, **Leera**, **Lara**, **Leila**, and other phonetically similar names. You don't need to pronounce it perfectly.
-:::
-
-### Follow-up Exchanges
-
-After Lira responds, you can ask 2–3 follow-up questions without repeating her name. After that, she'll go quiet again until called.
+She's friendly, but she sounds like a product expert, not a chatbot.
 
 ---
 
-## Voice Commands {#commands}
+## Customizing her tone
 
-### Mute
+Two surfaces shape Lira's voice for your org:
 
-Tell Lira to stop speaking and mute her microphone. Her mic icon will visibly turn off.
+### Organization profile
 
-**Phrases that work:**
-- "Lira, mute"
-- "Lira, go mute"
-- "Lira, be quiet"
-- "Lira, go silent"
-- "Lira, stop talking"
-- "Lira, please mute"
-- "Lira, hush"
+In **Settings → Organization** you set:
 
-Lira will confirm: *"Got it, muting now."*
+- **Company name + industry** — Lira reads this on every conversation and uses it to ground answers.
+- **Description** — a short paragraph about what your product does.
+- **Custom instructions** — free-form rules ("Always recommend the Pro plan for teams over 10 seats", "Never promise refunds in chat — always open a ticket"). These get prepended to her system prompt.
 
-:::info
-Even while muted, Lira is still listening. When you unmute her, she'll know everything that was discussed.
-:::
+### Activation settings
 
-### Unmute
+In **Customer Support → Activate** (the wizard, runnable any time) you control:
 
-Bring Lira back into the conversation.
+- The **welcome message** customers see when they open the widget.
+- The **handoff threshold** — how unsure Lira can be before she escalates.
+- The **default escalation owner** — who tickets land with.
+- The **operating hours** — outside which she sets expectations differently (e.g. "Our team is offline until 9am ET — I'll get this in front of them then.").
 
-**Phrases that work:**
-- "Lira, unmute"
-- "Lira, come back"
-- "Lira, you can talk"
-- "Lira, speak again"
-
-### Lead Mode
-
-Give Lira permission to speak freely without waiting to be called. She'll participate actively — jumping in with suggestions, asking questions, and driving the conversation.
-
-**Phrases that activate Lead Mode:**
-- "Lira, take the lead"
-- "Lira, respond freely"
-- "Lira, jump in whenever"
-- "Lira, feel free to chime in"
-- "Lira, you're in charge"
-- "Lira, run the meeting"
-- "Lira, no need to wait"
-- "Lira, you don't need to wait for your name"
-
-Lira will confirm: *"Got it — I'll jump in freely now. Just say 'Lira, step back' whenever you want me to go back to listening mode."*
-
-### Step Back (End Lead Mode)
-
-Return Lira to listen-only mode after Lead Mode.
-
-**Phrases that work:**
-- "Lira, step back"
-- "Lira, listen only"
-- "Lira, stop leading"
-- "Lira, back to normal"
-- "Lira, just listen"
-- "Lira, only respond when I call you"
-- "Lira, go back to listening"
-
-### Ask Lira to Leave
-
-Ask Lira to leave the meeting entirely.
-
-**Phrases that work:**
-- "Lira, leave the meeting"
-- "Lira, exit"
-- "Lira, you can go"
-- "Lira, head out"
-
-Lira will always ask for confirmation first: *"Just to confirm — you'd like me to leave the meeting, right?"*
-
-- Say **yes** → Lira says goodbye and disconnects
-- Say **no** → Lira stays
+Together those two surfaces are usually enough. For deeper customization (per-channel tone, A/B testing greeting copy, etc.) reach out to the Lira team.
 
 ---
 
-## If Lira Speaks When She Shouldn't {#rejection}
+## What Lira does on a typical conversation
 
-If Lira jumps in at the wrong time, just tell her:
+Lira's job on every visitor turn, in order:
 
-- "We didn't ask you"
-- "I didn't call you"
-- "Stop talking"
-- "Not talking to you"
+1. **Read the visitor's message + the live product context** the SDK is pushing (current page, account state, plan, etc.).
+2. **Search the knowledge base** for grounding content.
+3. **Decide:** answer, run an action, ask for clarification, or escalate.
+4. **Reply** — short, grounded, in your tone, with 2–4 suggestion chips picked from this turn's context (never a fixed menu).
+5. **Log the turn** to chat history with the tool calls, KB matches, and live context attached so your team can audit later.
 
-Lira will apologize briefly — *"Sorry about that — I'll go quiet."* — and stay silent until you explicitly call her name again. She won't make it awkward or over-explain.
-
----
-
-## Personality Modes {#personality}
-
-When you configure a meeting, you can choose Lira's personality. Each mode changes how she participates:
-
-### Supportive
-
-Lira encourages ideas, validates good points, and asks clarifying questions. She makes everyone feel heard — but she still flags concerns when she sees them. Best for brainstorming and creative sessions.
-
-### Constructive Challenger
-
-Lira pushes back on assumptions and surfaces blind spots. If the team is rushing toward a decision, she'll ask *"Wait — have we considered…?"*. Best for strategy sessions and decision-making.
-
-### Facilitator
-
-Lira actively drives the meeting. She opens by asking for the agenda, keeps discussions on track, surfaces action items, prompts quieter voices, and pushes toward decisions. She'll say things like *"Okay, sounds like we have two options — let's pick one."* Best for team meetings that tend to go off track.
-
-### Analytical
-
-Lira brings structured thinking and a data-oriented lens. She considers trade-offs, dependencies, and evidence. She helps the team think clearly by breaking complex topics into concrete components. Best for planning and technical discussions.
+For identified visitors, the SDK can push extra context that scopes her answers — current invoice state, last action they tried, signed account info. See [Identified visitors](/platform/customer-support/widget) for the full signing model.
 
 ---
 
-## What Lira Does in Meetings {#meeting-behavior}
+## When Lira runs an action vs. answers in chat
 
-### During the Meeting
+You wire up [actions](/platform/customer-support/actions) for the operations you want Lira allowed to do — cancel a subscription, retry a payment, update a plan, generate an invoice, etc. Each action has a confirmation policy:
 
-- **Tracks the entire conversation** — who said what, decisions made, open questions
-- **Gives recaps when asked** — with attribution: *"Sarah raised the concern about timelines, and we agreed to push the launch to Q3"*
-- **Surfaces action items naturally** — *"So it sounds like James will handle the docs and we reconvene Thursday?"*
-- **Adapts to meeting type** — standups get bullet updates, planning sessions get structured breakdowns, brainstorms get creative contributions
-- **Has real opinions** — if something won't work, she'll say so respectfully. If you ask "A or B?", she'll pick one and explain why
+- **Auto-confirm** — Lira runs immediately and reports the result. Use for low-risk, easily-reversible operations.
+- **Require visitor approval** — Lira describes what she's about to do, shows a chip like "Yes, do that", and waits.
+- **Require human review** — Lira opens a ticket; your team approves before the action runs.
 
-### After the Meeting
-
-Lira automatically generates:
-
-- **Meeting summary** — a detailed recap naming each person's contributions, key decisions, and next steps
-- **Action items** — extracted tasks with assignees, priorities, and due dates (pushed to your task board)
-- **Email notifications** — if enabled, summaries and task assignments are sent via email
+When the visitor asks for something there's no action wired for — or the action exists but is policy-gated — Lira escalates instead.
 
 ---
 
-## What Lira Does in Interviews {#interview-behavior}
+## When Lira escalates
 
-### Solo Mode (AI-Only Interview)
+Lira opens a ticket and tells the visitor "I'm getting our team to look at this" in any of these cases:
 
-When no human interviewer is present, Lira runs the entire interview:
+- The visitor explicitly asks ("can I talk to a human", "is there a real person?").
+- The question is product-specific (roadmap, pricing not on the public site, custom integration) and confidence is low.
+- The visitor's request needs an action your team hasn't given Lira permission to run.
+- Lira tried a tool and it returned an unrecoverable error.
 
-1. **Speaks first** — greets the candidate, verifies their identity, and dives straight into the first question
-2. **Follows the script** — asks each prepared question exactly once, rephrased naturally (not read verbatim)
-3. **Keeps momentum** — each response includes a brief acknowledgment and the next question. No dead air.
-4. **Handles silence** — if the candidate goes quiet for a few seconds, she gently prompts them
-5. **Closes professionally** — after all questions, she wraps up with a farewell and exits
-
-:::note
-In Solo Mode, the candidate doesn't need to say "Lira" — she responds naturally like a human interviewer.
-:::
-
-### Copilot Mode (AI + Human Interviewer)
-
-When a human interviewer is also present:
-
-- Lira lets the human interviewer lead
-- She asks follow-up questions the interviewer may have missed
-- She steps in with prepared questions during lulls
-- She only speaks when addressed or when there's a natural opening
-
-### Shadow Mode (Observe Only)
-
-Lira stays completely silent, observing and taking notes. She only speaks if directly asked a question.
-
-### After the Interview
-
-Lira generates:
-- **Per-answer scores** (0–100) with explanations
-- **Overall candidate evaluation** with hiring recommendation
-- **Interview summary** — neutral, factual overview of what was discussed
-- **Full transcript** with speaker attribution
+The ticket includes the full chat transcript, the visitor's identity (if signed in), every tool call she made, and the KB snippets she pulled — so the human picking it up isn't starting from zero.
 
 ---
 
-## What Lira Understands {#capabilities}
+## What Lira will *not* do
 
-| Capability | What it means |
-|-----------|--------------|
-| **Context tracking** | She remembers everything discussed — even while muted |
-| **Speaker recognition** | She tracks who said what and attributes contributions correctly |
-| **Action item extraction** | She catches tasks, deadlines, and who's responsible |
-| **Multi-language** | She can conduct interviews in the language you configure |
-| **Meeting type adaptation** | She adjusts her style for standups, retros, brainstorms, planning, etc. |
+- **Disclose account-specific data based on an email alone.** Email is not identity proof. For anything account-scoped (billing, plan, ticket history) she'll either route the visitor to log in or open a ticket.
+- **Ask for a password in chat.** Ever.
+- **Modify state silently.** Every action that changes something — cancel, charge, refund, add a teammate — either requires approval (per your action config) or gets flagged in the conversation log.
+- **Make up an answer.** If the KB doesn't ground it and there's no tool that returns the truth, she says so and escalates.
 
----
-
-## Do's and Don'ts {#dos-and-donts}
-
-### Do
-
-- **Say her name** to get her attention — she won't butt in otherwise
-- **Ask for recaps** — "Lira, can you summarize what we've discussed?"
-- **Ask for opinions** — "Lira, what do you think about this approach?" She'll give you a real answer
-- **Use Lead Mode** for sessions where you want her actively participating
-- **Mute her** if you need a private sidebar — she'll wait patiently
-- **Ask follow-ups** — you don't need to repeat her name for 2–3 follow-up questions
-- **Trust the action items** — she captures them automatically, no need to remind her
-
-### Don't
-
-- **Don't treat her like a help desk** — she's a meeting participant, not a service bot. Don't ask "How can you help me?"
-- **Don't ask her to list her capabilities** — she'll respond as a colleague, not a product demo
-- **Don't worry about pronunciation** — Lira, Lyra, Leera, and similar names all work
-- **Don't wait to address her if she interrupts** — just tell her, she handles rejection gracefully
-- **Don't repeat information for her benefit** — she's been listening the whole time
-- **Don't ask "Are you ready?"** — she's always ready. Just ask your question
+These are baked into her system prompt, not a feature you opt into.
 
 ---
 
-## Task Execution {#tasks}
+## Example exchange
 
-When Lira extracts action items from a meeting, she can also **execute** some of them automatically:
+> **Visitor:** my last invoice didn't go through
+>
+> **Lira:** Got it — looks like the payment on Nov 12 failed because the card on file expired. Want me to retry it on the same card, or switch to a new one?
+>
+> **chips:** [ Retry the same card ] [ Use a different card ] [ Talk to a human ]
+>
+> **Visitor:** *(clicks "Use a different card")*
+>
+> **Lira:** Opening the billing page for you so you can add a new card. Once it's saved I'll retry the failed invoice automatically.
+>
+> *(navigates the visitor to /billing; live context shows the new card was added; Lira retries; reports success)*
 
-| Task Type | What Lira Does |
-|-----------|---------------|
-| **Follow-up Email** | Drafts and sends a professional email on your behalf |
-| **Draft Document** | Creates a document based on meeting context |
-| **Research** | Researches a topic and provides a structured summary |
-| **Integration Actions** | Pushes items to Linear, GitHub, Slack, Google Drive, Calendar, HubSpot, or Salesforce |
+What happened under the hood:
 
-If Lira doesn't have enough information to complete a task (e.g. a missing email address), she'll ask you for the specific details she needs before proceeding.
+- Lira read `live product context` and saw the visitor is signed in.
+- She called the `lira_get_invoice_status` action — saw the most recent invoice failed and why.
+- She offered chips matching that exact situation (not "show pricing" / "install widget" / a generic menu).
+- After the visitor picked, she navigated their page (`lira_action` event the SDK consumes) and waited for the card-saved signal.
+- She called `retry_invoice`, an action you defined.
+- She summarized the result in one sentence.
+
+That's the typical shape of a working Lira conversation.
 
 ---
 
-## Quick Reference Card {#quick-reference}
+## Quick reference
 
-| Action | What to say |
-|--------|------------|
-| Get Lira's attention | "Lira, ..." |
-| Mute | "Lira, mute" |
-| Unmute | "Lira, unmute" |
-| Free conversation mode | "Lira, respond freely" |
-| Back to listening | "Lira, step back" |
-| Ask for recap | "Lira, what have we discussed so far?" |
-| Ask for opinion | "Lira, what do you think?" |
-| Ask to leave | "Lira, leave the meeting" |
-| Dismiss if interrupted | "We didn't ask you" |
+| Goal | What you configure |
+|---|---|
+| Change her welcome line | Customer Support → Activate → Welcome message |
+| Tighten her tone | Settings → Organization → Custom instructions |
+| Let her cancel subs | Settings → Support → AI behavior → Capabilities |
+| Bias her toward escalation | Customer Support → Activate → Handoff threshold |
+| Send tickets to a specific person | Customer Support → Activate → Default escalation owner |
+| Audit what she said today | Work → Inbox |

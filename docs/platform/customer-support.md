@@ -9,6 +9,12 @@ description: Complete guide to Lira's AI-powered customer support — Web SDK, t
 
 Lira's Customer Support module gives your organisation a fully autonomous AI support operation — handling inbound emails, in-app support, live chat, voice calls, tickets, and AI actions, all grounded in your Knowledge Base.
 
+:::info How Lira decides what to say
+Lira uses **updated frontier language models from the Claude and GPT families**, routed through a single provider-agnostic adapter. The adapter picks the best provider per organisation and automatically falls back to a secondary provider if the primary fails before the first token — so a single API outage never leaves a visitor staring at a half-formed reply.
+
+For every visitor message, the **Organization Context System** assembles a fresh context bundle from four sources — your organisation profile, retrieved knowledge-base chunks, live product context from the SDK, and recent conversation history — before the model composes the reply. That's what makes the answers feel specific to your org and to the conversation in progress, not generic AI fluff. See [Organization Context System](/architecture/organization-context) for the full assembly order.
+:::
+
 Once activated, Lira reads every incoming message, searches your documentation for the best answer, and responds confidently. When it can't, it opens a **ticket** for your team to handle asynchronously — without breaking the live chat with the customer.
 
 ---
@@ -21,10 +27,13 @@ Once activated, Lira reads every incoming message, searches your documentation f
 | [**Web SDK**](/platform/customer-support/web-sdk) | Full-page support embed for your own `/support` route, plus identity and live context |
 | [**Chat Widget**](/platform/customer-support/widget) | Embeddable floating chat button for your website |
 | [**Hosted Portal**](/platform/customer-support/portal) | Optional no-code fallback page when you cannot ship the SDK yet |
-| [**Actions**](/platform/customer-support/actions) | Review and approve autonomous actions Lira wants to take on behalf of customers |
+| [**Agent Runtime**](/platform/customer-support/agent-runtime) | The capability model, risk tiers, and policy engine that decide what the AI is allowed to run |
+| [**Capabilities**](/platform/customer-support/capabilities) | Admin catalog of resources and actions the AI can call — override risk, scope, and description |
+| [**Actions**](/platform/customer-support/actions) | Human approval for runs the policy engine routed to a teammate |
+| [**Audit**](/platform/customer-support/audit) | Every action run the agent made, with policy decision, redacted inputs and outputs, and estimated cost |
 | [**Proactive**](/platform/customer-support/proactive) | Automated outreach — trigger messages based on customer events |
 | [**Analytics**](/platform/customer-support/analytics) | CSAT scores, resolution rates, response times, and weekly reports |
-| [**Chat history**](/platform/customer-support/inbox) | Read-only audit log of every AI chat. Use it to QA Lira's accuracy. |
+| [**Inbox**](/platform/customer-support/inbox) | Read-only audit log of every AI chat. Use it to QA Lira's accuracy. |
 | [**Settings**](/platform/customer-support/settings) | Configure channels, behaviour, ticketing email, and widget appearance |
 
 ---
@@ -36,15 +45,23 @@ When support is activated, Lira listens across every channel you've enabled:
 ```
 Customer message (email / SDK / chat / voice / hosted portal)
   → Lira retrieves relevant content from your Knowledge Base
-  → Generates a grounded response
+  → Decides whether to read product data or perform an action
+  → Policy engine checks the capability's risk + the visitor's auth scope
+      ├─  auto-execute    →  run the capability now
+      ├─  customer confirm →  ask in chat, then run
+      ├─  human approve    →  queue for teammate approval
+      └─  block            →  refuse, escalate or hand off
+  → Generates a grounded response with whatever facts were collected
   → Confidence ≥ threshold  →  sends reply autonomously
   → Confidence   < threshold  →  opens a Ticket — async human follow-up
                                   (the live chat keeps going in parallel)
 ```
 
+Every capability call is recorded as an **action run** with the policy decision, redacted inputs and outputs, and estimated model cost. See [Agent Runtime](/platform/customer-support/agent-runtime) for the full model, [Capabilities](/platform/customer-support/capabilities) to manage the catalog, and [Audit](/platform/customer-support/audit) to read the trail.
+
 The AI chat is **never interrupted**. When something needs a human, Lira opens a [Ticket](/platform/customer-support/tickets) and keeps chatting with the visitor. Your team works the tickets queue at their own pace; the visitor gets an email when there's a reply.
 
-Every raw chat — across channels — is still archived in **Chat history** so you can audit Lira's accuracy.
+Every raw chat — across channels — is still archived in the **Inbox** so you can audit Lira's accuracy.
 
 ---
 
@@ -84,8 +101,11 @@ If you haven't activated the support module yet, the app will guide you through 
 - [Web SDK](/platform/customer-support/web-sdk) — Full-page support embed for customer-owned routes
 - [Chat Widget](/platform/customer-support/widget) — Website embed
 - [Hosted Portal](/platform/customer-support/portal) — No-code fallback page
-- [Chat history](/platform/customer-support/inbox) — Read-only audit log
-- [Actions](/platform/customer-support/actions) — Autonomous action approvals
+- [Inbox](/platform/customer-support/inbox) — Read-only audit log
+- [Agent Runtime](/platform/customer-support/agent-runtime) — Capability model, risk tiers, policy engine
+- [Capabilities](/platform/customer-support/capabilities) — Manage what the AI agent can call
+- [Actions](/platform/customer-support/actions) — Human approval for high-risk runs
+- [Audit](/platform/customer-support/audit) — Action-run history with policy decisions and cost
 - [Proactive Outreach](/platform/customer-support/proactive) — Event-triggered messaging
 - [Analytics](/platform/customer-support/analytics) — Reporting and CSAT
 - [Settings Reference](/platform/customer-support/settings) — All configuration options

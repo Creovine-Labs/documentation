@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
           items: [
             'platform/customer-support/onboarding',
             'platform/customer-support/activation',
+            'platform/customer-support/sandbox-and-going-live',
             'platform/customer-support/sdks',
             'platform/customer-support/tickets',
             'platform/customer-support/web-sdk',

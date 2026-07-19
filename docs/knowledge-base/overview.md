@@ -1,5 +1,4 @@
 ---
-slug: /knowledge-base
 sidebar_position: 1
 title: Knowledge Base Overview
 description: How Lira learns about your organisation — what the Knowledge Base is, why it matters, and the four ways to feed it.
@@ -7,15 +6,15 @@ description: How Lira learns about your organisation — what the Knowledge Base
 
 # Knowledge Base
 
-The Knowledge Base is where Lira learns about your organisation. The more you put in, the smarter and more contextual Lira becomes — during meetings, interviews, and AI-assisted queries.
+The Knowledge Base is what Lira reads to answer your customers. Every PDF, doc, help center page, or KB article you add becomes part of what she knows — so her replies are grounded in your real product rather than generic AI knowledge.
 
 ---
 
 ## What is the Knowledge Base?
 
-When Lira joins a meeting or answers a question, it doesn't guess. It searches your Knowledge Base first — retrieving the most relevant information and using it as context for its responses.
+When a customer asks Lira a question — in the chat widget, on the support portal, or via a proactive nudge — she doesn't guess. She searches your Knowledge Base first, retrieves the most relevant snippets, and uses them as context for her reply.
 
-Think of it as Lira's long-term memory for your organisation. Every document you upload, every source you connect, and every website you index becomes part of the pool of knowledge Lira draws from.
+Think of it as Lira's long-term memory for your organisation. Every document you upload, every source you connect, and every page you crawl becomes part of the pool of knowledge she draws from in every conversation.
 
 This technique is called **Retrieval-Augmented Generation (RAG)** — Lira finds the right facts before generating a response, so answers are grounded in your actual data rather than general AI knowledge.
 
@@ -48,22 +47,22 @@ This means Lira can find relevant information even when the exact words don't ma
 
 ---
 
-## Why it matters for meetings
+## Why it matters
 
-When you have a meeting with Lira present, it uses your Knowledge Base to:
+Every customer conversation Lira handles draws on the Knowledge Base. A well-populated KB lets Lira:
 
-- Understand your product, company, and terminology
-- Answer participant questions accurately
-- Produce summaries that reflect your internal language
-- Extract tasks that reference the right projects and people
+- Answer product-specific questions accurately, in your terminology
+- Cite real internal sources instead of paraphrasing generic AI knowledge
+- Stay grounded so she escalates *only* when she truly doesn't know
+- Reduce escalations to your team over time — every doc you add closes another category of "I have to open a ticket" question
 
-A well-populated Knowledge Base makes every Lira session significantly more useful.
+A thin KB usually means a high escalation rate. The first hour you spend pointing Lira at your help center and dropping in your top 10 internal docs has the highest leverage of any setup step.
 
 ---
 
 ## Getting started
 
-1. Go to **Sidebar → Workspace → Knowledge Base**
+1. Go to **Sidebar → Grow → Knowledge Base**
 2. Start with the **Documents** tab — upload your most important reference files (product specs, policies, onboarding docs)
 3. Connect your **Google Drive** or **GitHub** if you want Lira to pull from those sources automatically
 4. Optionally crawl your **website** to index public-facing content

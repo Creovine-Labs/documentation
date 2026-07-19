@@ -31,17 +31,42 @@ Lira is invite-only. The plan you agreed with the Lira team is attached to
 your invitation — when you sign up, your organization starts on exactly that
 plan, with its limits and features applied automatically.
 
+## Sandbox first, then live
+
+New organizations start in the free **sandbox** environment: every feature
+is unlocked for testing, real outbound sends are suppressed, and sandbox
+testing caps apply instead of your plan's limits. Your plan — and billing —
+takes effect when you deliberately go live from the Environment card in
+**Settings → Support**. See
+[Sandbox and going live](/platform/customer-support/sandbox-and-going-live)
+for the caps, the extension process, and exactly what changes at the switch.
+
 ## Viewing your plan and usage
 
-**Settings → Subscription** shows your current plan, its entitlements, and
-live usage for the month (conversations and AI replies against your
-included volume). Usage counters reset on the first of each month (UTC).
+**Settings → Subscription** shows your current plan, its entitlements, your
+launch status (sandbox or live), and live usage for the month. While in
+sandbox, the usage bars track the sandbox testing caps (conversations, AI
+replies, and LLM calls); once live, they track your plan's included volume.
+Usage counters reset on the first of each month (UTC).
 
 ## Changing plans
 
 From **Settings → Subscription**, pick the plan you want and select
 **Request change**. The Lira team reviews and applies it — you'll see the
 pending request in the same place and can cancel it before it's decided.
+
+A few rules around requests:
+
+- **Only org owners and admins can request changes.** Members see the plan
+  and usage read-only, with a note to ask an org admin for changes.
+- **One pending request at a time.** While a plan change (or sandbox
+  extension) is awaiting review, new requests are disabled until it is
+  decided or cancelled.
+- **Up to 3 requests per month.** Requests beyond that are refused —
+  contact the Lira team if you need a manual exception.
+- **Sandbox extensions are their own request type**, made from the same
+  page while you're in sandbox, and capped at 2 granted per month. See
+  [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
 
 - **Upgrades** take effect as soon as they're approved: limits are raised
   immediately and newly included features (for example the WhatsApp channel

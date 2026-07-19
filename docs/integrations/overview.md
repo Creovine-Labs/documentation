@@ -2,67 +2,70 @@
 slug: /integrations/overview
 sidebar_position: 1
 title: Overview
+description: The third-party tools Lira connects to — Slack, Teams, Drive, Linear, GitHub, HubSpot, Salesforce — and how the integration plumbing works.
 ---
 
 # Integrations
 
-Lira connects to 9 third-party tools with full OAuth flows, member mapping, and bidirectional data sync.
+Lira connects to seven third-party tools with full OAuth flows, member mapping, and bidirectional sync. Most teams enable Slack + their KB source (Drive or GitHub) on day one and add the rest as workflows demand them.
 
-## Available Integrations
+## Available integrations
 
-| Provider | Auth Method | Capabilities |
-|:---|:---|:---|
-| [**Slack**](/integrations/slack) | OAuth V2 | Post messages, list channels, member mapping, webhooks |
-| [**Microsoft Teams**](/integrations/microsoft-teams) | Azure AD OAuth | Post messages, list channels, member mapping |
-| [**Google Calendar**](/integrations/google-calendar) | OAuth 2.0 | Create/update events, list calendars, set defaults |
-| [**Google Drive**](/integrations/google-drive) | OAuth 2.0 | Create folders, list/search/read files, Sheets & Docs |
-| [**Linear**](/integrations/linear) | OAuth 2.0 | Issue sync, team/member mapping |
-| [**GitHub**](/integrations/github) | OAuth App | Repos, issues, PRs, code search |
-| [**HubSpot**](/integrations/hubspot) | OAuth 2.0 | Contacts, companies, deals, pipelines, notes |
-| [**Salesforce**](/integrations/salesforce) | OAuth 2.0 + PKCE | Accounts, contacts, opportunities, leads, SOQL |
-| [**Greenhouse**](/integrations/greenhouse) | API Key | Candidates, jobs, applications, scorecards |
+| Provider | Auth | What Lira uses it for |
+|---|---|---|
+| [**Slack**](/integrations/slack) | OAuth V2 | Ticket notifications, escalation alerts, member mapping, two-way DM relay |
+| [**Microsoft Teams**](/integrations/microsoft-teams) | Azure AD OAuth | Ticket notifications, channel posts, member mapping |
+| [**Google Drive**](/integrations/google-drive) | OAuth 2.0 | KB sync — Lira reads from a chosen Drive folder; new docs auto-index |
+| [**Linear**](/integrations/linear) | OAuth 2.0 | Push tickets / tasks to Linear; member mapping; bidirectional issue sync |
+| [**GitHub**](/integrations/github) | OAuth App | KB sync from repo Markdown / docs; optional issue creation |
+| [**HubSpot**](/integrations/hubspot) | OAuth 2.0 | Pull customer context into Lira (deals, contacts, companies); log activities back |
+| [**Salesforce**](/integrations/salesforce) | OAuth 2.0 + PKCE | Pull customer context (accounts, contacts, opportunities); SOQL queries |
 
-## Integration Architecture
+## How they work — the four-step pattern
 
-All integrations follow a consistent pattern:
+Every integration follows the same shape.
 
-### 1. OAuth / API Key Setup
+### 1. OAuth setup
 
-The user initiates the connection from **Organization Settings → Integrations**. For OAuth providers, this opens the provider's consent screen. For API key providers (Greenhouse), the user enters their key.
+Start the flow from **Admin → Integrations** in the sidebar and click **Connect** on the provider you want. For OAuth providers, this opens the provider's consent screen. For API-key providers, the user pastes the key.
 
-### 2. Token Storage
+### 2. Encrypted token storage
 
-OAuth tokens (access + refresh) are encrypted and stored in DynamoDB, scoped to the organization. Tokens are automatically refreshed when they expire.
+OAuth tokens (access + refresh) are encrypted via AWS KMS and stored in DynamoDB, scoped to your organization. Tokens are refreshed automatically when they expire.
 
-### 3. Member Mapping
+### 3. Member mapping (optional)
 
-After connecting, Lira maps your organization members to their accounts in the external tool. This enables:
+Where it matters, Lira maps your org members to their accounts in the external tool. That enables:
 
-- Task assignment (e.g., assign a Linear issue to a specific team member)
-- Notification routing (e.g., DM the right person in Slack)
-- Attribution (e.g., log a HubSpot note under the correct user)
+- **Routing** — escalations land with the right person in Slack
+- **Assignment** — tickets pushed to Linear get the right owner
+- **Attribution** — activities logged in HubSpot / Salesforce show the correct user
 
-### 4. Bidirectional Sync
+### 4. Bidirectional sync
 
 Data flows both ways:
 
-- **Outbound** — Lira pushes meeting summaries to Slack, tasks to Linear, events to Google Calendar
-- **Inbound** — Webhooks from Linear, Slack, and Teams notify Lira of external changes
+- **Outbound** — Lira pushes ticket events to Slack, tickets to Linear, activities to HubSpot/Salesforce.
+- **Inbound** — Webhooks from Slack, Teams, and Linear notify Lira of external changes (an operator replies in Slack → reply lands in the Lira ticket thread).
 
-## External Webhooks
+## External webhooks
 
 Lira receives real-time events from:
 
 | Provider | Events |
-|:---|:---|
-| Linear | Issue created, updated, deleted |
-| Slack | Message posted, channel events |
+|---|---|
+| Slack | Message posted, channel join/leave, app mentions |
 | Teams | Message posted, channel events |
+| Linear | Issue created / updated / deleted |
 
-## Verification & Approval
+## Connection states
 
-Each integration connection has a verification status:
+Each integration has a status visible in **Admin → Integrations**:
 
 - **Pending** — OAuth flow started, awaiting completion
-- **Connected** — Active and working
-- **Error** — Token expired or revoked, needs re-authentication
+- **Connected** — Active and refreshing tokens automatically
+- **Error** — Token revoked / expired beyond refresh; click **Reconnect**
+
+## Per-provider setup
+
+Click any provider in the table above for step-by-step setup, scope details, and what data Lira will and won't pull.

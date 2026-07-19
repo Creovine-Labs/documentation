@@ -6,9 +6,17 @@ description: Step-by-step walkthrough of the Lira support activation wizard — 
 
 # Activating Customer Support
 
-Before your team can use the Inbox, analytics, or any other support features, you need to activate the support module. The activation wizard walks you through five focused steps and takes under ten minutes to complete.
+Before your team can use the Tickets queue, analytics, or any other support features, you need to activate the support module. The activation wizard walks you through **four focused steps** and takes under two minutes to complete.
 
 Navigate to **Support** in the sidebar. If your organisation hasn't activated support yet, you'll be taken directly to the activation wizard.
+
+:::tip Knowledge Base is now post-activation
+Seeding the Knowledge Base used to be Step 4 of this wizard, but it's a multi-step async flow (web crawls, document uploads, source OAuth) that doesn't fit a quick wizard. After you click **Activate**, the success screen pushes you straight to **/org/knowledge** — and the in-dashboard Lira widget walks you through it as step 2 of its setup guide. See [Onboarding overview](/platform/customer-support/onboarding).
+:::
+
+:::info Activation is free — you start in sandbox
+New organisations activate into the **sandbox** environment: every feature is testable at no cost, outbound emails are previewed rather than sent, and the widget shows a SANDBOX badge. Billing only starts when you deliberately go live from the Environment card at the top of **Settings → Support**. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+:::
 
 ---
 
@@ -17,12 +25,13 @@ Navigate to **Support** in the sidebar. If your organisation hasn't activated su
 Activation does several things behind the scenes:
 
 - Provisions your unique support email address on Lira's sending infrastructure (AWS SES)
-- Stores your channel configuration (which channels you're enabling and how)
-- Seeds the AI with your Knowledge Base so it can answer immediately after going live
+- Stores your channel configuration (Web SDK Runtime, optional widget)
+- Generates your widget secret for identified-visitor HMAC signing
 - Configures your Ticketing Email so Lira knows where to send new-ticket notifications
-- Flags your organisation's support module as active, unlocking the Tickets, Analytics, Proactive, and Actions tabs
+- Flags your organisation's support module as active, unlocking the Inbox, Tickets, Customers, Proactive, and Analytics pages
+- Unlocks the remaining steps of the in-widget setup guide (they stay locked until activation)
 
-You can change any of these settings later from **Settings → Support**, but completing all five steps before activating gives Lira the best possible starting context.
+You can change any of these settings later from **Settings → Support**.
 
 ---
 
@@ -41,7 +50,7 @@ This address is yours permanently — it's tied to your organisation ID and does
 
 ### Using your own email address
 
-If you'd prefer customers to email an address on your own domain, set that address in the "Use your own existing address instead" field during Step 1 (or later in **Settings → Channels → Email**).
+If you'd prefer customers to email an address on your own domain, set that address in the "Use your own existing address instead" field during Step 1 (or later in **Settings → Support → Channels → Email Support**).
 
 You'll then need to create a **forwarding rule** in your email provider that sends messages arriving at `support@yourcompany.com` → `support-yourcompanyname-a1b2@liraintelligence.com`. Every major email provider (Google Workspace, Microsoft 365, Fastmail, Zoho) supports this. The steps are identical to forwarding to any other address.
 
@@ -97,7 +106,7 @@ support route.
 You can customise:
 
 - **Greeting message** — the first message Lira sends when a customer opens the chat (default: *"Hi! How can we help you today?"*)
-- **Widget colour** — any hex colour, set from **Settings → Support → Web SDK**
+- **Widget colour** — any hex colour, set from **Settings → Support → Get connected**
 
 After activation, you'll receive the install `<script>` snippet. [→ Full widget guide](/platform/customer-support/widget)
 
@@ -111,7 +120,7 @@ https://support.liraintelligence.com/your-slug
 
 During activation, set your **portal slug** if you need a temporary no-code page
 or a link to send in email. The slug becomes part of your portal URL and can be
-changed later from **Settings → Support → Hosted**.
+changed later from **Settings → Support → Channels → Hosted page**.
 
 The hosted fallback lets customers:
 
@@ -146,32 +155,24 @@ The previous version of Lira handed off live chats to a human (silencing the AI)
 
 ---
 
-## Step 4 — Seed Knowledge Base
-
-Lira's responses are grounded in your Knowledge Base. The more content it has, the better its answers will be from day one.
-
-This step shows you:
-
-- How many Knowledge Base entries exist in your organisation
-- The status of any connected sources (Google Drive, GitHub, etc.)
-- Whether a web crawl is in progress or complete
-
-You don't need to do anything in this step if your Knowledge Base already has content. If it's empty, we strongly recommend adding documents or connecting a source before going live — otherwise Lira will rely solely on general knowledge without any company-specific context.
-
-[→ Knowledge Base documentation](/knowledge-base)
-
----
-
-## Step 5 — Test & Activate
+## Step 4 — Test & Activate
 
 Review your configuration, then click **Activate Support**. Lira will:
 
 1. Confirm all settings
 2. Provision your email address on the sending infrastructure
-3. Save the Web SDK and hosted fallback settings
+3. Generate your widget secret
 4. Mark your organisation's support module as active
 
 Activation is immediate. There's no waiting period.
+
+:::tip Don't worry about the Knowledge Base yet
+The activation success screen pushes you straight to **/org/knowledge** with a one-click "Seed Knowledge Base" button. Seeding takes 1–10 minutes for most products (web crawl + document upload) and doesn't block activation. See [Onboarding overview](/platform/customer-support/onboarding) for the full setup journey post-activation.
+:::
+
+### The in-widget setup guide unlocks here
+
+The Lira widget on your dashboard renders a numbered setup-progress card. Before activation, only step 1 (Activate customer support) is clickable — the later steps are shown locked, and clicking one displays "Activate customer support first." The moment activation completes, the locked steps unlock automatically (no refresh needed), each step becomes clickable and navigates you to the right page, and steps tick themselves off as the underlying work is detected — you never mark them done by hand. See [Onboarding overview](/platform/customer-support/onboarding).
 
 ---
 
@@ -196,25 +197,25 @@ The basics are live. Here's what most organisations set up next, in order of pri
 ### 1. Install the full-page support SDK
 
 Create a route such as `/support` in the customer product and paste the
-full-page SDK snippet from the success screen or **Settings → Support → Web SDK**.
+full-page SDK snippet from the success screen or **Settings → Support → Get connected**.
 
 [→ Full Web SDK guide](/platform/customer-support/web-sdk)
 
 ### 2. Share your support email
 
-If you enabled email support, forward your support email address to customers. You can also configure a custom address (e.g. `support@yourcompany.com`) from **Settings → Support → Channels tab → Email section**.
+If you enabled email support, forward your support email address to customers. You can also configure a custom address (e.g. `support@yourcompany.com`) from **Settings → Support → Channels → Email Support**.
 
 ### 3. Check your ticketing email
 
 When Lira can't resolve a question, it opens a ticket and emails this address. Make sure it's set to an inbox somebody actually watches.
 
-Go to **Settings → Support → Ticketing tab** (or revisit Step 3 in the activation wizard).
+Go to **Settings → Support → Escalation** (or revisit Step 3 in the activation wizard).
 
 ### 4. (Optional) Identify your logged-in users
 
 By default, the widget treats every visitor as anonymous. If your website has logged-in users and you want Lira to greet them by name and access their account details, you can enable **identified visitor mode**.
 
-This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature to the SDK. The widget secret is available from **Settings → Support → Secret**.
+This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature to the SDK. The widget secret is available from **Settings → Support → Get connected → Widget secret**.
 
 This is optional and can be set up any time after going live.
 
@@ -227,14 +228,15 @@ Every setting you configure during activation can be changed later:
 
 | What to change | Where to find it |
 |----------------|-----------------|
-| Enable/disable channels | Settings → Support → Channels tab |
-| Custom support email / forwarding | Settings → Support → Channels tab → Email section |
-| Web SDK snippets | Settings → Support → Web SDK tab |
-| Portal slug | Settings → Support → Hosted tab |
-| Widget colour & greeting | Settings → Support → Web SDK tab |
-| Widget secret (identified visitors) | Settings → Support → Secret tab |
-| Auto-reply & confidence threshold | Settings → Support → Behaviour tab |
-| Ticketing email + CC recipients | Settings → Support → Ticketing tab (or activation Step 3) |
+| Enable/disable channels | Settings → Support → Channels |
+| Custom support email / forwarding | Settings → Support → Channels → Email Support |
+| Web SDK snippets | Settings → Support → Get connected |
+| Portal slug | Settings → Support → Channels → Hosted page |
+| Widget colour & greeting | Settings → Support → Get connected |
+| Widget secret (identified visitors) | Settings → Support → Get connected → Widget secret |
+| Auto-reply & confidence threshold | Settings → Support → AI behavior → Reply behavior |
+| Ticketing email + SLA target | Settings → Support → Escalation (or activation Step 3) |
+| Sandbox / live environment | Settings → Support → Environment card (above the tabs) |
 
 ---
 
@@ -247,7 +249,7 @@ Yes. Your email address and configuration are preserved. Just go back to the act
 Lira will still respond, but answers will be less specific. Add documents or connect a source from the Knowledge Base section, then Lira begins using the new content for future conversations immediately — no reactivation needed.
 
 **Can I change my hosted portal slug after activation?**
-Yes — update it from **Settings → Support → Hosted**. The old URL will stop working, so update any links you've published.
+Yes — update it from **Settings → Support → Channels → Hosted page**. The old URL will stop working, so update any links you've published.
 
 **Does activation cost anything?**
-Lira tracks monthly conversation and AI reply limits per your plan. You can see your current usage at any time in **Settings → Behaviour → Volume & Limits**.
+No. You activate into the free sandbox environment, where testing caps apply instead of plan limits. Billing starts only when you go live from the Environment card in **Settings → Support**. You can see your current usage at any time in **Settings → Subscription**. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).

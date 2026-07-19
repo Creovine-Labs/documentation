@@ -1,83 +1,80 @@
 ---
-sidebar_position: 5
+sidebar_position: 9
 title: Actions
-description: Review and approve autonomous actions Lira wants to take on behalf of customers — the approval queue, history, and action types.
+description: Human approval for the AI agent — how capability calls the policy engine routed to your team get reviewed, approved, or rejected.
 ---
 
 # Actions
 
-The Actions tab is where you review and approve things Lira wants to do on behalf of a customer. These aren't just answers — they're actual operations: updating an account, issuing a refund, modifying a subscription, creating a record in a connected system.
+Some capability calls Lira's AI agent could not — or should not — run on its own. Those runs pause in a `pending_approval` state until a teammate decides. This is the human-in-the-loop edge of the [Agent Runtime](/platform/customer-support/agent-runtime).
 
-Navigate to **Support → Actions**.
-
----
-
-## What are autonomous actions?
-
-When Lira resolves a support request, it sometimes determines that the best response isn't just an answer — it's performing an action. Examples:
-
-- Cancelling a subscription on request
-- Updating billing details
-- Creating a bug report in Linear
-- Updating a contact record in HubSpot
-- Issuing a refund via an integrated payment system
-
-Because actions have real-world consequences, Lira doesn't execute them automatically by default. It proposes them and waits for your team to **approve** or **reject**.
-
-This keeps your team in control of consequential decisions while still letting Lira handle the diagnostic and communication work.
+Pending runs are visible in **Settings → Support → Health & audit → Agent audit log** — filter the status to **Pending approval**. Approval and rejection are performed through the admin API (below); the dedicated Actions page that previously lived in the sidebar has been retired in favour of the consolidated audit surface.
 
 ---
 
-## Approval Queue
+## When something needs approval
 
-The **Approval Queue** tab shows all pending actions waiting for your review. A red badge on the tab indicates how many actions are waiting.
+Not every capability call needs your team's attention. Most reads and low-risk writes auto-execute, and many high-stakes operations are confirmed by the customer directly in chat. A run only pauses for approval when the policy engine returns `mode: "human"` for one of two reasons:
 
-Each action card shows:
+- The capability's risk tier is `admin_approve` — e.g. an integration write that you have explicitly chosen to require teammate approval for.
+- An admin override raised an existing capability into a tier that requires human approval.
 
-- **Action type** — a human-readable description of what Lira wants to do (e.g. `create linear issue`, `update contact`)
-- **Status badge** — Pending (amber), Approved (blue), Executed (green), Failed (red), Rejected (gray)
-- **Conversation ID** — the support conversation that triggered this action
-- **Timestamp** — when the action was proposed
-- **Error message** (if the status is Failed) — what went wrong during execution
-
-### Approving an action
-
-Click **Approve** (green button) on an action card. Lira will execute the action immediately — for example, creating a Linear issue or updating the HubSpot record — and the status changes to **Executed**.
-
-### Rejecting an action
-
-Click **Reject** (red button). The action is cancelled and logged in history with a **Rejected** status. Lira will not re-propose the same action automatically; the conversation remains open in the Inbox for your team to handle manually if needed.
+If a call is **blocked outright** (insufficient auth, end-to-end-blocked tier), it never pauses for approval — it is refused and the agent escalates differently. Those records appear in the [audit log](/platform/customer-support/audit) with status `blocked`.
 
 ---
 
-## History
+## Reviewing a pending run
 
-The **History** tab shows a complete log of all actions — pending, approved, executed, failed, and rejected. This gives your team a full audit trail of every autonomous action Lira has proposed.
+Each pending run in the audit log shows:
 
-You can use history to:
+- **Capability** — the resource or action the agent wants to call, e.g. `stripe_cancel_subscription`, `create_linear_issue`.
+- **Risk tier** — why this needed approval in the first place.
+- **Conversation ID** — link back to the chat that triggered the run.
+- **Timestamp** — when the agent requested it.
+- **Input summary** — redacted snapshot of the arguments the agent would pass.
 
-- Audit what Lira has done on behalf of customers
-- Investigate a failed action (the error message shows what went wrong)
-- Understand patterns — if the same action type appears frequently, it may be worth automating it or improving the underlying integration
+### Approving a run
+
+Approving moves the run to `approved`; the runtime executes the capability and the status transitions to `succeeded` or `failed` depending on the outcome. The result is summarised back in the chat for the customer.
+
+```http
+POST /lira/v1/support/actions/orgs/:orgId/:actionId/approve
+Authorization: Bearer <admin-jwt>
+```
+
+### Rejecting a run
+
+Rejecting moves the run to `cancelled` and it is never executed. The agent receives a signal that it should pursue a different path — typically by escalating the conversation to a teammate.
+
+```http
+POST /lira/v1/support/actions/orgs/:orgId/:actionId/reject
+Authorization: Bearer <admin-jwt>
+```
+
+Both endpoints require **Owner** or **Admin** role on the org.
 
 ---
 
 ## Action statuses explained
 
 | Status | Meaning |
-|--------|---------|
-| **Pending** | Proposed by Lira, waiting for your approval or rejection |
-| **Approved** | Your team approved it — Lira is executing it |
-| **Executed** | Successfully completed |
-| **Failed** | Execution attempted but encountered an error (see error message) |
-| **Rejected** | Your team rejected it — no action taken |
+|---|---|
+| `requested` | The agent asked, the engine has not finished evaluating. Rarely visible. |
+| `pending_approval` | Waiting for your team to approve or reject. |
+| `approved` | Your team approved; the runtime is about to execute. |
+| `running` | The executor is in flight. |
+| `succeeded` | Completed successfully. |
+| `failed` | The executor threw. The error is in the run's output summary. |
+| `cancelled` | A teammate rejected, or the customer declined an in-chat confirmation. |
+
+Runs blocked by policy (insufficient auth, blocked tier) appear in the [audit log](/platform/customer-support/audit) with status `blocked` and never enter the approval flow.
 
 ---
 
 ## Tips
 
-**Process pending actions daily** — if your organisation is handling many conversations, the approval queue can grow. Set a routine to check it at the start of each work day.
+**Tighten the policy instead of approving the same kind of run twice.** If you find yourself rubber-stamping the same capability call every day, the right move is to lower its risk tier in [Capabilities](/platform/customer-support/capabilities). The agent will then handle it autonomously and only the unusual cases come to you.
 
-**Review failed actions** — a failed action often means an integration configuration issue (missing permissions, expired credentials, etc.). The error message on the action card will point you in the right direction.
+**Use the audit log to spot patterns.** Frequent `failed` runs for the same capability often point at an expired integration credential or a schema mismatch — neither of which approval can fix. The error message on the audit record points you at the cause.
 
-**If an action was rejected by mistake** — the conversation is still open in the Inbox. Reply to the customer directly and take the action manually through the relevant integration.
+**A rejected run does not silence the conversation.** The chat stays open. Reply directly to the customer, or hand the conversation off to a teammate from the Tickets queue if they need to act outside Lira.

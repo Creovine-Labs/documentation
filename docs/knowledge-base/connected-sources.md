@@ -9,7 +9,7 @@ description: Pull documents straight from Google Drive or GitHub without manual 
 
 The **Connected Sources** tab lets you pull in documents from cloud services you already use — without downloading and re-uploading files manually. Connect your Google Drive or GitHub account and Lira will list the available files so you can import them directly into the Knowledge Base.
 
-**Path:** Sidebar → Workspace → Knowledge Base → **Connected Sources**
+**Path:** Sidebar → Grow → Knowledge Base → **Connected Sources**
 
 ---
 

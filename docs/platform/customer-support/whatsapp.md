@@ -13,9 +13,14 @@ analytics.
 
 :::info Plan requirement
 The WhatsApp Business API channel is included in the **Scale** and
-**Enterprise** plans. On other plans the tab shows what you'd set up; request
-an upgrade from **Settings → Subscription**. Meta's per-conversation fees are
-billed by Meta on top of your Lira plan.
+**Enterprise** plans. On other plans the section shows what you'd set up;
+request an upgrade from **Settings → Subscription**. Meta's per-conversation
+fees are billed by Meta on top of your Lira plan.
+
+While your workspace is in [sandbox](/platform/customer-support/sandbox-and-going-live),
+you can configure and dry-run the channel regardless of plan — but **real Meta
+sends** always require a live workspace on Scale or above, because they accrue
+Meta fees.
 :::
 
 ## How the ownership works
@@ -30,8 +35,8 @@ handles ticketing, escalation, and analytics.
 ## Before you start: Meta-side setup
 
 Complete these in [Meta Business Manager](https://business.facebook.com)
-(the in-app checklist under **Settings → Support → WhatsApp** mirrors this
-list):
+(the in-app checklist under **Settings → Support → Channels → WhatsApp** mirrors
+this list):
 
 1. **Meta Business Portfolio** — create or confirm your Business Manager
    account.
@@ -52,7 +57,7 @@ list):
 
 ## Configuring the channel in Lira
 
-In **Settings → Support → WhatsApp**:
+In **Settings → Support → Channels → WhatsApp**:
 
 1. Enter your **WABA ID**, **Phone Number ID** (the Cloud API ID, not the
    visible number), display number, and display name.
