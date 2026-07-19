@@ -46,13 +46,14 @@ pending request in the same place and can cancel it before it's decided.
 - **Upgrades** take effect as soon as they're approved: limits are raised
   immediately and newly included features (for example the WhatsApp channel
   on Scale) unlock right away.
-- **Downgrades** are gentler: your current limits stay in place for the rest
-  of the usage month, and the lower limits apply from your next monthly
-  reset. If a feature isn't included in the new plan, it's disabled —
-  WhatsApp real message sending is turned off immediately on downgrade (so
-  you never accrue Meta fees on a plan that doesn't include the channel),
-  while the rest of your WhatsApp configuration is kept in case you upgrade
-  again.
+- **Downgrades** work in two parts. Features not included in the new plan
+  lock as soon as the change is applied — WhatsApp real message sending is
+  turned off immediately (so you never accrue Meta fees on a plan that
+  doesn't include the channel), though your WhatsApp configuration is kept
+  in case you upgrade again. Usage limits are gentler: if you've already
+  used more this month than the new plan includes, your current limits stay
+  in place until your next monthly reset, when the lower limits take
+  effect.
 
 ## What happens at your limit
 
