@@ -14,8 +14,9 @@ analytics.
 :::info Plan requirement
 The WhatsApp Business API channel is included in the **Scale** and
 **Enterprise** plans. On other plans the section shows what you'd set up;
-request an upgrade from **Settings → Subscription**. Meta's per-conversation
-fees are billed by Meta on top of your Lira plan.
+upgrade to Scale from **Settings → Subscription** (Scale is self-serve — pick
+it and pay through Paddle Checkout). Meta's per-conversation fees are billed
+by Meta on top of your Lira plan.
 
 While your workspace is in [sandbox](/platform/customer-support/sandbox-and-going-live),
 you can configure and dry-run the channel regardless of plan — but **real Meta

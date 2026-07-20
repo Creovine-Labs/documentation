@@ -14,6 +14,15 @@ Lira is now exclusively a **customer support platform**. The Meetings, Interview
 
 ---
 
+## 2026-07-20 — Paddle-backed subscription billing
+
+- **Subscription & Billing docs refreshed** — plan, usage, sandbox/live, plan-change, downgrade, and limit behavior now match the current platform.
+- **Paddle billing foundation documented** — Pro and Scale checkout, billing status, receipts, invoices, payment-method updates, customer portal access, and verified webhook entitlement rules are now covered.
+- **Sandbox-to-live billing language tightened** — going live starts billing only for paid plans, and no organization becomes billable silently.
+- **Overage wording corrected** — paid overage is described as available where overage continuation is enabled, instead of promising automatic continuation before that feature is fully live.
+
+---
+
 ## 2026-05-26 — Concierge onboarding + per-employee invites
 
 - **Self-serve org creation removed** — new organizations are now provisioned by the Lira team after a scoping call. The in-app "New organization" entry opens a contact-team modal instead.

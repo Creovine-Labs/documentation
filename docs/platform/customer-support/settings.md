@@ -21,7 +21,9 @@ All Support settings live at **Settings → Support**. The page has two parts:
 
 Changes take effect after clicking **Save** (a Save button sits next to the tab bar and in a sticky bar at the bottom of the page — there is no auto-save). Two exceptions: the **Capabilities** section saves inline per row, and the **Agent audit log** is read-only.
 
-Plan, usage, and go-live status also appear on the separate **Settings → Subscription** tab — see [Plans & Billing](/getting-started/plans-and-billing).
+Plan, usage, go-live status, billing status, Paddle Checkout, and the Paddle
+customer portal also appear on the separate **Settings → Subscription** tab —
+see [Subscription & Billing](/getting-started/plans-and-billing).
 
 ---
 
@@ -30,7 +32,7 @@ Plan, usage, and go-live status also appear on the separate **Settings → Subsc
 Sits above the tabs and is always visible. It shows an **Environment** heading with a **SANDBOX** or **LIVE** badge and a Sandbox / Production switch.
 
 - In **sandbox**, no real emails are sent (they are previewed only) and the widget shows a SANDBOX badge. Everything is free to test under sandbox testing caps.
-- Switching to **Production** opens a go-live confirmation showing your plan, price, and included volume. Confirming requires typing your organisation name. Going live starts your billing period and replaces the sandbox caps with your plan's limits.
+- Switching to **Production** opens a go-live confirmation showing your plan, price, and included volume. Confirming requires typing your organisation name. On a paid plan without an active subscription, confirming collects payment through a Paddle Checkout overlay before the switch. Going live starts real billing for paid plans and replaces the sandbox caps with your plan's limits.
 - Switching back to sandbox re-suppresses real outbound sends and restores the testing caps.
 
 Full details: [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
@@ -237,7 +239,7 @@ A read-only display showing your current usage against your monthly limits:
 - **Conversations this month** / maximum per month
 - **AI replies this month** / maximum per month
 
-In sandbox these are the sandbox testing caps; once live they are your plan's limits. The fuller usage view — including sandbox extensions and plan changes — is on **Settings → Subscription**. See [Plans & Billing](/getting-started/plans-and-billing).
+In sandbox these are the sandbox testing caps; once live they are your plan's limits. The fuller usage view — including sandbox extensions, plan changes, billing status, and Paddle customer portal access — is on **Settings → Subscription**. See [Subscription & Billing](/getting-started/plans-and-billing).
 
 ### Capabilities
 

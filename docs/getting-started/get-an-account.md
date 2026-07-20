@@ -39,7 +39,7 @@ We'll spend 20–30 minutes understanding what you actually need. Specifically:
 After the call we provision an **organization** for you on the Lira platform. That includes:
 
 - Your Lira **org ID** + a unique widget secret (for signed-identity)
-- A **plan tier** (Free / Pro / Scale / Enterprise) with the right usage limits — see [Plans & Billing](/getting-started/plans-and-billing). New orgs start in the free [sandbox](/platform/customer-support/sandbox-and-going-live); billing begins when you go live
+- A **plan tier** (Free / Pro / Scale / Enterprise) with the right usage limits — see [Subscription & Billing](/getting-started/plans-and-billing). New orgs start in the free [sandbox](/platform/customer-support/sandbox-and-going-live); paid billing begins only when you go live and complete the required Paddle-backed subscription flow
 - The **integration surface** you chose (widget, full page, or both)
 - An **invitation link** for your founder/owner account
 

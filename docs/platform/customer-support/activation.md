@@ -252,4 +252,4 @@ Lira will still respond, but answers will be less specific. Add documents or con
 Yes — update it from **Settings → Support → Channels → Hosted page**. The old URL will stop working, so update any links you've published.
 
 **Does activation cost anything?**
-No. You activate into the free sandbox environment, where testing caps apply instead of plan limits. Billing starts only when you go live from the Environment card in **Settings → Support**. You can see your current usage at any time in **Settings → Subscription**. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+No. You activate into the free sandbox environment, where testing caps apply instead of plan limits. Paid billing starts only when you go live from the Environment card in **Settings → Support** and complete the required Paddle-backed subscription flow. You can see your current usage, plan, and billing status at any time in **Settings → Subscription**. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).

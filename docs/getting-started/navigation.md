@@ -190,11 +190,7 @@ Full reference: [Settings Reference](/platform/customer-support/settings).
 
 ### Subscription
 
-Your current plan and entitlements, live monthly usage, launch status (sandbox or live), plan change requests, and sandbox extension requests. See [Plans & Billing](/getting-started/plans-and-billing) and [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
-
-### Billing
-
-Invoicing details. Billing is currently handled directly by the Lira team alongside plan approval.
+Your current plan and entitlements, live monthly usage, launch status (sandbox or live), billing status, Paddle Checkout access, Paddle customer portal access, plan change requests, and sandbox extension requests. See [Subscription & Billing](/getting-started/plans-and-billing) and [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
 
 ---
 
@@ -224,7 +220,7 @@ If you belong to multiple orgs, the **org name at the top of the sidebar** is a 
 | Review every action the agent ran | Settings → Support → Health & audit → Agent audit log |
 | Disable a capability for your org | Settings → Support → AI behavior → Capabilities → row → toggle Enabled |
 | See deflection / CSAT | Grow → Analytics |
-| Check plan and usage | Settings → Subscription |
+| Check plan, usage, and billing | Settings → Subscription |
 | Go live / return to sandbox | Settings → Support → Environment card |
 | Request a plan change or sandbox extension | Settings → Subscription |
 | Change your display name | Settings → Account → Profile |

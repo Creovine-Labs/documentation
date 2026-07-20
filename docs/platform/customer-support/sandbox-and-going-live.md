@@ -6,7 +6,7 @@ description: What the free sandbox includes, the testing caps that apply, and ex
 
 # Sandbox and going live
 
-Every new Lira organisation starts in **sandbox** — a free environment where you can test the entire product before paying anything. When you're ready, you flip the workspace to **live** from the Environment card at the top of **Settings → Support**. That switch is the commercial moment: your plan's limits apply and your billing period starts.
+Every new Lira organisation starts in **sandbox** — a free environment where you can test the entire product before paying anything. When you're ready, you flip the workspace to **live** from the Environment card at the top of **Settings → Support**. That switch is the commercial moment: your plan's limits apply and, for paid plans, Paddle-backed billing begins.
 
 ---
 
@@ -17,6 +17,7 @@ Sandbox is built so you can evaluate everything, not a cut-down trial:
 - **Every feature is unlocked**, regardless of the plan you were invited on. WhatsApp configuration, tool packs, branding options — a Free-invited org can fully evaluate Scale-level behaviour before committing.
 - **Real-world side effects are suppressed.** Outbound emails and WhatsApp messages are dry-run: you see exactly what Lira *would* send (previewed in the dashboard), but nothing reaches a real inbox or phone. Integrations that would mutate live third-party systems (for example the Stripe tool pack, and real WhatsApp sends) stay blocked until you go live.
 - **A SANDBOX badge is visible.** The widget shows a SANDBOX pill in its header, and the dashboard shows a sandbox indicator, so nobody mistakes test traffic for production support.
+- **Payments are safe to rehearse.** A sandbox workspace runs checkout against Paddle's sandbox environment: you can practise subscribing and going live using Paddle **test cards** (for example `4242 4242 4242 4242`, any future expiry, any 3-digit code) and **no real money is charged**. Lira picks the Paddle environment automatically from the workspace's environment, so you never have to configure it. See [Subscription & Billing → Testing payments safely in sandbox](/getting-started/plans-and-billing#testing-payments-safely-in-sandbox).
 
 Two things stay locked even in sandbox: real WhatsApp message sending (requires a live workspace on Scale or above, because it accrues Meta fees) and the go-live switch itself, which is a deliberate, confirmed step.
 
@@ -45,13 +46,15 @@ Need more room to finish testing? On **Settings → Subscription**, click **Requ
 When your integration is ready, open **Settings → Support** and use the **Environment card** above the tabs:
 
 1. Click **Production** on the Sandbox / Production switch.
-2. A confirmation dialog shows your plan, its price, and its included monthly volume, and states plainly: going live starts your billing period.
-3. Type your organisation's name to confirm, then click **Go live**.
+2. A confirmation dialog shows your plan, its price, and its included monthly volume, and states plainly: going live starts billing for paid plans.
+3. Type your organisation's name to confirm, then click the confirm button — labelled **Go live** on Free, or **Set up billing & go live** on a paid plan without an active subscription.
 
-The moment you confirm:
+**On a paid plan (Pro or Scale) with no active subscription, going live collects payment first.** Confirming opens a **Paddle Checkout overlay**; the workspace only switches to production after payment succeeds. If a subscription is already active — or the workspace is on Free — there is no checkout step and the switch happens immediately. Because the workspace is still in sandbox at this point, any checkout you run before the switch uses Paddle's sandbox environment and test cards; the first checkout that bills a real card is the one that takes you live.
 
-- **Your plan's limits replace the sandbox caps.** Included conversation and AI-reply volumes come from the plan you agreed with the Lira team (see [Plans & Billing](/getting-started/plans-and-billing)).
-- **Your billing period starts.** The Lira team is notified and invoicing begins — no org ever goes billable silently.
+The moment the switch completes:
+
+- **Your plan's limits replace the sandbox caps.** Included conversation and AI-reply volumes come from the plan you agreed with the Lira team (see [Subscription & Billing](/getting-started/plans-and-billing)).
+- **Real billing becomes active for paid plans.** Going live starts your billing period. Lira uses Paddle as the authorized reseller and Merchant of Record for Pro and Scale checkout, invoices, receipts, taxes, and payment-method updates, and now charges a **real** payment card (sandbox was test-card only). Paid plans also keep answering past the included volume and bill the excess as [overage](/getting-started/plans-and-billing#what-happens-at-your-limit). No org ever goes billable silently.
 - **Real outbound turns on.** Emails actually send, and plan-gated features (such as real WhatsApp sends on Scale+) become available.
 - **Plan feature gates become authoritative.** In sandbox everything was unlocked for testing; live, your plan decides which features you have.
 
@@ -59,7 +62,7 @@ The SANDBOX badge disappears from the widget and the Environment card shows **LI
 
 ### Returning to sandbox
 
-The switch also works in reverse — for example to roll back during an incident. Switching back to sandbox re-suppresses real outbound sends, restores the SANDBOX badge, and re-applies the testing caps. It does not undo the fact that you went live; contact the Lira team about billing implications before rolling back a live workspace.
+The switch also works in reverse — for example to roll back during an incident. Switching back to sandbox re-suppresses real outbound sends, restores the SANDBOX badge, and re-applies the testing caps. It does not automatically cancel an active paid subscription; use **Settings → Subscription** or contact the Lira team before rolling back a live workspace for billing reasons.
 
 ---
 
@@ -67,8 +70,8 @@ The switch also works in reverse — for example to roll back during an incident
 
 Once live, your usage is governed by your plan:
 
-- What happens when you reach your included volume, how upgrades and downgrades apply, and how invoicing works are covered in [Plans & Billing](/getting-started/plans-and-billing).
-- Plan changes are requested from **Settings → Subscription** and reviewed by the Lira team. On a downgrade, paid features lock when the change is applied, while usage caps above the new plan's limits stay in place until your next monthly reset.
+- What happens when you reach your included volume (paid plans keep answering and bill the excess as overage), how upgrades and downgrades apply, and how Paddle billing works are covered in [Subscription & Billing](/getting-started/plans-and-billing).
+- Plan changes are made from **Settings → Subscription**. Pro and Scale are self-serve (pick the plan, pay through Paddle Checkout, and it applies automatically); Enterprise and downgrades to Free are reviewed by the Lira team. On a downgrade, paid features lock when the change is applied, while usage caps above the new plan's limits stay in place until your next monthly reset.
 
 ---
 
@@ -76,6 +79,9 @@ Once live, your usage is governed by your plan:
 
 **Does sandbox cost anything?**
 No. Sandbox is free, indefinitely, within the testing caps.
+
+**Can I test the payment flow without being charged?**
+Yes. A sandbox workspace runs checkout against Paddle's sandbox, which accepts only Paddle **test cards** (for example `4242 4242 4242 4242`) and never charges real money. Real cards are billed only after you go live. Lira selects the Paddle environment automatically from the workspace, so nothing to configure. Details: [Testing payments safely in sandbox](/getting-started/plans-and-billing#testing-payments-safely-in-sandbox).
 
 **Can customers tell my widget is in sandbox?**
 Yes — the widget shows a SANDBOX badge while the workspace is in sandbox. That's deliberate: it keeps test surfaces clearly marked and is one of the reasons production launches should go live.
