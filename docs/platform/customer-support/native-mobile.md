@@ -2,7 +2,7 @@
 slug: /platform/customer-support/native-mobile
 sidebar_position: 8
 title: Native mobile support
-description: Add a native, in-app support experience to your mobile app — session-token auth over Lira's chat WebSocket. No WebView.
+description: Build a native, in-app support experience on Lira's chat WebSocket — the full event catalogue and the exact UX you build. No WebView.
 ---
 
 # Native mobile support
@@ -11,12 +11,19 @@ Deliver support **inside your mobile app**, native, the way Cash App, Monzo, and
 Revolut do it — your own chat UI over Lira's API. **Not** a WebView, and **not**
 MCP (MCP is separate — it's how the AI takes *actions*; see [MCP server](/platform/customer-support/mcp)).
 
-The flow is two moving parts:
+On native, **you own the UI** — it's your app, your design system, your screen.
+Lira owns the intelligence and puts everything the UI needs **on the wire**:
+streaming replies, quick-reply chips, confirm-before-action, human-agent
+identity, history. This page is the complete contract: every event, every
+payload, and exactly **what you build** for each one.
+
+There's a runnable Flutter reference that implements 100% of this — see
+[Reference app](#reference-app).
 
 ```
 Your app  ──►  Your backend (mints a Lira session token — holds the API key)
    │
-   └── native chat screen  ──►  Lira chat WebSocket  ──►  AI (KB answers + actions)
+   └── native chat screen  ──►  Lira chat WebSocket  ──►  AI (KB answers + actions + human handoff)
 ```
 
 ## 1. Your backend mints a session token
@@ -45,12 +52,13 @@ Response:
 
 Your app calls **your** endpoint (e.g. `POST /support/session`), which mints and
 returns this. The customer identity is baked into the token — the app sends no
-signing secret.
+signing secret. Because the conversation is keyed to the customer, reopening
+support **resumes their thread** (you'll receive a `history` event — see below).
 
 ## 2. Your app opens the chat WebSocket
 
 Connect to the returned `ws_url` and speak the chat protocol. Minimal client
-(Flutter/Dart shown; the shapes are the same in any language):
+(Flutter/Dart shown; the shapes are identical in any language):
 
 ```dart
 final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
@@ -61,33 +69,94 @@ channel.sink.add(jsonEncode({ 'type': 'message', 'body': 'Where is my transfer?'
 // receive events
 channel.stream.listen((raw) {
   final e = jsonDecode(raw);
-  switch (e['type']) {
-    case 'welcome':      // greeting on connect
-    case 'reply_start':  // AI reply begins (has message_id)
-    case 'reply_chunk':  // append e['body'] to the message with this message_id
-    case 'reply_end':    // finalize (if e['body'] present, replace the text)
-    case 'confirm':      // AI wants to run an action — show Approve / Decline
-    case 'card':         // a rich card (ticket opened, etc.)
-    case 'action_result':// a tool ran
-    case 'error':
-  }
+  switch (e['type']) { /* handle every event below */ }
 });
 ```
 
-### The events you'll handle
+## Message protocol
 
-| Event | Meaning |
-|---|---|
-| `welcome` | Greeting on connect (`body`, optional `conv_id`). |
-| `typing` | AI is thinking. |
-| `reply_start` / `reply_chunk` / `reply_end` | A streamed AI reply. Accumulate `reply_chunk.body` by `message_id`; finalize on `reply_end` (replace text if it carries `body`). |
-| `reply` | A complete (non-streamed) reply. |
-| `confirm` | The AI wants to run an action that needs the customer's OK. See below. |
-| `step_up` | A higher-risk action needs re-authentication (mint a step-up proof). |
-| `card` | A rich card (`title`, `body`, `badge`, `buttons`). |
-| `action_result` | A tool ran (`tool_name`, `ok`, `label`). |
-| `status` | Conversation status; capture `conv_id` from the first `status` for history/polling. |
-| `error` | Show the message. |
+### Messages you send (client → server)
+
+| `type` | Payload | When |
+|---|---|---|
+| `message` | `{ type, body }` | The customer sent a message. |
+| `typing` | `{ type }` | The customer is typing (so a human agent sees the indicator in the inbox). Optional. |
+| `confirm_response` | `{ type, pending_id, approved }` | Answer a `confirm` prompt (`approved: true/false`). |
+| `step_up_response` | `{ type, pending_id, step_up_token }` | Proof from your backend after re-authenticating the customer (answers a `step_up`). |
+| `end` | `{ type, body? }` | End the conversation. `body` may be a CSAT score `"1"`–`"5"`. |
+
+### Events you receive (server → client)
+
+| `type` | Payload | What it is |
+|---|---|---|
+| `welcome` | `{ body, conv_id?, status? }` | Greeting on connect. |
+| `history` | `{ conv_id, status, messages: [ { id, role, body, timestamp, sender_name?, sender_avatar? } ] }` | The existing thread, replayed on resume. `role` is `customer` \| `lira` \| `agent`. |
+| `status` | `{ status, conv_id?, body? }` | Conversation status. Capture `conv_id` on the first one. `status: "resolved"` closes the loop. |
+| `typing` | `{ }` | The AI is thinking — show an animated indicator. |
+| `reply_start` | `{ message_id }` | A streamed AI reply begins. |
+| `reply_chunk` | `{ message_id, body }` | Append `body` to the bubble with this `message_id`. |
+| `reply_end` | `{ message_id, body? }` | Finalize. If `body` is present, replace the accumulated text with it. |
+| `reply` | `{ conv_id?, body }` | A complete (non-streamed) AI reply. |
+| `suggestions` | `{ suggestions: [ "…", "…" ] }` | Quick-reply chips. Tapping one sends its text as the next message. |
+| `confirm` | `{ pending_id, tool_name, title, body, arguments }` | The AI wants to run an action that needs the customer's OK. |
+| `step_up` | `{ pending_id, tool_name, title, body, arguments }` | A higher-risk action needs re-authentication first. |
+| `card` | `{ title?, body?, fields?: [{label,value}], badge?: {text,tone}, buttons?: [{label,action,style}] }` | A rich card (ticket opened, status, etc.). |
+| `action_result` | `{ tool_name, ok, label }` | A tool ran — show a result line. |
+| `agent_reply` | `{ body, sender_name?, sender_avatar? }` | A **human teammate** has replied. |
+| `proactive` | `{ conv_id, body, sender_name?, sender_avatar? }` | A proactive outreach (agent/automation reaches out first). |
+| `handback` | `{ body }` | Lira has taken the conversation back from a human. |
+| `error` | `{ body }` | Show the message. |
+
+:::note Web-SDK-only events
+`navigate`, `lira_action`, and `demo_action_executed` drive actions on a **web
+host page** (DOM navigation, prefilling inputs). They don't apply to a native
+app — ignore them unless you deliberately implement host-side actions.
+:::
+
+## What you build — UX checklist
+
+Everything below is **yours to render** (it's your app), and every item is fed
+by an event Lira already sends. This table is the spec — copy the reference app
+to see each one implemented.
+
+| UX element | Who supplies it | Driven by |
+|---|---|---|
+| **Customer avatar** | You (your logged-in user) | your app |
+| **Assistant name + avatar** | You (brand the assistant however you like) | your app / your [support settings](/platform/customer-support/settings) |
+| **Org logo in the header** | You (your brand) | your app |
+| **Typing indicator (animated)** | You render the animation | `typing` |
+| **Streaming reply** | You render incremental text | `reply_start` / `reply_chunk` / `reply_end` |
+| **Quick-reply chips** | Lira sends them; you render tappable chips | `suggestions` |
+| **Confirm-before-action sheet** | You render a native sheet | `confirm` → `confirm_response` |
+| **Step-up (PIN/biometric)** | You re-auth + your backend mints a proof | `step_up` → `step_up_response` |
+| **Rich card** | You render the card | `card` |
+| **Action result** | You show a result line/toast | `action_result` |
+| **Human-agent identity (name + avatar)** | Lira supplies the identity; you render it | `agent_reply`, and `role: "agent"` in `history` |
+| **Proactive message** | You render it | `proactive` |
+| **Handback note** | You render a system line | `handback` |
+| **History on resume** | You replay the thread | `history` |
+| **Resolved + CSAT** | You render a closing state and rating | `status: "resolved"`; send `end` with a score |
+
+## Streaming replies
+
+Accumulate `reply_chunk.body` into the bubble keyed by `message_id`; finalize on
+`reply_end` (replace the text if `reply_end` carries a `body`). Between the
+customer's message and `reply_start`, show the `typing` indicator — **animated**,
+not a static "typing…" label (a frozen label reads as a hang):
+
+```dart
+case 'typing':      setState(() => typing = true); break;
+case 'reply_start': typing = false; addBubble(role: 'lira', id: e['message_id'], streaming: true); break;
+case 'reply_chunk': byId(e['message_id']).text += e['body']; break;
+case 'reply_end':   final m = byId(e['message_id']); if (e['body'] != null) m.text = e['body']; m.streaming = false; break;
+```
+
+## Quick-reply chips
+
+Lira offers chips in guided moments (e.g. "Open a ticket" / "Keep chatting" /
+"Connect me with a teammate"). Render the latest `suggestions` set below the
+thread; tapping a chip sends its text as a normal `message`, and you clear the
+chips when the customer sends anything.
 
 ## Confirm-before-action
 
@@ -110,10 +179,75 @@ decline. For a `step_up` event, re-authenticate the customer (PIN/biometric),
 have your backend mint a step-up proof, and reply with
 `{ "type": "step_up_response", "pending_id": "…", "step_up_token": "…" }`.
 
+## Human takeover — identity & avatars
+
+When a teammate steps into the conversation from the Lira inbox, the customer's
+socket receives `agent_reply` events carrying the teammate's **name and avatar**:
+
+```json
+{ "type": "agent_reply", "body": "Hi Ada, I've got this from here.",
+  "sender_name": "Sam Rivera", "sender_avatar": "https://…/sam.png" }
+```
+
+Render the teammate's avatar and name on their bubbles (and, if you like, a
+"You're now chatting with Sam" system line). When Lira resumes, you get a
+`handback` event — clear the human identity and continue. Resumed threads carry
+the same identity: `history` messages with `role: "agent"` include
+`sender_name` / `sender_avatar`.
+
+Avatars overall:
+
+- **Customer** — from your logged-in user (your app).
+- **Assistant** — your brand. Lira is the engine; the *face* the customer sees
+  is your choice (name it, give it your logo).
+- **Human agent** — comes from Lira on `agent_reply` / `history` (`sender_avatar`,
+  `sender_name`). Render it; fall back to initials if there's no image.
+
+## History on resume
+
+Because the session is keyed to the customer, reopening support **resumes the
+same conversation** and Lira replays it as one `history` event. Render its
+`messages` (respecting each `role`) so the customer sees their thread instead of
+a blank screen — don't rely on the `welcome` line alone.
+
+## Resolving & CSAT
+
+On `status: "resolved"`, show a closing state. To collect satisfaction, send an
+`end` with the score:
+
+```json
+{ "type": "end", "body": "5" }
+```
+
+### Wipe the local thread on close
+
+When a conversation resolves, **clear the customer's local transcript** (after
+CSAT). The organization keeps the full record on their dashboard; the customer
+starts fresh on their next issue, so history stays organized and trackable per
+issue rather than one endless thread. Wiping is a **client** action — you own
+the on-device store — Lira never asks you to keep it.
+
+### Clearing the chat (optional)
+
+You may also offer the customer a manual **"Clear chat"** that wipes only their
+on-device thread. It does **not** delete anything on the organization's side —
+the dashboard retains the conversation. Purely a local convenience; include it
+or not.
+
+## Human takeover — the AI pauses
+
+When a teammate **takes over** from the dashboard, Lira **pauses**: the AI stops
+auto-replying and the teammate answers directly (you receive `agent_reply` with
+their name + avatar). Any teammate reply — from the inbox or a ticket —
+automatically triggers takeover. When the teammate **hands back**, you receive
+`handback` and the AI resumes. From the app's side there's nothing special to
+implement beyond rendering `agent_reply` and `handback` (already in the event
+catalogue) — the pause/resume is enforced server-side.
+
 ## History & tickets (REST)
 
-For conversation history and tickets, the same session token authenticates the
-REST endpoints under `rest_base_url` (`?sessionToken=…`):
+For conversation history and tickets outside the socket, the same session token
+authenticates the REST endpoints under `rest_base_url` (`?sessionToken=…`):
 
 - `GET /chat/conversations/ORG_ID` — the customer's conversations
 - `GET /chat/conversation/ORG_ID/CONV_ID` — one conversation with messages
@@ -121,8 +255,11 @@ REST endpoints under `rest_base_url` (`?sessionToken=…`):
 
 ## Reference app
 
-A complete, runnable Flutter reference (a fintech-style app with a native support
-screen implementing everything above, including confirm-before-action) is
-available from the Lira team. It's the fastest way to see the full loop end to
-end. WebView remains a documented quick-start fallback, but native is the
+A complete, runnable Flutter reference — a fintech-style app with a native
+support screen — implements **everything on this page**: streaming, an animated
+typing indicator, quick-reply chips, avatars for the customer / assistant /
+human agent, the org logo in the header, confirm-before-action, history replay,
+proactive + handback, and CSAT. It's the fastest way to see the full loop, and
+the mapping copies directly to Swift, Kotlin, or React Native. Ask the Lira team
+for it. WebView remains a documented quick-start fallback, but native is the
 recommended experience.
