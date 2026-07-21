@@ -179,6 +179,11 @@ decline. For a `step_up` event, re-authenticate the customer (PIN/biometric),
 have your backend mint a step-up proof, and reply with
 `{ "type": "step_up_response", "pending_id": "…", "step_up_token": "…" }`.
 
+The `title` and `body` are already customer-friendly (e.g. **"Are you sure you
+want to proceed with card freeze? Confirm to proceed."**) — never the raw tool
+name. Render them as-is, or substitute your own copy keyed off `tool_name` if
+you want a more branded prompt (e.g. "Freeze your card ending 4291?").
+
 ## Human takeover — identity & avatars
 
 When a teammate steps into the conversation from the Lira inbox, the customer's
@@ -202,6 +207,16 @@ Avatars overall:
   is your choice (name it, give it your logo).
 - **Human agent** — comes from Lira on `agent_reply` / `history` (`sender_avatar`,
   `sender_name`). Render it; fall back to initials if there's no image.
+
+:::tip Require support agents to set a profile photo
+`sender_avatar` may be an `http(s)` URL **or** a base64 `data:` URI (that's how
+uploaded photos are stored) — make sure your image widget handles **both** (e.g.
+decode `data:` URIs), or a real photo will silently fall back to initials.
+
+Strongly encourage — or require — every teammate who answers customers to set a
+profile picture in the dashboard. A real face on the human's replies is a big
+authenticity signal for the customer; initials read as a bot.
+:::
 
 ## History on resume
 
@@ -243,6 +258,14 @@ automatically triggers takeover. When the teammate **hands back**, you receive
 `handback` and the AI resumes. From the app's side there's nothing special to
 implement beyond rendering `agent_reply` and `handback` (already in the event
 catalogue) — the pause/resume is enforced server-side.
+
+**Notifying the customer.** While the AI is answering, replies are instant and
+the customer is watching — no notification needed. Once a **human** is handling,
+replies can arrive minutes later, so Lira also emails the customer on a human
+reply (production; suppressed in sandbox) as a "come back to the chat" nudge.
+For a true mobile push when the app is backgrounded, wire your own
+FCM/APNs off your backend — Lira delivers the message over the socket and by
+email; the push channel is yours.
 
 ## History & tickets (REST)
 
