@@ -86,6 +86,8 @@ const sidebars: SidebarsConfig = {
       label: 'Integrations',
       items: [
         'integrations/overview',
+        'integrations/mcp',
+        'integrations/developer-api',
         'integrations/slack',
         'integrations/microsoft-teams',
         'integrations/google-drive',

@@ -21,6 +21,15 @@ Lira connects to seven third-party tools with full OAuth flows, member mapping, 
 | [**HubSpot**](/integrations/hubspot) | OAuth 2.0 | Pull customer context into Lira (deals, contacts, companies); log activities back |
 | [**Salesforce**](/integrations/salesforce) | OAuth 2.0 + PKCE | Pull customer context (accounts, contacts, opportunities); SOQL queries |
 
+## Connect your own systems (actions)
+
+The tools above are for **context and notifications**. To let Lira take **real actions** in your own product — under your own auth, governed by Lira's policy engine — connect your own systems:
+
+| Path | For |
+|---|---|
+| [**MCP server**](/integrations/mcp) | Expose your own tools over the Model Context Protocol. Recommended for a mature product. |
+| [**Developer API keys & CLI**](/integrations/developer-api) | Automate all of the above from your backend or CI, and mint native mobile support sessions. |
+
 ## How they work — the four-step pattern
 
 Every integration follows the same shape.
