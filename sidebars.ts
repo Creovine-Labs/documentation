@@ -32,6 +32,7 @@ const sidebars: SidebarsConfig = {
             'platform/customer-support/sdks',
             'platform/customer-support/tickets',
             'platform/customer-support/web-sdk',
+            'platform/customer-support/native-mobile',
             'platform/customer-support/whatsapp',
             'platform/customer-support/mcp',
             'platform/customer-support/developer-api',
