@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
             'platform/customer-support/native-mobile',
             'platform/customer-support/whatsapp',
             'platform/customer-support/mcp',
+            'platform/customer-support/security',
             'platform/customer-support/developer-api',
             {
               type: 'category',
