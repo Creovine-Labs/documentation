@@ -159,12 +159,10 @@ window.Lira.destroy()
 ## Option 3: NPM package
 
 Use the NPM package when your app is bundled with React, Next.js, Vue, Remix, or
-another modern frontend toolchain. The package is built as `@liraintelligence/support`; it
-must be published to your npm registry before `npm install @liraintelligence/support` works
-for customer projects.
+another modern frontend toolchain. The package is published on npm as
+`@liraintelligence/support`, so it installs out of the box.
 
 ```bash
-# After @liraintelligence/support is published to your npm registry
 npm install @liraintelligence/support
 ```
 

@@ -210,6 +210,20 @@ decline. For a `step_up` event, re-authenticate the customer (PIN/biometric),
 have your backend mint a step-up proof, and reply with
 `{ "type": "step_up_response", "pending_id": "…", "step_up_token": "…" }`.
 
+**Minting the step-up proof** is the same session-mint call your backend already
+makes — just add `"stepUp": true`. It returns a short-lived proof token you pass
+straight back as `step_up_token`:
+
+```bash
+curl -X POST https://api.creovine.com/lira/v1/support/sessions/orgs/ORG_ID/mint \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "customer": { "email": "customer@example.com" }, "stepUp": true, "ttlSeconds": 300 }'
+```
+
+Do this only *after* the customer passes a fresh re-auth (PIN/biometric) on the
+device, so the proof genuinely represents a second factor.
+
 The `title` and `body` are already customer-friendly (e.g. **"Are you sure you
 want to proceed with card freeze? Confirm to proceed."**) — never the raw tool
 name. Render them as-is, or substitute your own copy keyed off `tool_name` if

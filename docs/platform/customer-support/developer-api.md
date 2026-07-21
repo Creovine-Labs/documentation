@@ -24,9 +24,8 @@ Keys are created by an **owner or admin** in **Settings → Support → Develope
 |---|---|
 | `mcp:read` | Read your MCP server config and discovered tools. |
 | `mcp:write` | Connect, approve, enable, and remove MCP tools. |
-| `support:read` | Read support configuration. |
-| `support:write` | Update support configuration. |
 | `sessions:mint` | Start a native support session as any of your customers. **High privilege** — keep this key on your backend only and revoke it if it leaks. |
+| `support:read` / `support:write` | *Reserved.* Support **config, tickets, and inbox** are managed in the dashboard today — these scopes exist for a future config-over-API surface and don't grant anything yet. |
 
 ## Use the CLI
 

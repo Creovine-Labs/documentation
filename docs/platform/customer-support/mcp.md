@@ -65,7 +65,7 @@ In **Settings → Support → Actions → MCP server → Connect**:
 | **Label** | Any name you'll recognize this connection by. |
 | **Endpoint URL** | The HTTPS address of your MCP server, e.g. `https://mcp.yourcompany.com/mcp`. This comes from **your** server, not from Lira. |
 | **Environment** | Sandbox or Production. Defaults to your org's current environment. |
-| **Auth** | Bearer token (recommended) or None. |
+| **Auth** | Bearer token, **OAuth 2.1** (client-credentials, recommended for production), or None. |
 | **Bearer token** | The token your MCP server accepts. It comes from **your server's** config — Lira does not generate it. Stored encrypted; sent only to your endpoint. |
 
 Connecting validates the URL (an address that isn't a valid HTTPS endpoint is rejected before anything is saved) and turns the server **on** — but the AI still can't do anything until you **approve tools** individually. That per-tool approval is the real gate; the server switch is just a master on/off you can flip any time.
@@ -95,8 +95,18 @@ Lira never lets the model call your server directly. Each tool you approve becom
 ## Requirements for your server
 
 - A streamable HTTP MCP endpoint that implements `initialize`, `tools/list`, and `tools/call`.
-- Bearer-token auth (OAuth 2.1 support is on the roadmap for production enterprise use).
-- Tools that scope actions to the customer in the `io.lira/customer` metadata Lira passes on each call — **not** to values in the tool arguments.
+- Bearer-token **or OAuth 2.1** auth (client-credentials flow; Lira mints and auto-refreshes short-lived access tokens).
+- Tools that scope actions to the customer in the `io.lira/customer` metadata Lira passes on each call — **not** to values in the tool arguments. On every `tools/call`, Lira adds this to the JSON-RPC `params._meta` (only for verified customers):
+
+  ```json
+  { "_meta": { "io.lira/customer": {
+      "email": "customer@example.com",
+      "external_customer_id": "cus_123",
+      "verified": true
+  } } }
+  ```
+
+  Resolve *whose* account to act on from `email` / `external_customer_id` here — never trust an id passed in the tool arguments, which originate from the model.
 - Strict input schemas on each tool so inputs are validated on your side too.
 
 ## Risk levels

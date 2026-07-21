@@ -62,11 +62,10 @@ context. It shows `window.Lira.init(...)`, `window.Lira.identify(...)`,
 #### NPM package
 
 Use `@liraintelligence/support` when the customer wants typed imports, React components, and
-registered customer actions. The package is publish-ready, but must be published
-to your npm registry before customer projects can install it by name.
+registered customer actions. The package is published on npm, so customer
+projects can install it by name.
 
 ```bash
-# After @liraintelligence/support is published to your npm registry
 npm install @liraintelligence/support
 ```
 
