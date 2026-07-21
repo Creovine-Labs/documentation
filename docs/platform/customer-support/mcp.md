@@ -31,9 +31,18 @@ If you've added an MCP server in **VS Code or Cursor**, you edited a file like `
 To connect to Lira, your MCP server must be running in **remote (HTTP) mode** and reachable at a public HTTPS URL:
 
 - A **streamable HTTP MCP endpoint** that implements `initialize`, `tools/list`, and `tools/call`.
-- A **bearer token** your server checks to confirm a request is from Lira.
+- Authentication Lira presents on every call — either a **bearer token** or **OAuth 2.1** (see below).
 
 Most MCP servers can run in either mode — running as an HTTP server is usually a flag or a small wrapper. If your tools today only exist as a **local command** (the VS Code style above), your team needs to run that same server in HTTP mode and give it a public URL before Lira can use it.
+
+### Authentication options
+
+| Option | How it works |
+|---|---|
+| **Bearer token** | You paste a token your server accepts. Simple; good for a private integration. |
+| **OAuth 2.1** | Client-credentials flow. You provide a token URL, client ID, client secret, and optional scopes; Lira mints and **auto-refreshes** short-lived access tokens. Recommended for production. |
+
+Credentials are stored encrypted and sent only to your endpoint. OAuth is the more robust choice — Lira never holds a long-lived token, and rotation is automatic.
 
 ## The connection fields
 
@@ -89,6 +98,16 @@ Lira never lets the model call your server directly. Each tool you approve becom
 | Sensitive — re-auth | Money/card-adjacent. Requires step-up re-authentication. |
 | Admin approval | Queued for a human admin to approve. |
 | Human only | The AI can never run this — humans only. |
+
+## Built-in guardrails
+
+Beyond per-tool approval, the gateway ships several protections you don't have to configure:
+
+- **Rate limits** — each tool and the server as a whole have per-minute caps (set your own per tool, or rely on sensible defaults). A loop, a runaway agent, or a compromised server can't hammer your backend.
+- **Change detection (anti "rug-pull")** — Lira pins the definition of every tool you approve. If your server later changes a tool's description or inputs, discovery flags it as **"changed since approval"** so you can re-review before it's trusted again.
+- **Config audit** — every configuration change (connect, approve, enable/disable, disconnect) is logged with who and when, shown under **Recent activity**. Tool *calls* are logged separately in **Health & audit**.
+- **Network safety** — in production the endpoint must be HTTPS and can't resolve to a private/internal address, checked again at connect time (blocks SSRF and DNS-rebinding).
+- **Instant off switch** — disable any single tool, or the whole server, in one click.
 
 ## Plan availability
 
