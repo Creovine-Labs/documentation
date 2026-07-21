@@ -11,16 +11,43 @@ The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is the stand
 
 This is the recommended path for connecting a mature product. The developer API and CLI are the automation layer for teams that want setup to happen from their own backend or terminal.
 
-## How Lira keeps it safe
+## Local vs. remote: two ways MCP connects
 
-Lira never lets the model call your server directly. Each tool you approve becomes a normal Lira agent tool and still passes the full runtime before it can run:
+An MCP server can be reached two ways. The protocol is identical — the same tools, the same `initialize` / `tools/call` calls. Only the **transport** (the "pipe" between the app and the server) is different. This trips people up, so it's worth being clear:
 
-- **Nothing runs until an admin approves it** — discovery only lists your tools, it does not enable them.
-- You **map each tool** to a risk level (read, confirm-first, re-auth required, or human-only) and who can use it (anyone, verified visitor, or verified customer).
-- Money- and account-adjacent tools can require the customer to **re-authenticate (step-up)** before the action runs.
-- The **verified customer identity** is sent to your server out-of-band, so the AI cannot impersonate a different customer through the tool inputs.
-- Your **bearer credential is stored encrypted** and sent only to your endpoint; it is never shown back in the dashboard.
-- Every call is **logged and metered**, and the whole server can be disabled or disconnected instantly.
+| | **Local (stdio)** | **Remote (HTTP)** — what Lira uses |
+|---|---|---|
+| How it connects | The app **launches the server as a program on the same computer** and talks to it over stdin/stdout | The app **calls a web address** over the network |
+| What you configure | A **command** in a JSON config file (e.g. `npx some-server`) | An **endpoint URL** + a token |
+| Where the server runs | On your machine, alongside the app | On a server, always running and reachable |
+| Who uses it | Desktop AI tools: **VS Code, Cursor, Claude Desktop** | Cloud services: **Lira**, and other hosted AI products |
+
+If you've added an MCP server in **VS Code or Cursor**, you edited a file like `.vscode/mcp.json` or `~/.cursor/mcp.json` and pasted a **command** — no URL. That works because those editors run *on your computer*, so they can start the server as a local process.
+
+**Lira runs in the cloud.** It can't launch a program on your machine, so it reaches your tools the only way a cloud service can — over the network, at an **HTTPS endpoint URL** with a token. It's the same MCP; it's just reached **remotely instead of locally**.
+
+## What you need
+
+To connect to Lira, your MCP server must be running in **remote (HTTP) mode** and reachable at a public HTTPS URL:
+
+- A **streamable HTTP MCP endpoint** that implements `initialize`, `tools/list`, and `tools/call`.
+- A **bearer token** your server checks to confirm a request is from Lira.
+
+Most MCP servers can run in either mode — running as an HTTP server is usually a flag or a small wrapper. If your tools today only exist as a **local command** (the VS Code style above), your team needs to run that same server in HTTP mode and give it a public URL before Lira can use it.
+
+## The connection fields
+
+In **Settings → Support → Actions → MCP server → Connect**:
+
+| Field | What to put |
+|---|---|
+| **Label** | Any name you'll recognize this connection by. |
+| **Endpoint URL** | The HTTPS address of your MCP server, e.g. `https://mcp.yourcompany.com/mcp`. This comes from **your** server, not from Lira. |
+| **Environment** | Sandbox or Production. Defaults to your org's current environment. |
+| **Auth** | Bearer token (recommended) or None. |
+| **Bearer token** | The token your MCP server accepts. It comes from **your server's** config — Lira does not generate it. Stored encrypted; sent only to your endpoint. |
+
+Connecting saves the server **disabled** and validates the URL — an address that isn't a valid HTTPS endpoint is rejected before anything is saved.
 
 ## Set it up
 
@@ -32,6 +59,17 @@ Lira never lets the model call your server directly. Each tool you approve becom
 6. When you are ready, **Enable** the server. You can toggle individual tools or disable everything at any time.
 
 You can also do all of this from the [CLI or API](/platform/customer-support/developer-api) instead of the dashboard.
+
+## How Lira keeps it safe
+
+Lira never lets the model call your server directly. Each tool you approve becomes a normal Lira agent tool and still passes the full runtime before it can run:
+
+- **Nothing runs until an admin approves it** — discovery only lists your tools, it does not enable them.
+- You **map each tool** to a risk level (read, confirm-first, re-auth required, or human-only) and who can use it (anyone, verified visitor, or verified customer).
+- Money- and account-adjacent tools can require the customer to **re-authenticate (step-up)** before the action runs.
+- The **verified customer identity** is sent to your server out-of-band, so the AI cannot impersonate a different customer through the tool inputs.
+- Your **bearer credential is stored encrypted** and sent only to your endpoint; it is never shown back in the dashboard.
+- Every call is **logged and metered**, and the whole server can be disabled or disconnected instantly.
 
 ## Requirements for your server
 
