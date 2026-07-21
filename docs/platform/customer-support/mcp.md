@@ -47,16 +47,16 @@ In **Settings → Support → Actions → MCP server → Connect**:
 | **Auth** | Bearer token (recommended) or None. |
 | **Bearer token** | The token your MCP server accepts. It comes from **your server's** config — Lira does not generate it. Stored encrypted; sent only to your endpoint. |
 
-Connecting saves the server **disabled** and validates the URL — an address that isn't a valid HTTPS endpoint is rejected before anything is saved.
+Connecting validates the URL (an address that isn't a valid HTTPS endpoint is rejected before anything is saved) and turns the server **on** — but the AI still can't do anything until you **approve tools** individually. That per-tool approval is the real gate; the server switch is just a master on/off you can flip any time.
 
 ## Set it up
 
 1. Open **Settings → Support → Actions**.
 2. Under **MCP server**, choose **Connect** and enter your endpoint URL and bearer token. In production the endpoint must be HTTPS and cannot point at a private/internal address.
-3. Connecting saves the server **disabled** — nothing is live yet.
+3. Connecting turns the server **on** — but nothing is live yet, because no tools are approved.
 4. Choose **Discover tools** to load your tool list. Descriptions are sanitized on import.
-5. For each tool, pick a **risk level** and **audience**, then **Approve**. Approve only the tools you want the AI to use.
-6. When you are ready, **Enable** the server. You can toggle individual tools or disable everything at any time.
+5. For each tool, pick a **risk level** and **audience**, then **Approve**. Approve only the tools you want the AI to use — this is what actually makes a tool available.
+6. You can toggle individual tools, or use the master switch to disable the whole server, at any time.
 
 You can also do all of this from the [CLI or API](/platform/customer-support/developer-api) instead of the dashboard.
 
