@@ -44,6 +44,18 @@ Most MCP servers can run in either mode — running as an HTTP server is usually
 
 Credentials are stored encrypted and sent only to your endpoint. OAuth is the more robust choice — Lira never holds a long-lived token, and rotation is automatic.
 
+## Where to find it in the dashboard
+
+Click by click, from the moment you log in:
+
+1. Sign in to the dashboard at **[app.liraintelligence.com](https://app.liraintelligence.com)**.
+2. In the **left sidebar**, click **Settings** (the gear near the bottom).
+3. At the top of Settings, open the **Support** tab.
+4. Within Support, open the **Actions** tab.
+5. Find the **MCP server** panel and click **Connect**.
+
+That's the screen the fields below refer to. (Everything here is also available from the [CLI / Developer API](/platform/customer-support/developer-api) if you'd rather script it.)
+
 ## The connection fields
 
 In **Settings → Support → Actions → MCP server → Connect**:

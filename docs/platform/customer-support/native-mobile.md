@@ -26,6 +26,22 @@ Your app  ──►  Your backend (mints a Lira session token — holds the API 
    └── native chat screen  ──►  Lira chat WebSocket  ──►  AI (KB answers + actions + human handoff)
 ```
 
+:::tip Hand this page to your mobile/front-end team
+This page **is** the spec — send your developers this link and they can build the
+support screen from it. Redesign it however you like; just keep the functional
+must-haves so the experience stays clean:
+
+- **Render markdown** in AI messages — bold, code, copyable code blocks ([details](#render-markdown)). Don't print literal `**stars**`.
+- **Animated typing indicator** on the `typing` event (not a frozen label).
+- **Streaming** — accumulate `reply_chunk`s so replies appear as they're written.
+- **Avatars** — customer, your assistant, and the **human agent's photo** (handle `data:` URIs, not just `http`).
+- **Quick-reply chips** from the `suggestions` event.
+- **Confirm-before-action** sheet for the `confirm` event.
+- **Reconnect** control when the socket drops, so late human replies still arrive.
+
+The [reference app](#reference-app) already implements all of it.
+:::
+
 ## 1. Your backend mints a session token
 
 The app must **never** hold a Lira API key. Your backend does — it mints a
