@@ -33,7 +33,7 @@ Lira's quality is a direct function of what it knows about your product. Open **
 
 - **Web crawl** — paste your help center / docs URL. Lira crawls, summarizes, and stores each page. Re-runs on demand.
 - **Documents** — drop in PDFs, DOCX, Markdown, or CSV files.
-- **Connected sources** — connect Google Drive or GitHub once and Lira reads from them directly. New files appear in your KB automatically.
+- **Connected sources** — connect Google Drive when your support docs live there, then import the approved files into your KB.
 
 You can mix all three. See [Knowledge Base](/knowledge-base/overview) for the full picture.
 
@@ -62,7 +62,7 @@ Once activated, copy the embed snippet from **Settings → Support → Get conne
 
 Paste it before the closing `</body>` tag of your site. Reload — a Lira bubble appears in the bottom corner. Click it and chat.
 
-For framework-specific setup (Next.js, Vite, Remix, Rails, Django, Express, plain HTML), see [Integration guides](/platform/customer-support/integration-guides). For logged-in users with signed identity, see [Identified visitors on the widget page](/platform/customer-support/widget).
+For framework-specific setup (Next.js, Vite, Remix, Rails, Django, Express, plain HTML), see [Install guides](/platform/customer-support/integration-guides). For logged-in users with signed identity, see [Identified visitors on the widget page](/platform/customer-support/widget).
 
 ## Step 5 — Go further
 

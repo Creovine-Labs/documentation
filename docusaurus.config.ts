@@ -159,17 +159,17 @@ const config: Config = {
           items: [
             { label: 'Chat widget', to: '/platform/customer-support/widget' },
             { label: 'Support SDK', to: '/platform/customer-support/web-sdk' },
-            { label: 'Integration guides', to: '/platform/customer-support/integration-guides' },
+            { label: 'Install guides', to: '/platform/customer-support/integration-guides' },
             { label: 'Knowledge base', to: '/knowledge-base/overview' },
           ],
         },
         {
-          title: 'Integrations',
+          title: 'Developer',
           items: [
-            { label: 'Slack', to: '/integrations/slack' },
-            { label: 'Linear', to: '/integrations/linear' },
-            { label: 'GitHub', to: '/integrations/github' },
-            { label: 'All Integrations', to: '/integrations/overview' },
+            { label: 'WhatsApp', to: '/platform/customer-support/whatsapp' },
+            { label: 'MCP', to: '/platform/customer-support/mcp' },
+            { label: 'Developer API', to: '/platform/customer-support/developer-api' },
+            { label: 'Google Drive source', to: '/knowledge-base/google-drive' },
           ],
         },
         {

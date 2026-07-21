@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: Activating Customer Support
-description: Step-by-step walkthrough of the Lira support activation wizard — email, channels, integrations, knowledge base, and going live.
+description: Step-by-step walkthrough of the Lira support activation wizard — email, channels, notifications, knowledge base, and going live.
 ---
 
 # Activating Customer Support

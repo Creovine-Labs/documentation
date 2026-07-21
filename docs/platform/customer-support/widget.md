@@ -94,7 +94,7 @@ Keep it short and welcoming. You can ask a question to prompt the visitor:
 
 or announce what Lira can help with:
 
-> Hi! Ask me anything about our product, pricing, or integrations.
+> Hi! Ask me anything about our product, pricing, or support options.
 
 ---
 

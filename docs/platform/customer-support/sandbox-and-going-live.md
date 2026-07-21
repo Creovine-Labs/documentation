@@ -15,7 +15,7 @@ Every new Lira organisation starts in **sandbox** — a free environment where y
 Sandbox is built so you can evaluate everything, not a cut-down trial:
 
 - **Every feature is unlocked**, regardless of the plan you were invited on. WhatsApp configuration, tool packs, branding options — a Free-invited org can fully evaluate Scale-level behaviour before committing.
-- **Real-world side effects are suppressed.** Outbound emails and WhatsApp messages are dry-run: you see exactly what Lira *would* send (previewed in the dashboard), but nothing reaches a real inbox or phone. Integrations that would mutate live third-party systems (for example the Stripe tool pack, and real WhatsApp sends) stay blocked until you go live.
+- **Real-world side effects are suppressed.** Outbound emails and WhatsApp messages are dry-run: you see exactly what Lira *would* send (previewed in the dashboard), but nothing reaches a real inbox or phone. Approved actions that would mutate live systems stay blocked until you go live.
 - **A SANDBOX badge is visible.** The widget shows a SANDBOX pill in its header, and the dashboard shows a sandbox indicator, so nobody mistakes test traffic for production support.
 - **Payments are safe to rehearse.** A sandbox workspace runs checkout against Paddle's sandbox environment: you can practise subscribing and going live using Paddle **test cards** (for example `4242 4242 4242 4242`, any future expiry, any 3-digit code) and **no real money is charged**. Lira picks the Paddle environment automatically from the workspace's environment, so you never have to configure it. See [Subscription & Billing → Testing payments safely in sandbox](/getting-started/plans-and-billing#testing-payments-safely-in-sandbox).
 

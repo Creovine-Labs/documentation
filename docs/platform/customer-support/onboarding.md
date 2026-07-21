@@ -21,7 +21,7 @@ The card is interactive, not just a checklist:
 | 2 | **Teach Lira about your product** | Required | Knowledge Base tab |
 | 3 | **Install the support page (Web SDK)** | Required | Your codebase |
 | 4 | **Add the chat bubble** | Optional | Your codebase |
-| 5 | **Sign in your users + verify** | Required | Your codebase + Integration Health |
+| 5 | **Sign in your users + verify** | Required | Your codebase + Setup Health |
 
 Your setup is complete when every required step is green. Step 4 (chat bubble) is genuinely optional — many B2B products ship only the `/support` page and skip the floating widget.
 
@@ -50,7 +50,7 @@ All of this happens in the free **sandbox** environment. Switching the workspace
 
 **What:** seed your Knowledge Base. The fastest path is a website crawl, but you can also:
 - Upload PDFs, Markdown files, plain text docs
-- Connect Slack, Notion, Linear, Google Drive, GitHub, and other sources
+- Upload files, crawl your help center, or import approved files from Google Drive
 - Add KB entries manually
 
 **Why:** Lira's whole value is grounded answers about *your* product. With an empty KB, the AI hedges, gives generic responses, or escalates everything. The richer your KB, the smarter the agent.
@@ -105,7 +105,7 @@ If you use Claude Code or another AI editor, install our skill and run `/lira-in
 **What:** two sub-steps:
 
 1. **Identified-visitor signing.** Your backend signs each logged-in user's email with the widget secret (`HMAC-SHA256(LIRA_WIDGET_SECRET, email.trim().toLowerCase())`) and passes the signature to the SDK. Lira verifies it server-side before trusting the email.
-2. **Integration Health verification.** Run the diagnostics in Dashboard → **Settings → Support → Health & audit → Integration health**. Every check should be green before you call install done.
+2. **Setup Health verification.** Run the diagnostics in Dashboard → **Settings → Support → Health & audit → Setup health**. Every check should be green before you call install done.
 
 **Why:**
 - Without (1), Lira treats every visitor as anonymous — no name, no account context, no access to verified-only tools. For B2B SaaS this is critical.
@@ -125,7 +125,7 @@ The CLI scaffold creates this route for Next.js automatically. For other framewo
 
 Then visit Dashboard → **Settings → Support → Health & audit** and click **Run diagnostics**. Every row should be green.
 
-**Done when:** signing route is live, identified visitors are greeted by name in Lira chat, and the Integration Health panel is all green.
+**Done when:** signing route is live, identified visitors are greeted by name in Lira chat, and the Setup Health panel is all green.
 
 [→ Signed identity guide](/platform/customer-support/web-sdk#signed-identity)
 [→ Troubleshooting (when health checks fail)](/platform/customer-support/integration-guides/troubleshooting)

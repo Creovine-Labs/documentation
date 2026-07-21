@@ -18,7 +18,7 @@ description: Lira documentation — an AI customer support platform that learns 
 
 ## What Lira is
 
-Lira is an autonomous customer support layer for your product. It learns from your docs, your knowledge base, and (optionally) your connected systems (Drive, GitHub, Slack), then handles support across:
+Lira is an autonomous customer support layer for your product. It learns from your docs, your knowledge base, and approved product context, then handles support across:
 
 - A **chat widget** you embed on your site or app
 - A **full support portal** you can host inside your dashboard
@@ -72,7 +72,7 @@ Lira's answers are grounded in **your context**. You feed it as much or as littl
   </a>
   <a className="feature-card" href="/knowledge-base/connected-sources">
     <h3>🔗 Connected systems</h3>
-    <p>Connect Google Drive or GitHub and Lira reads from them directly. New docs land in your KB without anyone uploading anything.</p>
+    <p>Connect Google Drive and Lira can import approved support docs without anyone downloading and re-uploading files.</p>
   </a>
 </div>
 
@@ -84,7 +84,7 @@ Lira's answers are grounded in **your context**. You feed it as much or as littl
 | Replies | Templates / rules | Conversational, grounded, in your tone |
 | Takes action | No — points users at help articles | Yes — runs real actions in your product |
 | Escalates | When user clicks "talk to human" | When confidence is low **or** the visitor asks |
-| Integrates | Plugin marketplace | Native: Slack, Linear, Drive, GitHub, HubSpot, Salesforce |
+| Extends | Plugin marketplace | API, CLI, MCP, SDK context, and approved product actions |
 | Learns | Doesn't | Improves from every chat history, action result, and escalation |
 
 ## Explore
@@ -99,7 +99,7 @@ Lira's answers are grounded in **your context**. You feed it as much or as littl
     <p>From your first invite to a working widget in under 30 minutes.</p>
   </a>
   <a className="feature-card" href="/platform/customer-support/integration-guides">
-    <h3>🛠️ Integration guides</h3>
+    <h3>🛠️ Install guides</h3>
     <p>Step-by-step setup for Next.js, Vite, Remix, Rails, Django, Express, and plain HTML.</p>
   </a>
   <a className="feature-card" href="/platform/customer-support">

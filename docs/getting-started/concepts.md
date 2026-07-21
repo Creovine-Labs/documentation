@@ -2,7 +2,7 @@
 slug: /getting-started/concepts
 sidebar_position: 5
 title: Core Concepts
-description: The handful of building blocks you'll see across the Lira dashboard and API — organizations, members, knowledge base, conversations, tickets, actions, and integrations.
+description: The handful of building blocks you'll see across the Lira dashboard and API — organizations, members, knowledge base, conversations, tickets, actions, and developer access.
 ---
 
 # Core Concepts
@@ -11,7 +11,7 @@ A short tour of the building blocks you'll see across the Lira dashboard and API
 
 ## Organization
 
-An **Organization** is the top-level entity. Everything — knowledge base, integrations, team members, conversations, tickets, usage quotas, billing — is scoped to an organization.
+An **Organization** is the top-level entity. Everything — knowledge base, team members, conversations, tickets, usage quotas, billing, and developer access — is scoped to an organization.
 
 - You're provisioned with an organization when your account is set up (see [Get an Account](/getting-started/get-an-account)).
 - An organization has a **profile** (name, industry, description, custom instructions, optional logo) that Lira reads on every conversation as context.
@@ -23,7 +23,7 @@ An **Organization** is the top-level entity. Everything — knowledge base, inte
 A **Member** is a person on your team with access to an organization. Members have roles:
 
 - **Owner** — Created the org. Can transfer ownership, change billing, manage everything.
-- **Admin** — Manage knowledge base, integrations, members, and support settings.
+- **Admin** — Manage knowledge base, members, and support settings.
 - **Member** — Read-only access to the dashboard, can review conversations and tickets.
 
 Add a teammate from the **Members** page → **Invite a teammate**. Each invite is a one-time, expiring link tied to the invitee's email.
@@ -34,7 +34,7 @@ The **Knowledge Base** is the content Lira reads to answer questions in your vis
 
 - **Web crawl** — Point Lira at a help center / docs / marketing site. It crawls, summarizes, and stores each page; re-runs on demand.
 - **Documents** — Upload PDFs, DOCX, Markdown, CSV.
-- **Connected sources** — Connect Google Drive or GitHub once; Lira reads from them directly and new files land in the KB automatically.
+- **Connected sources** — Connect Google Drive when your support docs live there; Lira imports approved files into the KB.
 
 Content is prepared for semantic search so Lira can retrieve the most relevant snippets for each visitor question. That grounding is what keeps answers tied to your approved docs instead of generic AI guesses.
 
@@ -63,7 +63,7 @@ Tickets have a number (e.g. `LIRA-1234`), an owner, a state (open / pending / re
 
 A **Capability** is anything Lira's AI agent is allowed to invoke during a conversation. There are two kinds:
 
-- **Resource** — a structured read (e.g. customer profile, current ticket, integration health).
+- **Resource** — a structured read (e.g. customer profile, current ticket, or account status).
 - **Action** — a write (e.g. open a ticket, cancel a subscription, retry a payment).
 
 Every capability carries two pieces of policy metadata:
@@ -71,7 +71,7 @@ Every capability carries two pieces of policy metadata:
 - A **risk tier** (`read_public` → `read_private` → `safe_write` → `customer_confirm` → `step_up` → `admin_approve` → `human_only`).
 - An **auth scope** (`public` → `verified_visitor` → `verified_customer`).
 
-Capabilities come from built-in packs, connected integrations, the SDK, or admin-registered server-side definitions. The catalog is visible (and overridable) in **Settings → Support → AI behavior → Capabilities**.
+Capabilities come from built-in packs, MCP/API tools, the SDK, or admin-registered server-side definitions. The catalog is visible (and overridable) in **Settings → Support → AI behavior → Capabilities**.
 
 See [Customer Support → Agent Runtime](/platform/customer-support/agent-runtime) and [Capabilities](/platform/customer-support/capabilities).
 
@@ -99,12 +99,12 @@ A **Proactive trigger** is a rule that fires a contextual Lira message when a vi
 
 See [Customer Support → Proactive](/platform/customer-support/proactive).
 
-## Integration
+## Developer access
 
-An **Integration** connects Lira to a tool you already use. Each integration:
+Developer access is how your engineering team connects Lira to your product without using dashboard clicks for everything:
 
-1. Goes through an OAuth flow
-2. Optionally maps Lira members to external accounts
-3. Pushes or pulls data both ways (e.g. tickets to Slack, KB docs from Drive, issues into GitHub)
+1. **API keys** let your backend automate support setup and mint native support sessions.
+2. **CLI commands** let engineers configure Lira from a terminal.
+3. **MCP tools** let Lira call approved, governed product actions under your own auth.
 
-See [Integrations overview](/integrations/overview).
+See [Developer API keys & CLI](/platform/customer-support/developer-api) and [MCP server](/platform/customer-support/mcp).

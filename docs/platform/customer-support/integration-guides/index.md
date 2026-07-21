@@ -1,11 +1,11 @@
 ---
 sidebar_position: 1
 slug: /platform/customer-support/integration-guides
-title: Integration guides
+title: Install guides
 description: Step-by-step install instructions for every supported framework.
 ---
 
-# Integration guides
+# Install guides
 
 Pick the guide that matches your stack. Each page walks you through:
 
@@ -27,11 +27,11 @@ Pick the guide that matches your stack. Each page walks you through:
 Stack not listed? Use the [generic Web SDK guide](/platform/customer-support/web-sdk) — the SDK is framework-agnostic.
 
 :::tip Using Claude Code or another AI editor?
-Skip the manual steps — install our [Claude Code skill](/platform/customer-support/integration-guides/claude-code-skill) and run `/lira-install` in your editor. The skill detects your framework, asks for your org id, and scaffolds the integration in one command.
+Skip the manual steps — install our [Claude Code skill](/platform/customer-support/integration-guides/claude-code-skill) and run `/lira-install` in your editor. The skill detects your framework, asks for your org id, and scaffolds the setup in one command.
 :::
 
 :::info Something not working?
-See the [Troubleshooting guide](/platform/customer-support/integration-guides/troubleshooting) — symptom-to-fix map for every common integration problem. Or open **Lira dashboard → Settings → Support → Health & audit** to run live diagnostics on your integration.
+See the [Troubleshooting guide](/platform/customer-support/integration-guides/troubleshooting) — symptom-to-fix map for every common setup problem. Or open **Lira dashboard → Settings → Support → Health & audit** to run live diagnostics on your setup.
 :::
 
 ---

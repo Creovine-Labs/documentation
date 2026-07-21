@@ -206,7 +206,7 @@ POST /lira/v1/support/tickets/by-number/:ticketNumber/attachments
 
 In production, they are blocked by default with `410 Gone` unless
 `LIRA_ALLOW_LEGACY_PUBLIC_TICKET_ACCESS=true` is intentionally enabled for a
-temporary migration window. New integrations must use magic-link access or
+temporary migration window. New deployments must use magic-link access or
 verified SDK identity.
 
 ---
@@ -226,23 +226,6 @@ Lifecycle emails are automatic:
 Negative CSAT can create an internal recovery note. Resolved tickets with
 knowledge gaps can feed the knowledge-draft review loop so the team can improve
 future Lira answers.
-
----
-
-## Integration outbox
-
-Ticket events can fan out to connected systems through the integration outbox.
-The outbox is durable and retries failed delivery with backoff.
-
-Supported event types include:
-
-- `ticket.created`
-- `ticket.escalated`
-- `ticket.resolved`
-
-Configured providers can include Slack, Linear, and generic signed webhooks.
-External links are stored on the ticket so operators can jump from Lira to the
-matching Slack thread, Linear issue, or customer-owned workflow.
 
 ---
 

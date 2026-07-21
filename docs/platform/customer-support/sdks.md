@@ -100,4 +100,4 @@ All Lira SDKs follow [SemVer](https://semver.org/):
   long deprecation windows.
 
 The current Web SDK is `0.1.0`; we'll graduate to `1.0.0` once API surface
-has stabilised against real customer integrations (target: Q2 2026).
+has stabilised against real customer deployments (target: Q2 2026).

@@ -273,23 +273,17 @@ The maximum number of hours before an escalated ticket is considered to be breac
 
 Default: **4 hours**
 
-### Slack Channel
-
-Optional. A channel (e.g. `#support-escalations`) that receives a notification when a conversation is escalated. Requires the Slack integration to be connected.
-
-### Linear Team
-
-Optional. Escalated tickets are created as Linear issues in this team. Requires the Linear integration to be connected.
+Ticket notifications are sent to the escalation email configured here. Use a shared inbox like `support@yourcompany.com` if multiple teammates handle escalations.
 
 ---
 
 ## Health & audit tab
 
-Integration diagnostics plus a log of every action the agent ran on your behalf.
+Connection diagnostics plus a log of every action the agent ran on your behalf.
 
 ### Integration health
 
-Run diagnostics on demand to confirm your setup is working — widget install, identity signing, channels, and connected integrations. Every row should be green before you consider the install done. The same checks power the in-dashboard troubleshooting the AI runs when you ask it about widget issues.
+Run diagnostics on demand to confirm your setup is working — widget install, identity signing, channels, and action/runtime configuration. Every row should be green before you consider the install done. The same checks power the in-dashboard troubleshooting the AI runs when you ask it about widget issues.
 
 ### Agent audit log
 

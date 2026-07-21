@@ -27,7 +27,7 @@ The Knowledge Base is split into four tabs, each representing a different way to
 | Tab | What it does |
 |-----|-------------|
 | [**Documents**](/knowledge-base/documents) | Upload files directly — PDFs, Word docs, spreadsheets, markdown, and more |
-| [**Connected Sources**](/knowledge-base/connected-sources) | Pull documents in from Google Drive or GitHub without manual uploads |
+| [**Connected Sources**](/knowledge-base/connected-sources) | Pull documents in from Google Drive without manual uploads |
 | [**Web Sources**](/knowledge-base/web-sources) | Crawl and index pages from your website or any public URL |
 | [**Query**](/knowledge-base/query) | Ask questions and get AI answers grounded in everything you've indexed |
 
@@ -64,6 +64,6 @@ A thin KB usually means a high escalation rate. The first hour you spend pointin
 
 1. Go to **Sidebar → Grow → Knowledge Base**
 2. Start with the **Documents** tab — upload your most important reference files (product specs, policies, onboarding docs)
-3. Connect your **Google Drive** or **GitHub** if you want Lira to pull from those sources automatically
+3. Connect **Google Drive** if you want Lira to import files from an approved Drive source
 4. Optionally crawl your **website** to index public-facing content
 5. Use the **Query** tab to test that Lira can find and use the information you've added

@@ -118,7 +118,7 @@ The `<script>` is in your HTML but no bubble renders.
 
 ## Symptom: widget CDN unreachable {#widget-cdn-unreachable}
 
-The Integration Health check reports "Widget CDN reachable" as failed.
+The Setup Health check reports "Widget CDN reachable" as failed.
 
 **Fix:** Likely a transient network or CDN issue. Wait a minute and retry. If it persists, check [https://status.liraintelligence.com](https://status.liraintelligence.com).
 
@@ -126,7 +126,7 @@ The Integration Health check reports "Widget CDN reachable" as failed.
 
 ## Symptom: widget secret missing {#widget-secret-missing}
 
-The Integration Health check reports your widget secret isn't provisioned.
+The Setup Health check reports your widget secret isn't provisioned.
 
 **Fix:** The secret is generated at activation. Open **Settings → Support → Get connected → Widget secret** — if it shows "Secret not available", complete activation first. If a secret exists but you need a fresh one, click **Rotate**, then copy the new value into your backend `LIRA_WIDGET_SECRET`.
 
@@ -134,7 +134,7 @@ The Integration Health check reports your widget secret isn't provisioned.
 
 ## Symptom: org config missing {#config-missing}
 
-Integration Health reports "Support config provisioned: failed".
+Setup Health reports "Support config provisioned: failed".
 
 **Cause:** Customer support was never activated for this org.
 
@@ -169,6 +169,6 @@ Three places you can check your integration without contacting us:
 
 1. **Dashboard → Settings → Support → Health & audit** — runs every diagnostic with green/red checks + fixes.
 2. **Browser DevTools → Console** on the page where the widget is embedded — `[Lira]` warnings name the exact cause + fix + docs link.
-3. **Ask Lira's own AI in the Lira dashboard widget** — it runs the same Integration Health diagnostics and explains failures in plain English.
+3. **Ask Lira's own AI in the Lira dashboard widget** — it runs the same Setup Health diagnostics and explains failures in plain English.
 
 Use these before opening a support ticket — 90% of "the widget isn't working" cases are diagnosed and fixed in under a minute via these tools.

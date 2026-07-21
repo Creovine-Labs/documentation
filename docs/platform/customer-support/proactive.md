@@ -9,7 +9,7 @@ description: Automatically reach customers at exactly the right moment — befor
 Most customer support is reactive — a customer has a problem, they get frustrated, they contact you. Proactive outreach is different: **you reach out first**, right when something important happens in your product.
 
 :::info Delivery channels
-Proactive outreach is channel-aware. **Available today:** email and the embedded Lira widget / Web SDK. **Coming soon:** SMS (Twilio), web push, mobile push. **Currently disabled:** Slack DM and voice outreach. Email is the fastest channel to start with.
+Proactive outreach is channel-aware. **Available today:** email and the embedded Lira widget / Web SDK. **Coming soon:** web push, mobile push, and SMS. Email is the fastest channel to start with.
 :::
 
 Navigate to **Support → Proactive**.
@@ -42,7 +42,7 @@ Here are some examples of situations where proactive outreach makes a real diffe
 | You launch a new feature | Notify active customers with a short announcement |
 | A customer hasn't logged in for 30 days | Send a re-engagement message |
 | A support ticket has been open for 48 hours | Send a status update so the customer knows you're on it |
-| An integration they rely on goes down | Send an alert with a link to your status page |
+| A service they rely on goes down | Send an alert with a link to your status page |
 
 You decide exactly which events matter to your business. If your product tracks it, you can trigger a message from it.
 
@@ -124,9 +124,8 @@ How the outreach is delivered. Pick the channel that matches where your customer
 | **Email** | Billing notices, renewals, account reminders, official updates | Customer email in **Support → Customers** |
 | **In-app widget** | Reaching a customer while they are actively using your website or app | Lira widget installed and the visitor linked to a customer record |
 | **Web push** | Browser notifications after a customer opts in | Push subscription setup in the widget/service worker |
-| **SMS** | Urgent billing, renewal, outage, or security alerts | Twilio connected in **Integrations** and customer phone numbers on file |
+| **SMS** | Urgent billing, renewal, outage, or security alerts | SMS sender configured and customer phone numbers on file |
 | **Mobile push** | Native iOS/Android app notifications | Your mobile app must pass device tokens to Lira and connect push credentials |
-| **Slack DM** _(currently disabled)_ | B2B customers who live in Slack | Was: Slack connected in Integrations. Removed in current release; planned return as an Enterprise channel. |
 | **Voice** _(currently disabled)_ | High-urgency outreach where a call is appropriate | Voice runtime is feature-flagged off while call quality improves. Returns in a future release. |
 
 If a rule fires before its channel is configured, Lira records the attempt as `failed` in the Activity Log with the missing setup reason. That is intentional: it prevents silent delivery gaps.
@@ -190,23 +189,9 @@ Once at least one subscription is registered, the Web push channel is marked as 
 
 Lira auto-generates a unique VAPID key pair per org on first use and stores it securely. You do not need to generate or manage keys manually — the modal shows your public key. The private key is never exposed.
 
-### SMS with Twilio
-
-Go to **Integrations → Twilio SMS**, then add:
-
-1. Twilio Account SID
-2. Twilio Auth Token
-3. Twilio sender number, e.g. `+15551234567`
-
-Then make sure your customer records include phone numbers. Choose **SMS** when creating the proactive rule.
-
 ### Mobile push
 
 Mobile push is for organisations with a native iOS or Android app. Your app needs to send device tokens to Lira, and your organisation needs to provide push credentials for APNs or FCM. Once configured, proactive rules can deliver native push notifications.
-
-### Slack DM
-
-Connect Slack in **Integrations → Slack**. Lira can DM a customer if their customer email matches a Slack workspace user. If there is no matching user, Lira falls back to the configured default Slack channel.
 
 ### Voice
 
@@ -386,7 +371,7 @@ If you see `skipped`, it means the cooldown period hasn't elapsed since the last
 1. The `event` field exactly matches the Event Type on your trigger
 2. The `customerId` matches a record in **Support → Customers**
 3. The selected channel is configured for your organisation
-4. The customer has the required contact detail for that channel, such as email, phone, active widget session, Slack match, or push subscription
+4. The customer has the required contact detail for that channel, such as email, phone, active widget session, or push subscription
 5. Your HMAC signature is correctly computed
 
 ---
@@ -408,7 +393,7 @@ The **Activity Log** tab is your real-time view of everything Proactive is doing
 |--------|---------------|
 | Trigger | Which rule fired |
 | Customer | Who received the message |
-| Channel | How it was sent, such as email, widget, SMS, Slack, or push |
+| Channel | How it was sent, such as email, widget, SMS, or push |
 | Status | `sent` · `skipped` · `failed` |
 | Time | When Lira processed the event |
 

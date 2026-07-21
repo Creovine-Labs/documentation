@@ -1,5 +1,5 @@
 ---
-slug: /integrations/developer-api
+slug: /platform/customer-support/developer-api
 sidebar_position: 10
 title: Developer API keys & CLI
 description: Automate Lira from your own backend or CI — create a scoped API key, connect MCP tools, and mint native mobile support sessions.
@@ -7,7 +7,7 @@ description: Automate Lira from your own backend or CI — create a scoped API k
 
 # Developer API keys & CLI
 
-For teams that want to **script Lira** instead of clicking through the dashboard. An org admin creates a scoped API key, and your engineers use it with the Lira CLI or the REST API to connect [MCP tools](/integrations/mcp), approve them, and mint support sessions for your customers from your backend.
+For teams that want to **script Lira** instead of clicking through the dashboard. An org admin creates a scoped API key, and your engineers use it with the Lira CLI or the REST API to connect [MCP tools](/platform/customer-support/mcp), approve them, and mint support sessions for your customers from your backend.
 
 ## Create a key
 
@@ -37,7 +37,7 @@ export LIRA_API_KEY=lira_sk_…
 # Connect and govern an MCP server
 lira mcp connect --org-id=org_xxx --endpoint=https://mcp.yourcompany.com/mcp
 lira mcp discover --org-id=org_xxx
-lira mcp approve --org-id=org_xxx --source-name=riverly.card.freeze --risk=customer_confirm
+lira mcp approve --org-id=org_xxx --source-name=card.freeze --risk=customer_confirm
 lira mcp enable --org-id=org_xxx
 
 # From your backend, right after the customer authenticated:

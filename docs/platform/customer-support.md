@@ -82,13 +82,13 @@ The recommended B2B integration. Create your own support route, for example `lem
 Inbound phone support powered by Lira's real-time voice AI. Customers call your support line; Lira answers, understands their issue, and either resolves it or escalates to a human in the same workflow.
 
 ### Hosted Portal
-A branded, publicly accessible fallback page at `support.liraintelligence.com/your-slug`. Use it for temporary no-code launches or email links when a customer cannot integrate the Web SDK yet. [→ Hosted portal guide](/platform/customer-support/portal)
+A branded, publicly accessible fallback page at `support.liraintelligence.com/your-slug`. Use it for temporary no-code launches or email links when a customer cannot install the Web SDK yet. [→ Hosted portal guide](/platform/customer-support/portal)
 
 ---
 
 ## Getting started
 
-If you haven't activated the support module yet, the app will guide you through a short setup wizard covering email, channels, integrations, and knowledge base seeding.
+If you haven't activated the support module yet, the app will guide you through a short setup wizard covering email, channels, notifications, and knowledge base seeding.
 
 [→ Activation guide](/platform/customer-support/activation)
 

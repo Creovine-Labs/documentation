@@ -49,7 +49,7 @@ Claude Code will:
 
 ## What the skill knows
 
-The skill bundles all the framework knowledge that lives across our [integration guides](/platform/customer-support/integration-guides):
+The skill bundles all the framework knowledge that lives across our [install guides](/platform/customer-support/integration-guides):
 
 - Per-framework file layouts (e.g. Next.js gets `app/support/page.tsx`, Vite gets `src/Support.tsx`)
 - Where the widget secret must live (server-side env var, never `NEXT_PUBLIC_*`)

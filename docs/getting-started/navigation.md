@@ -19,7 +19,7 @@ The Lira app has a **left sidebar** that's visible on every page. From top to bo
 | **Top** | Home (Dashboard) |
 | **Work** | The pages you touch daily — Inbox, Tickets, Customers |
 | **Grow** | The pages you tune weekly — Knowledge Base, Proactive, Analytics |
-| **Admin** | Set-up-once surfaces — Members, Integrations, Email, Customer portal, Queues, SLA policies, Tasks, Delivery log |
+| **Admin** | Set-up-once surfaces — Members, Email, Queues, SLA policies, Tasks |
 | **Bottom** | Settings |
 
 If Customer Support isn't activated yet, the Work / Grow / Admin groups are replaced by a single **Customer Support** entry pointing at the activation wizard. Once you activate, the full structure appears.
@@ -75,7 +75,7 @@ The pages that improve answer quality and coverage over time.
 The Knowledge Base is what Lira reads to answer visitor questions. It has four tabs:
 
 - **Documents** — drag-and-drop PDFs, DOCX, MD, CSV (max 50 MB per file).
-- **Connected Sources** — link Google Drive or GitHub; Lira pulls files directly.
+- **Connected Sources** — link Google Drive; Lira imports approved files directly.
 - **Web Sources** — paste a URL; Lira crawls and indexes the site.
 - **Query** — ask questions against the KB to verify what Lira will see.
 
@@ -114,14 +114,6 @@ Manage who has access.
 
 To **leave** an org, scroll to the bottom of the Members page (non-owners only). Owners must transfer ownership first.
 
-### Integrations
-
-**Path:** Sidebar → Admin → **Integrations**
-
-Connect Slack, Microsoft Teams, Google Drive, Linear, GitHub, HubSpot, Salesforce. Click any integration card to start the OAuth flow.
-
-Full reference: [Integrations](/integrations/overview).
-
 ### Email
 
 **Path:** Sidebar → Admin → **Email**
@@ -133,12 +125,6 @@ Configure how Lira sends and receives email — sender identity, custom domain, 
 
 Full reference: [Email settings](/platform/email).
 
-### Customer portal
-
-**Path:** Sidebar → Admin → **Customer portal**
-
-Preview the hosted customer portal and share its URL. The portal's configuration (slug, branding, features) lives in **Settings → Support → Channels → Hosted page**.
-
 ### Queues and SLA policies
 
 **Path:** Sidebar → Admin → **Queues** / **SLA policies**
@@ -149,13 +135,7 @@ Route tickets into queues and define response-time policies.
 
 **Path:** Sidebar → Admin → **Tasks**
 
-Internal task tracker. Tasks created from tickets or directly inside your org land here. Push them to Linear / GitHub Issues if those integrations are connected.
-
-### Delivery log
-
-**Path:** Sidebar → Admin → **Delivery log**
-
-The audit trail of integration deliveries — Slack notifications, Linear issues, and webhook calls Lira sent on your behalf.
+Internal task tracker. Tasks created from tickets or directly inside your org land here.
 
 ---
 
@@ -183,7 +163,7 @@ Module-level support settings. An **Environment card** at the top shows whether 
 - **Get connected** — Web SDK snippets (full-page, JavaScript API, NPM, floating widget), widget colour and greeting, the widget secret for signed identity (show / copy / rotate), and mobile SDKs.
 - **Channels** — toggle web chat, voice, and email; connect WhatsApp; configure the Lira-hosted page.
 - **AI behavior** — auto-reply, confidence threshold, force-escalate intents, volume limits, and the [Capabilities](/platform/customer-support/capabilities) catalog.
-- **Escalation** — escalation email, SLA target, Slack channel, Linear team.
+- **Escalation** — escalation email and SLA target.
 - **Health & audit** — integration diagnostics plus the [agent audit log](/platform/customer-support/audit): every action run the agent made, with policy decision, redacted input/output, and estimated cost.
 
 Full reference: [Settings Reference](/platform/customer-support/settings).
@@ -209,7 +189,6 @@ If you belong to multiple orgs, the **org name at the top of the sidebar** is a 
 | Activate customer support | Customer Support → Activate (one-time wizard) |
 | Get the widget snippet | Settings → Support → Get connected |
 | Get the widget secret | Settings → Support → Get connected → Widget secret |
-| Connect Slack / Linear / GitHub | Admin → Integrations |
 | Set up a custom support email | Settings → Support → Channels → Email Support |
 | Upload company docs | Grow → Knowledge Base → Documents |
 | Crawl your help center | Grow → Knowledge Base → Web Sources |

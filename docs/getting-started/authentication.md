@@ -2,12 +2,12 @@
 slug: /getting-started/authentication
 sidebar_position: 4
 title: Authentication
-description: How users sign in, how programmatic clients authenticate, and how integration OAuth scopes are handled.
+description: How users sign in, how widget identity is verified, and how programmatic clients authenticate.
 ---
 
 # Authentication
 
-Lira authenticates **dashboard users** with email + password or Google Sign-In, scopes every API call to the user's organization via JWT, and uses **separate OAuth flows per integration** so login-scope and data-scope stay independent.
+Lira authenticates **dashboard users** with email + password or Google Sign-In, scopes every API call to the user's organization via JWT, and keeps product/customer identity separate from dashboard login.
 
 ## Dashboard login
 
@@ -62,31 +62,19 @@ Per-employee invite links (the ones org admins generate on the Members page) car
 
 In both cases the backend returns a 7-day JWT so the invitee lands signed in.
 
-## Integration OAuth flows
+## Google Drive source auth
 
-Each third-party integration runs its own OAuth flow with its own client/credentials. Lira uses **two separate Google OAuth client IDs** so logging into the dashboard never requests Drive or Calendar scopes:
+Google Drive is available as a Knowledge Base source. Lira uses separate Google OAuth clients so logging into the dashboard never requests Drive scopes:
 
 | Client ID | Purpose | Scopes |
 |---|---|---|
 | **Platform Client** | Google Sign-In on the dashboard | `openid`, `email`, `profile` |
-| **Integration Client** | Google Drive / Sheets / Docs access | `drive`, `spreadsheets`, etc. |
+| **Drive Source Client** | Google Drive / Sheets / Docs access | `drive`, `spreadsheets`, etc. |
 
-Per-provider auth methods:
+See [Google Drive Source](/knowledge-base/google-drive) for setup.
 
-| Provider | Method |
-|---|---|
-| Google Drive | OAuth 2.0 (integration client) |
-| Slack | OAuth V2 |
-| Microsoft Teams | Azure AD OAuth |
-| GitHub | OAuth App |
-| HubSpot | OAuth 2.0 |
-| Salesforce | OAuth 2.0 + PKCE |
-| Linear | OAuth 2.0 |
+## API keys and CLI
 
-See [Integrations](/integrations/overview) for per-provider setup.
+For programmatic access — CI, backend automation, native support session minting, and MCP setup — API keys can be generated from **Settings → Support → Developers**. Each key is scoped to a single organization and authorizes only the permissions selected at creation time.
 
-## API keys (programmatic clients)
-
-For programmatic access — CI, external automation, server-to-server calls — API keys can be generated from the organization settings. Each key is scoped to a single organization and authorizes the bearer to act as that organization.
-
-Treat keys like passwords. Rotate them via the same panel if a key is ever exposed.
+Treat keys like passwords. Rotate them via the same panel if a key is ever exposed. See [Developer API keys & CLI](/platform/customer-support/developer-api).

@@ -56,7 +56,7 @@ For teammates who are already on the Lira platform under a different organizatio
 In the dashboard, **Support → Activate** walks through:
 
 1. **Email setup** — choose a Lira-hosted support address (e.g. `support@your-company.lira.email`) or forward from your own domain.
-2. **Knowledge base** — upload docs, paste a website URL for crawling, or connect Google Drive / GitHub for live sync. See [Knowledge Base](/knowledge-base/overview).
+2. **Knowledge base** — upload docs, paste a website URL for crawling, or connect Google Drive as a source. See [Knowledge Base](/knowledge-base/overview).
 3. **Channel** — pick chat widget, full support page, or both. See [SDKs overview](/platform/customer-support/sdks).
 4. **Test & go live** — chat with your own Lira in test mode, confirm it sounds right, then flip the toggle to live.
 

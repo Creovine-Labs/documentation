@@ -22,7 +22,7 @@ A **capability** is anything the AI is allowed to invoke during a conversation. 
 
 | Kind | What it is | Examples |
 |---|---|---|
-| **Resource** | A read. The agent fetches structured data and may show it to the customer. | Customer profile, subscription state, current ticket, integration health. |
+| **Resource** | A read. The agent fetches structured data and may show it to the customer. | Customer profile, subscription state, current ticket, setup health. |
 | **Action** | A write. The agent performs an operation in your product or a connected system. | Open a support ticket, cancel a subscription, retry a failed payment, mark an onboarding step complete. |
 
 Every capability ships with two pieces of policy metadata:
@@ -32,8 +32,8 @@ Every capability ships with two pieces of policy metadata:
 
 Capabilities come from three sources today:
 
-1. **Built-in** — escalation, ticket creation, integration health, onboarding steps, knowledge-base search. Ship with Lira and need no setup.
-2. **Pack** — Stripe, Nimbus, and other first-party packs gated by your plan and connected integrations.
+1. **Built-in** — escalation, ticket creation, setup health, onboarding steps, knowledge-base search. Ship with Lira and need no setup.
+2. **Pack** — Stripe, Nimbus, and other first-party packs gated by your plan and connected services.
 3. **Server-side** — capabilities you register against your backend through the admin API. Useful for trusted operations you don't want to expose in browser code.
 
 Browser-side `Lira.registerResource(...)` and a richer `Lira.registerAction(...)` are on the roadmap but not yet shipped on `@liraintelligence/support`. Today the SDK's `registerAction(name, handler)` form still works and registers actions with conservative defaults.

@@ -2,12 +2,12 @@
 slug: /knowledge-base/connected-sources
 sidebar_position: 3
 title: Connected Sources
-description: Pull documents straight from Google Drive or GitHub without manual uploads — connect, browse, and import in one place.
+description: Pull documents straight from Google Drive without manual uploads — connect, browse, and import in one place.
 ---
 
 # Connected Sources
 
-The **Connected Sources** tab lets you pull in documents from cloud services you already use — without downloading and re-uploading files manually. Connect your Google Drive or GitHub account and Lira will list the available files so you can import them directly into the Knowledge Base.
+The **Connected Sources** tab lets you pull in documents from Google Drive without downloading and re-uploading files manually. Connect your Drive account and Lira will list the available files so you can import approved documents directly into the Knowledge Base.
 
 **Path:** Sidebar → Grow → Knowledge Base → **Connected Sources**
 
@@ -15,7 +15,7 @@ The **Connected Sources** tab lets you pull in documents from cloud services you
 
 ## Why use Connected Sources?
 
-Most organisational knowledge already lives in Drive or GitHub. Connected Sources lets you treat those as the source of truth — you manage files where you normally would, and import them into Lira with a click. When documents change, you simply re-import the updated version.
+Most organisational knowledge already lives in Drive. Connected Sources lets you treat Drive as the source of truth — you manage files where you normally would, and import them into Lira with a click. When documents change, you simply re-import the updated version.
 
 ---
 
@@ -30,7 +30,7 @@ Most organisational knowledge already lives in Drive or GitHub. Connected Source
 5. You'll be redirected back to Lira — the Google Drive tile will now show a file count
 
 :::note OAuth verification notice
-You may see a screen saying "Google hasn't verified this app." This is expected while Lira completes Google's formal review process. Click **Advanced → Go to Lira AI (unsafe)** to proceed safely. See the [Google Drive integration guide](/integrations/google-drive) for full details.
+You may see a screen saying "Google hasn't verified this app." This is expected while Lira completes Google's formal review process. Click **Advanced → Go to Lira AI (unsafe)** to proceed safely. See the [Google Drive source guide](/knowledge-base/google-drive) for full details.
 :::
 
 ### What files are available?
@@ -53,33 +53,6 @@ Already-imported files are shown with a green **Imported** badge.
 
 ---
 
-## GitHub
-
-### Connecting
-
-1. Click the **GitHub** tile on the Connected Sources tab
-2. You'll be redirected to GitHub's OAuth authorization page
-3. Click **Authorize Lira** and select which repositories to grant access to
-4. You'll be redirected back — the GitHub tile will show a file count
-
-### What files are available?
-
-Lira lists documentation and text files from your connected repositories:
-
-- Markdown files (`.md`, `.mdx`) — README files, wikis, changelogs
-- Plain text files (`.txt`)
-- Code files that contain meaningful documentation or configuration
-
-### Importing files
-
-The same import flow applies — click the GitHub tile to expand the file browser, then import individual files or all at once.
-
-Each file card shows:
-- The **repository** it belongs to (e.g. `org/repo-name`)
-- A **View** link to open it on GitHub
-
----
-
 ## Import status
 
 When you import a file, it enters the same processing pipeline as an uploaded document:
@@ -94,7 +67,7 @@ Imported files appear in the **Documents** tab after import, where you can track
 
 ## Re-importing updated files
 
-Lira does not automatically sync changes from Drive or GitHub. If a source file changes:
+Lira does not automatically sync changes from Drive. If a source file changes:
 
 1. Go to **Documents** and delete the old version
 2. Go back to **Connected Sources**, find the file, and click **Import** again

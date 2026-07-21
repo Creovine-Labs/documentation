@@ -1,5 +1,5 @@
 ---
-slug: /integrations/mcp
+slug: /platform/customer-support/mcp
 sidebar_position: 9
 title: MCP server
 description: Connect your own Model Context Protocol (MCP) server so Lira can take real, governed actions under your own auth.
@@ -9,7 +9,7 @@ description: Connect your own Model Context Protocol (MCP) server so Lira can ta
 
 The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is the standard way for AI applications to connect to external tools. If you run an MCP server, Lira can import your tools and let the AI use them during support — checking a transaction, freezing a card, scheduling a callback — while every call runs under **your own authentication**.
 
-This is the recommended path for connecting a mature product. The [REST tool pack](/integrations/overview) is the simpler alternative for basic APIs.
+This is the recommended path for connecting a mature product. The developer API and CLI are the automation layer for teams that want setup to happen from their own backend or terminal.
 
 ## How Lira keeps it safe
 
@@ -31,7 +31,7 @@ Lira never lets the model call your server directly. Each tool you approve becom
 5. For each tool, pick a **risk level** and **audience**, then **Approve**. Approve only the tools you want the AI to use.
 6. When you are ready, **Enable** the server. You can toggle individual tools or disable everything at any time.
 
-You can also do all of this from the [CLI or API](/integrations/developer-api) instead of the dashboard.
+You can also do all of this from the [CLI or API](/platform/customer-support/developer-api) instead of the dashboard.
 
 ## Requirements for your server
 
