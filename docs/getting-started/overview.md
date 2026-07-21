@@ -102,8 +102,8 @@ Lira's answers are grounded in **your context**. You feed it as much or as littl
     <h3>🛠️ Integration guides</h3>
     <p>Step-by-step setup for Next.js, Vite, Remix, Rails, Django, Express, and plain HTML.</p>
   </a>
-  <a className="feature-card" href="/architecture/overview">
-    <h3>🏗️ How it works</h3>
-    <p>The runtime, the models, the data flow — for the engineers who want to know what's under the hood.</p>
+  <a className="feature-card" href="/platform/customer-support">
+    <h3>Customer support</h3>
+    <p>Learn how Lira answers from your knowledge base, captures leads, opens tickets, and hands off to your team.</p>
   </a>
 </div>

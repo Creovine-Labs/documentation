@@ -24,7 +24,7 @@ New organisations activate into the **sandbox** environment: every feature is te
 
 Activation does several things behind the scenes:
 
-- Provisions your unique support email address on Lira's sending infrastructure (AWS SES)
+- Provisions your unique support email address on Lira's email-routing infrastructure
 - Stores your channel configuration (Web SDK Runtime, optional widget)
 - Generates your widget secret for identified-visitor HMAC signing
 - Configures your Ticketing Email so Lira knows where to send new-ticket notifications

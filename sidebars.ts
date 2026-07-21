@@ -95,23 +95,6 @@ const sidebars: SidebarsConfig = {
         'integrations/salesforce',
       ],
     },
-    {
-      type: 'category',
-      label: 'Architecture',
-      items: [
-        'architecture/overview',
-        'architecture/organization-context',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Infrastructure',
-      items: [
-        'infrastructure/overview',
-        'infrastructure/deployment',
-        'infrastructure/aws-resources',
-      ],
-    },
     'changelog',
   ],
 };

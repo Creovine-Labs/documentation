@@ -65,7 +65,7 @@ To put a chat bubble on every page of your site, add this single line before `</
 
 ## Identified visitors (if you have logged-in users)
 
-Plain HTML usually means no backend. If you DO have a backend somewhere (Cloudflare Worker, Netlify Function, Vercel serverless), add a signing endpoint:
+Plain HTML usually means no backend. If you do have a backend or serverless function available, add a signing endpoint:
 
 ```ts
 // Cloudflare Worker example

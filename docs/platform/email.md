@@ -105,7 +105,7 @@ You can independently enable or disable each event. For example, you might enabl
 
 ## AI Auto-Reply {#auto-reply}
 
-AI Auto-Reply allows Lira to autonomously respond to inbound email replies using updated frontier language models (Claude and GPT families), routed through the same provider-agnostic adapter as live chat — including automatic fallback so a single API outage never silences the reply path.
+AI Auto-Reply allows Lira to autonomously respond to inbound email replies using the same managed AI model layer as live chat, including automatic fallback so a single provider outage never silences the reply path.
 
 ### How it works
 

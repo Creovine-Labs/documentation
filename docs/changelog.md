@@ -118,7 +118,7 @@ Lira is now exclusively a **customer support platform**. The Meetings, Interview
 
 - **Document upload** — PDF, DOCX, TXT with automatic parsing and chunking
 - **Web crawl** — crawl a website with configurable depth and page limits
-- **Semantic search** — natural language queries matched against document chunks via OpenAI `text-embedding-3-small` + Qdrant (1536-dim vectors)
+- **Semantic search** — natural language queries matched against document chunks so answers stay grounded in approved knowledge
 - **Document reprocessing** — re-index existing documents after embedding model upgrades
 - Knowledge base context automatically injected into Nova Sonic system prompts
 

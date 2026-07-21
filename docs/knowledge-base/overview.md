@@ -39,7 +39,7 @@ Regardless of how content enters the Knowledge Base, it always goes through the 
 
 1. **Ingestion** — the raw file, URL, or API response is received
 2. **Chunking** — the content is split into smaller segments
-3. **Embedding** — each chunk is converted into a vector (a numerical representation of its meaning) using OpenAI's embedding model
+3. **Semantic indexing** — each chunk is prepared for meaning-based retrieval
 4. **Storage** — the vectors are stored in a vector database alongside the original text
 5. **Retrieval** — when Lira needs context, it runs a semantic search against those vectors to find the most relevant chunks
 

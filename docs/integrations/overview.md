@@ -31,7 +31,7 @@ Start the flow from **Admin → Integrations** in the sidebar and click **Connec
 
 ### 2. Encrypted token storage
 
-OAuth tokens (access + refresh) are encrypted via AWS KMS and stored in DynamoDB, scoped to your organization. Tokens are refreshed automatically when they expire.
+OAuth tokens (access + refresh) are encrypted, stored securely, and scoped to your organization. Tokens are refreshed automatically when they expire.
 
 ### 3. Member mapping (optional)
 

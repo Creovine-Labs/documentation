@@ -36,7 +36,7 @@ The **Knowledge Base** is the content Lira reads to answer questions in your vis
 - **Documents** — Upload PDFs, DOCX, Markdown, CSV.
 - **Connected sources** — Connect Google Drive or GitHub once; Lira reads from them directly and new files land in the KB automatically.
 
-Content is embedded via OpenAI and stored in Qdrant for semantic search. On every visitor question, the most relevant snippets are injected into Lira's reply context — that's what makes the answers grounded.
+Content is prepared for semantic search so Lira can retrieve the most relevant snippets for each visitor question. That grounding is what keeps answers tied to your approved docs instead of generic AI guesses.
 
 ## Conversation
 

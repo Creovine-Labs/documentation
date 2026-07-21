@@ -10,9 +10,9 @@ description: Complete guide to Lira's AI-powered customer support — Web SDK, t
 Lira's Customer Support module gives your organisation a fully autonomous AI support operation — handling inbound emails, in-app support, live chat, voice calls, tickets, and AI actions, all grounded in your Knowledge Base.
 
 :::info How Lira decides what to say
-Lira uses **updated frontier language models from the Claude and GPT families**, routed through a single provider-agnostic adapter. The adapter picks the best provider per organisation and automatically falls back to a secondary provider if the primary fails before the first token — so a single API outage never leaves a visitor staring at a half-formed reply.
+Lira uses a managed AI model layer with automatic fallback, so a single provider outage does not leave a visitor staring at a half-formed reply.
 
-For every visitor message, the **Organization Context System** assembles a fresh context bundle from four sources — your organisation profile, retrieved knowledge-base chunks, live product context from the SDK, and recent conversation history — before the model composes the reply. That's what makes the answers feel specific to your org and to the conversation in progress, not generic AI fluff. See [Organization Context System](/architecture/organization-context) for the full assembly order.
+For every visitor message, Lira uses your organization profile, relevant knowledge-base content, live product context from the SDK, and recent conversation history before it replies. That's what makes the answers feel specific to your org and to the conversation in progress, not generic AI fluff.
 :::
 
 Once activated, Lira reads every incoming message, searches your documentation for the best answer, and responds confidently. When it can't, it opens a **ticket** for your team to handle asynchronously — without breaking the live chat with the customer.
