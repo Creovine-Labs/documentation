@@ -137,6 +137,21 @@ to see each one implemented.
 | **History on resume** | You replay the thread | `history` |
 | **Resolved + CSAT** | You render a closing state and rating | `status: "resolved"`; send `end` with a score |
 
+## Render markdown
+
+AI replies come back as **markdown** — `**bold**`, `` `code` ``, fenced code
+blocks, lists, links. Render it, don't print it raw, or customers see literal
+asterisks and backticks. This is a UI responsibility you can't skip:
+
+- **Flutter** — `flutter_markdown` (`MarkdownBody`), as in the reference app.
+- **Swift** — `AttributedString(markdown:)` or a markdown view.
+- **Kotlin/Compose** — a markdown renderer (e.g. `compose-markdown`).
+- **React Native** — `react-native-markdown-display`.
+
+Render markdown only for **AI / agent** messages; the customer's own text is
+plain. Style code blocks with a monospace font and, ideally, a copy button —
+Lira often returns copyable snippets (IDs, commands, config).
+
 ## Streaming replies
 
 Accumulate `reply_chunk.body` into the bubble keyed by `message_id`; finalize on
