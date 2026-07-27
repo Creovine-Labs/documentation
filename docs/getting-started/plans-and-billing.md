@@ -16,7 +16,7 @@ for the AI's work, never per agent.
 | Overage per extra 1,000 | — | $12 | $8 | Custom |
 | Languages | 2 | 5 | 5 | 5+ |
 | WhatsApp Business API | — | — | ✓ | ✓ |
-| Localized voice (Nigerian) | — | — | ✓ | ✓ |
+| Localized voice | — | — | ✓ | ✓ |
 | Custom brand voice | — | — | — | ✓ |
 | Multiple domains | — | — | ✓ | ✓ |
 | "Powered by Lira" removed | — | ✓ | ✓ | ✓ |
@@ -27,10 +27,10 @@ A **conversation** is one complete chat session between a visitor and the
 agent — not one per message. WhatsApp Business API conversations additionally
 carry Meta's per-conversation fees, billed on top of your plan.
 
-**Localized voice** lets the agent answer out loud in a natural Nigerian voice
-on **Scale** and **Enterprise** (enabled during onboarding; voice usage is
-metered per minute). **Enterprise** can also commission a **custom brand
-voice** — your own voice, cloned with consent. See
+**Localized voice** lets the agent answer out loud in a natural voice matched
+to your market, on **Scale** and **Enterprise** (enabled during onboarding;
+voice usage is metered per minute). **Enterprise** can also commission a
+**custom brand voice**, in their own voice and tone, cloned with consent. See
 [Localized Voice](/platform/customer-support/voice) for details.
 
 ## How your plan is set

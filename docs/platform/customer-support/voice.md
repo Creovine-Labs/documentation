@@ -7,9 +7,9 @@ sidebar_label: Voice
 # Localized voice
 
 Lira can talk to your customers, not just type. The same knowledge-grounded
-agent that powers chat can answer out loud in a **natural, localized voice** —
-starting with **Nigerian** voices — so a caller hears a warm, on-brand agent
-that actually understands them instead of a robotic, foreign-sounding IVR.
+agent that powers chat can answer out loud in a **natural, localized voice**
+matched to your market, so a caller hears a warm, on-brand agent that actually
+understands them instead of a robotic, foreign-sounding IVR.
 
 It is the same brain as chat: answers are grounded in your knowledge base, the
 agent can take approved actions, and anything it cannot resolve is escalated to
@@ -37,8 +37,8 @@ any time instead of talking.
 
 ## Choosing a voice
 
-- **Scale** — choose from Lira's curated library of localized voices (Nigerian
-  voices available today, with more accents added over time). Lira manages the
+- **Scale** — choose from Lira's curated library of localized voices matched to
+  your market, with more accents and languages added over time. Lira manages the
   voice provider, quality, and licensing for you.
 - **Enterprise** — optionally commission a **custom brand voice**: your own
   chosen voice, cloned with the speaker's written consent, so the agent sounds
