@@ -55,6 +55,7 @@ const sidebars: SidebarsConfig = {
             },
             'platform/customer-support/widget',
             'platform/customer-support/portal',
+            'platform/customer-support/voice',
             {
               type: 'category',
               label: 'Agent Runtime',
