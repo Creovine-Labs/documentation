@@ -2,7 +2,7 @@
 slug: /platform/customer-support
 sidebar_position: 4
 title: Customer Support
-description: Complete guide to Lira's AI-powered customer support — Web SDK, tickets, widget, hosted fallback portal, proactive outreach, autonomous actions, and analytics.
+description: Complete guide to Lira's intelligent customer support — Web SDK, tickets, widget, hosted fallback portal, proactive outreach, autonomous actions, and analytics.
 ---
 
 # Customer Support

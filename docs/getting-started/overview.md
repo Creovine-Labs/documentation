@@ -2,12 +2,12 @@
 slug: /
 sidebar_position: 1
 title: What is Lira?
-description: Lira documentation — an AI customer support platform that learns your product, handles your inbox, and escalates the things that need a human.
+description: Lira documentation — the intelligent customer-support layer that resolves issues across chat, email, voice, and WhatsApp, grounded in your own knowledge, and escalates only what truly needs a human.
 ---
 
 <div className="hero-lira">
   <h1>Lira Documentation</h1>
-  <p>An AI customer support platform that learns your product, replies in your voice, runs tickets and proactive workflows, and hands off to a human only when it should.</p>
+  <p>The intelligent support layer that doesn't just answer — it resolves. Grounded in your own knowledge, working across chat, email, voice, and WhatsApp, taking secure action inside your product, and handing off to a human only when it should.</p>
   <div className="hero-buttons">
     <a className="button button--primary button--lg" href="/getting-started/quickstart">Get Started →</a>
     <a className="button button--outline button--lg" href="/getting-started/get-an-account">Get an Account</a>
@@ -18,7 +18,7 @@ description: Lira documentation — an AI customer support platform that learns 
 
 ## What Lira is
 
-Lira is an autonomous customer support layer for your product. It learns from your docs, your knowledge base, and approved product context, then handles support across:
+Lira is an intelligent, autonomous customer-support layer for your product. It doesn't just answer questions — it **resolves** them: learning from your docs, your knowledge base, and approved product context, remembering what matters, and taking secure action on the visitor's behalf. It works across:
 
 - A **chat widget** you embed on your site or app
 - A **full support portal** you can host inside your dashboard
