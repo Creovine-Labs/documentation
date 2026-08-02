@@ -17,15 +17,17 @@ If you don't have an account yet, start at **[Get an Account](/getting-started/g
 
 ## Prerequisites
 
-- An invite link from the Lira team (delivered by email after your scoping call)
+- An email address (that's it — signup is free and self-serve)
 - A site or app you can paste a `<script>` tag into — staging is fine
 - A help center URL, a few PDFs, or a Google Drive folder with docs (any one of these works)
 
-## Step 1 — Accept your invite
+## Step 1 — Create your account and organization
 
-Click the invite link in your email. You'll land on `/accept-invite?token=…`, set a password, and get dropped into the Lira dashboard with your organization already set up.
+Sign up at **[liraintelligence.com/signup](https://liraintelligence.com/signup)**, verify your email, and the onboarding flow creates your organization. You land in the dashboard as its owner, on the Free plan, in sandbox.
 
-If you're inviting teammates next, go to **Members** in the sidebar and click **Invite a teammate**. Each invite is a one-time, expiring link tied to a specific email — they set their own password when they accept.
+If you were sent a concierge invite link instead, click it — you'll land on `/accept-invite?token=…`, set a password, and get dropped into the dashboard with your organization already set up.
+
+To bring in teammates, go to **Members** in the sidebar and click **Invite a teammate**. Each invite is a one-time, expiring link tied to a specific email — they set their own password when they accept. Seats are unlimited on every plan.
 
 ## Step 2 — Feed Lira your knowledge
 

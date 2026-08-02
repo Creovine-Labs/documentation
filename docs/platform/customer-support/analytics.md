@@ -61,7 +61,7 @@ A simple count of:
 - **Conversations this month** — total conversations started in the current calendar month
 - **AI replies this month** — total AI-generated replies sent
 
-Compare these against your monthly limits (visible in **Settings → Subscription**, or **Settings → Support → AI behavior → Volume & Limits**) to track your usage trajectory.
+Compare these against your monthly limits (visible in **Settings → Subscription**, or the **This month** card in **Settings → Support → Behavior**) to track your usage trajectory.
 
 ---
 
@@ -98,7 +98,7 @@ Shows how many **Knowledge Base drafts** were created and approved during the we
 
 **If autonomous rate is low:**
 - Your Knowledge Base may be sparse — add more documents and connected sources
-- Your confidence threshold may be too high — try lowering it from Settings → Support → AI behavior
+- Your confidence threshold may be too high — try loosening it from Settings → Support → Behavior → Confidence to answer
 - Check top intents to find which topics Lira is struggling with
 
 **If CSAT is low:**

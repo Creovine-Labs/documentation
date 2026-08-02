@@ -6,7 +6,7 @@ description: How Lira learns about your organisation — what the Knowledge Base
 
 # Knowledge Base
 
-The Knowledge Base is what Lira reads to answer your customers. Every PDF, doc, help center page, or KB article you add becomes part of what she knows — so her replies are grounded in your real product rather than generic AI knowledge.
+The Knowledge Base is what Lira reads to answer your customers. Every document, help center page, or KB article you add becomes part of what she knows — so her replies are grounded in your real product rather than generic AI knowledge.
 
 ---
 
@@ -26,7 +26,7 @@ The Knowledge Base is split into four tabs, each representing a different way to
 
 | Tab | What it does |
 |-----|-------------|
-| [**Documents**](/knowledge-base/documents) | Upload files directly — PDFs, Word docs, spreadsheets, markdown, and more |
+| [**Documents**](/knowledge-base/documents) | Upload files directly — Word docs, text, markdown, CSV, spreadsheets (max 25 MB) — or write a note by hand |
 | [**Connected Sources**](/knowledge-base/connected-sources) | Pull documents in from Google Drive without manual uploads |
 | [**Web Sources**](/knowledge-base/web-sources) | Crawl and index pages from your website or any public URL |
 | [**Query**](/knowledge-base/query) | Ask questions and get AI answers grounded in everything you've indexed |

@@ -8,6 +8,9 @@
 .docusaurus
 .cache-loader
 
+# Raw Markdown mirror emitted by the docs-raw-markdown plugin (Copy/Download .md)
+/static/md
+
 # Misc
 .DS_Store
 .env.local

@@ -234,7 +234,7 @@ Every setting you configure during activation can be changed later:
 | Portal slug | Settings → Support → Channels → Hosted page |
 | Widget colour & greeting | Settings → Support → Get connected |
 | Widget secret (identified visitors) | Settings → Support → Get connected → Widget secret |
-| Auto-reply & confidence threshold | Settings → Support → AI behavior → Reply behavior |
+| Auto-reply & confidence threshold | Settings → Support → Behavior |
 | Ticketing email + SLA target | Settings → Support → Escalation (or activation Step 3) |
 | Sandbox / live environment | Settings → Support → Environment card (above the tabs) |
 

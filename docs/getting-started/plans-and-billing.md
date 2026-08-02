@@ -35,9 +35,13 @@ voice usage is metered per minute). **Enterprise** can also commission a
 
 ## How your plan is set
 
-Lira is invite-only. The plan you agreed with the Lira team is attached to
-your invitation — when you sign up, your organization starts on exactly that
-plan, with its limits and features applied automatically.
+Every new organization starts on **Free**. You upgrade to Pro or Scale yourself
+from **Settings → Billing**, and the new limits apply as soon as the Paddle
+checkout completes. Enterprise plans are arranged with our team and attached to
+your organization directly.
+
+If you signed up through a concierge invite link, the plan agreed with the Lira
+team is attached to that invitation and applied automatically instead.
 
 ## Sandbox first, then live
 

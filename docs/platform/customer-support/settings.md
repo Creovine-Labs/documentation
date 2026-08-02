@@ -1,29 +1,34 @@
 ---
 sidebar_position: 8
 title: Settings Reference
-description: Complete reference for all Support settings — the Environment card and the five groups Get connected, Channels, AI behavior, Escalation, and Health & audit.
+description: Complete reference for all Support settings — the Environment card and the seven groups Get connected, Channels, Behavior, Actions, Developers, Escalation, and Health & audit.
 ---
 
 # Settings Reference
 
 All Support settings live at **Settings → Support**. The page has two parts:
 
-1. An **Environment card** at the top, always visible, showing whether the workspace is in **SANDBOX** or **LIVE** mode with a switch to change it. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
-2. Five grouped tabs below it:
+1. An **Environment card** at the top, always visible, showing whether the workspace is in **SANDBOX** or **LIVE** mode with a **Sandbox / Production** switch. See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+2. Seven grouped tabs below it:
 
 | Tab | What it holds |
 |---|---|
-| **Get connected** | Web SDK snippets, widget appearance, the widget secret, mobile SDKs |
+| **Get connected** | Install snippets (Web widget / Full page / JavaScript / npm), widget appearance & greeting, the signing secret, mobile SDKs |
 | **Channels** | Web chat, voice, email, WhatsApp, and the Lira-hosted page |
-| **AI behavior** | Auto-reply, confidence threshold, volume limits, and the capabilities catalog |
-| **Escalation** | Where conversations go when a human needs to step in |
+| **Behavior** | Auto-reply, confidence threshold, always-escalate topics, and compliance guardrails |
+| **Actions** | Let Lira take real actions — connect an MCP server, a REST adapter with agent tool packs, or manually registered actions |
+| **Developers** | Developer API keys (`LIRA_API_KEY`) and the CLI / API quickstart |
+| **Escalation** | Where conversations go when a human steps in — alert email, SLA target, and Slack / Linear / webhook destinations |
 | **Health & audit** | Integration diagnostics and the agent audit log |
 
-Changes take effect after clicking **Save** (a Save button sits next to the tab bar and in a sticky bar at the bottom of the page — there is no auto-save). Two exceptions: the **Capabilities** section saves inline per row, and the **Agent audit log** is read-only.
+Changes take effect after clicking **Save** (a Save button sits next to the tab bar and in a sticky bar at the bottom of the page — there is no auto-save). The **Agent audit log** is read-only.
 
-Plan, usage, go-live status, billing status, Paddle Checkout, and the Paddle
-customer portal also appear on the separate **Settings → Subscription** tab —
-see [Subscription & Billing](/getting-started/plans-and-billing).
+> **Moved:** the old **AI behavior** tab is now **Behavior**, and the **Capabilities catalog** it used to contain has been replaced by the new **Actions** tab (MCP servers, REST adapter tool packs, and manually registered actions). Anywhere you previously went to "Settings → Support → AI behavior → Capabilities," go to **Settings → Support → Actions**.
+
+Plan, usage, go-live status, and plan-change requests appear on the separate
+**Settings → Subscription** tab; invoices, payment methods, and license
+management live on the **Settings → Billing** tab — see
+[Subscription & Billing](/getting-started/plans-and-billing).
 
 ---
 
@@ -191,70 +196,70 @@ The optional Lira-hosted fallback page for teams that cannot embed code yet. For
 
 ---
 
-## AI behavior tab
+## Behavior tab
 
-How the AI replies, when it holds back, and which actions it is allowed to take.
+How the AI replies and when it holds back. (Previously called **AI behavior**.)
 
-### Reply behavior
+### Replies
 
 #### Auto-reply
 
-When enabled, Lira automatically sends responses to customers when its confidence is at or above the threshold. When disabled, Lira will process conversations but not send any replies — useful for monitoring mode or during initial setup.
+When enabled, Lira automatically answers customers when it's confident. When disabled, Lira drafts a reply for a human to send instead of sending on its own — useful for monitoring mode or during initial setup.
 
 Default: **On**
 
-#### Confidence Threshold
+#### Confidence to answer
 
-A slider from 0% to 100%. Lira generates a confidence score for each response based on how well it can ground the answer in your Knowledge Base. If the score is **below this threshold**, the conversation is automatically escalated to your team.
+A slider with three presets — **Cautious**, **Balanced**, **Strict**. Lira scores each response on how well it can ground the answer in your Knowledge Base. Below the threshold, Lira hands the conversation to a human instead of guessing.
 
-| Threshold | Effect |
+| Setting | Effect |
 |-----------|--------|
-| **Low (e.g. 40%)** | Lira responds to more conversations autonomously — may include lower-quality answers |
-| **Medium (e.g. 70%)** | Balanced — good autonomous rate with solid quality (recommended starting point) |
-| **High (e.g. 90%)** | Very few autonomous responses — most conversations escalate to humans |
+| **Cautious (lower)** | Answers more, asks humans less — may include lower-quality answers |
+| **Balanced (~70%)** | Good autonomous rate with solid quality (recommended starting point) |
+| **Strict (higher)** | Answers only when very sure — most uncertain conversations escalate |
 
-Default: **70%**
+Default: **70% (Balanced)**
 
 :::tip Calibrating the threshold
-Start at 70%. Check your Analytics page after the first week. If escalation rate is too high and CSAT is good on autonomous conversations, lower the threshold. If CSAT on autonomous conversations is poor, raise it.
+Start at Balanced. Check your Analytics page after the first week. If escalation rate is too high and CSAT is good on autonomous conversations, loosen it. If CSAT on autonomous conversations is poor, tighten it.
 :::
 
-#### Force-Escalate Intents
+### This month
 
-A comma-separated list of intent labels. If Lira detects any of these intents in a conversation, it **always** escalates — regardless of how confident it is.
+A read-only usage card showing **Conversations** and **AI replies** used this month against your plan. In sandbox these are the sandbox testing caps; once live they are your plan's limits. The fuller usage view — including sandbox extensions and plan changes — is on **Settings → Subscription**. See [Subscription & Billing](/getting-started/plans-and-billing).
 
-Use this for sensitive or high-risk topics where you always want a human involved:
+### Advanced
 
-```
-data_privacy, account_security, legal, fraud, billing_dispute, refund_request
-```
+- **Always escalate certain topics** — name topics that skip the AI and go straight to a human, regardless of confidence (e.g. data privacy, account security, legal, fraud, billing disputes, refunds).
+- **Compliance guardrails** (fintech) — rules for regulated support: advice limits, complaint timing, currency handling.
 
-Lira's intent detection is based on the content of the customer's message. When it classifies a conversation's intent as matching one of these labels, escalation happens immediately.
+---
 
-#### Volume & Limits
+## Actions tab
 
-A read-only display showing your current usage against your monthly limits:
+Where you let Lira take **real actions** by calling your own systems. Every call still passes Lira's policy, confirmation / step-up, audit, and metering. (This replaces the old **Capabilities** catalog.)
 
-- **Conversations this month** / maximum per month
-- **AI replies this month** / maximum per month
+### Connect a system — MCP server (recommended)
 
-In sandbox these are the sandbox testing caps; once live they are your plan's limits. The fuller usage view — including sandbox extensions, plan changes, billing status, and Paddle customer portal access — is on **Settings → Subscription**. See [Subscription & Billing](/getting-started/plans-and-billing).
+Point Lira at your MCP endpoint. Your tools run under your own auth. Nothing is callable until you **discover** the tools and **approve** them.
 
-### Capabilities
+### REST adapter — Agent tool packs
 
-The catalog of resources and actions Lira's AI agent is allowed to call inside your org. Each row carries a kind (`resource` or `action`), a risk tier, an auth scope, and a `runtime executable` or `metadata only` badge.
+No MCP server yet? Connect a REST API that follows Lira's convention (or a thin adapter in front of your real API). Each enabled **tool pack** exposes tools the agent can call during a chat. Example: the **Banking / Fintech actions** pack (`fintech_transaction_status`, `fintech_freeze_card`, `fintech_report_card_lost`, `fintech_open_dispute`, `fintech_change_limit`, `fintech_switch_plan`, `fintech_kyc_status`, …). Your key stays server-side; the verified customer is passed as the `X-Lira-Customer` header. **Money-moving actions automatically require the customer to re-authenticate (step-up) before running.**
 
-Admins can:
+### Advanced — manually registered actions (SDK)
 
-- Override the description, input/output schemas, risk tier, and auth scope of any built-in capability.
-- Disable a capability entirely so the agent stops seeing it.
-- Register new server-side capabilities ahead of an executor existing — they appear as `metadata only` until the runtime wires them up.
+Declare a server-side action by name so the AI knows it exists, ahead of wiring the executor. Most orgs use MCP instead.
 
-Overrides may only **tighten** policy, never loosen it. The runtime rejects loosening writes with `RISK_LOOSENED` or `SCOPE_LOOSENED`.
+[→ Full Actions guide](/platform/customer-support/actions)
 
-Unlike the rest of the page, capability rows save inline — each edit is applied immediately without the Save button.
+---
 
-[→ Full Capabilities guide](/platform/customer-support/capabilities)
+## Developers tab
+
+**Developer API keys** for automating Lira from the CLI or API — connecting MCP tools and minting native mobile support sessions from your backend. Create a key, then use it as `LIRA_API_KEY` (scopes such as `mcp:read`, `mcp:write`, `support:read`). A **CLI / API quickstart** on the same tab shows how to connect an MCP server and mint a customer session.
+
+[→ Developer API](/platform/customer-support/developer-api)
 
 ---
 
@@ -262,17 +267,21 @@ Unlike the rest of the page, capability rows save inline — each edit is applie
 
 Where conversations go when a human needs to step in.
 
-### Escalation Email
+### Alert email
 
-The address that receives an alert whenever a conversation is escalated (including when Lira opens a ticket). Defaults to your account email; switch to a shared inbox like `support@yourcompany.com` if your team handles escalations together.
+The address that receives an alert whenever a conversation is escalated (including when Lira opens a ticket). Leave blank to email the org owner automatically; set a shared inbox like `support@yourcompany.com` if your team handles escalations together. There is also a toggle to turn the ticket-opened email on or off.
 
-### SLA Target (hours)
+### Response-time target
 
-The maximum number of hours before an escalated ticket is considered to be breaching SLA. Range: 1–72 hours.
+The number of hours before an escalated ticket is flagged as overdue. Range: 1–72 hours. Default: **4 hours**.
 
-Default: **4 hours**
+### Automatic handoff
 
-Ticket notifications are sent to the escalation email configured here. Use a shared inbox like `support@yourcompany.com` if multiple teammates handle escalations.
+Let Lira bring in a human on its own — VIP customers, negative sentiment, repeated failures, and more.
+
+### Extra destinations
+
+Email always fires. You can also send the same ticket events to **Slack** (post to a channel), **Linear** (open an issue), or a signed **Webhook** (HTTPS only, HMAC-SHA256). Every delivery is retried and logged in **Support → Outbox**.
 
 ---
 
@@ -280,20 +289,20 @@ Ticket notifications are sent to the escalation email configured here. Use a sha
 
 Connection diagnostics plus a log of every action the agent ran on your behalf.
 
-### Integration health
+### Setup Health
 
-Run diagnostics on demand to confirm your setup is working — widget install, identity signing, channels, and action/runtime configuration. Every row should be green before you consider the install done. The same checks power the in-dashboard troubleshooting the AI runs when you ask it about widget issues.
+Run diagnostics on demand to confirm your setup is working — support config, module activation, Web SDK runtime, widget secret, signature roundtrip, widget CDN reachability, and ticketing email. Every failed check tells you what's wrong **and** how to fix it. The same checks power the in-dashboard troubleshooting the AI runs when customers ask about widget issues.
 
 ### Agent audit log
 
-The persistent record of every capability call the AI agent made — successful, blocked, pending approval, or failed. Each row is an `AgentActionRun` with:
+The persistent record of every resource and action the AI agent used while helping customers — tickets, escalations, setup changes, setup-health checks, and approved customer actions. Each row includes:
 
-- Capability name, kind, status, risk tier, and effective auth scope.
+- Action / resource name, kind, and status.
 - Redacted input / output summary (emails masked, secret-named fields stripped).
-- Policy decision, conversation ID, visitor ID, and any ticket ID created.
-- Estimated tokens in / out and the model cost in USD.
+- Policy decision and any ticket ID created.
+- Estimated model cost in USD.
 
-Filters: status and capability name. The log is read-only.
+The log is read-only.
 
 [→ Full Audit guide](/platform/customer-support/audit)
 
@@ -301,11 +310,6 @@ Filters: status and capability name. The log is read-only.
 
 ## Saving settings
 
-The **Get connected**, **Channels**, **AI behavior** (Reply behavior), and **Escalation** groups share a single Save action — one button next to the tab bar and one in the sticky bar at the bottom of the page. Click it after making changes; there is no auto-save.
-
-Two surfaces do not use the Save button:
-
-- **Capabilities** (in AI behavior) saves each row inline — every upsert / delete is its own admin API call, applied immediately.
-- **Agent audit log** (in Health & audit) is read-only.
+The **Get connected**, **Channels**, **Behavior**, and **Escalation** groups share a single Save action — one button next to the tab bar and one in the sticky bar at the bottom of the page. Click it after making changes; there is no auto-save. The **Actions** and **Developers** tabs apply changes when you connect / create (per row); the **Agent audit log** is read-only.
 
 You can move between tabs without losing unsaved changes, but refreshing or leaving the page will discard any uncommitted edits.

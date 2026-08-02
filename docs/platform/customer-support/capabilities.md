@@ -6,9 +6,11 @@ description: Manage the catalog of resources and actions Lira's AI agent is allo
 
 # Capabilities
 
-The **Capabilities** catalog is the admin view of everything Lira's AI agent can call inside your org. Each row is a single resource or action with a description, a risk tier, an auth scope, and a clear executable / metadata-only badge.
+The capability model is how Lira decides what its AI agent can call inside your org. Each capability is a single resource or action with a description, a risk tier, an auth scope, and a clear executable / metadata-only badge.
 
-Navigate to **Settings → Support → AI behavior → Capabilities**. The surface is restricted to **Owner** and **Admin** roles.
+:::note Where this lives now
+The dashboard surface for connecting and managing what the agent can do is **Settings → Support → Actions** — connect an MCP server, enable REST **agent tool packs** (e.g. Banking / Fintech), or declare manually registered actions. (This replaced the earlier "AI behavior → Capabilities" catalog.) The surface is restricted to **Owner** and **Admin** roles. This page explains the underlying model those actions run under.
+:::
 
 If you are new to the capability model, start with the [Agent Runtime overview](/platform/customer-support/agent-runtime).
 

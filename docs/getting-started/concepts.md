@@ -71,7 +71,7 @@ Every capability carries two pieces of policy metadata:
 - A **risk tier** (`read_public` → `read_private` → `safe_write` → `customer_confirm` → `step_up` → `admin_approve` → `human_only`).
 - An **auth scope** (`public` → `verified_visitor` → `verified_customer`).
 
-Capabilities come from built-in packs, MCP/API tools, the SDK, or admin-registered server-side definitions. The catalog is visible (and overridable) in **Settings → Support → AI behavior → Capabilities**.
+Capabilities come from built-in packs, MCP/API tools, the SDK, or admin-registered server-side definitions. You configure them (connect MCP servers, enable tool packs, register actions) in **Settings → Support → Actions**.
 
 See [Customer Support → Agent Runtime](/platform/customer-support/agent-runtime) and [Capabilities](/platform/customer-support/capabilities).
 

@@ -1,81 +1,108 @@
 ---
 sidebar_position: 6
 title: Navigating the App
-description: Where everything lives in the Lira dashboard — sidebar sections, key pages, and common tasks.
+description: Where everything lives in the Lira dashboard — the exact sidebar sections, page paths, Settings tabs, and the click-path for every common task.
 ---
 
 # Navigating the App
 
-This guide walks you through the Lira dashboard so you know where to find what you need.
+This is the authoritative map of the Lira dashboard (`app.liraintelligence.com`). It lists the real sidebar structure, the exact page each item opens, and the precise click-path for common tasks. If you're ever unsure "where is that button," find it here.
 
 ---
 
 ## App layout
 
-The Lira app has a **left sidebar** that's visible on every page. From top to bottom:
+The Lira app has a **left sidebar** on every page. Collapse or expand it with the toggle next to the logo. From top to bottom:
 
-| Section | What's inside |
-|---|---|
-| **Top** | Home (Dashboard) |
-| **Work** | The pages you touch daily — Inbox, Tickets, Customers |
-| **Grow** | The pages you tune weekly — Knowledge Base, Proactive, Analytics |
-| **Admin** | Set-up-once surfaces — Members, Email, Queues, SLA policies, Tasks |
-| **Bottom** | Settings |
+| Section | Items | Notes |
+|---|---|---|
+| **Top** | Home | The dashboard. |
+| **Work** | Inbox · Tickets · Customers | The pages you touch daily. |
+| **Grow** | Knowledge Base · Proactive · Analytics | The pages you tune weekly. |
+| **Admin** | Members · Email · Queues · SLA policies · Tasks | Set-up-once surfaces. |
+| **Bottom** | Settings · Docs | Settings opens in-app; Docs opens this site. |
 
-If Customer Support isn't activated yet, the Work / Grow / Admin groups are replaced by a single **Customer Support** entry pointing at the activation wizard. Once you activate, the full structure appears.
+**Work**, **Grow**, and **Admin** are collapsible groups — click the group name to expand it and reveal its items.
 
-On mobile, the sidebar collapses into a hamburger menu in the top-left.
+Before Customer Support is activated, the Work / Grow / Admin groups are replaced by a single **Customer Support** entry that opens the activation wizard. Once you activate, the full structure appears.
 
-A header bar across the top shows your current organization (click to switch), notifications, and your profile menu. While your workspace is in sandbox, the header also shows a **SANDBOX** pill — click-through details are in [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+At the **top of the sidebar** is your current **organization** (click it to switch orgs). A **header bar** across the top shows the org, a notifications bell, and your profile menu. While the workspace is in sandbox, the header also shows a **SANDBOX** pill — see [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+
+On mobile the sidebar collapses into a hamburger menu in the top-left.
+
+---
+
+## Exact page paths
+
+Every sidebar destination, with the URL it opens:
+
+| Sidebar item | Group | Path |
+|---|---|---|
+| Home | — | `/dashboard` |
+| Inbox | Work | `/support/inbox` |
+| Tickets | Work | `/support/tickets` |
+| Customers | Work | `/support/customers` |
+| Knowledge Base | Grow | `/org/knowledge` |
+| Proactive | Grow | `/support/proactive` |
+| Analytics | Grow | `/support/analytics` |
+| Members | Admin | `/org/members` |
+| Email | Admin | `/org/email` |
+| Queues | Admin | `/support/queues` |
+| SLA policies | Admin | `/support/sla-policies` |
+| Tasks | Admin | `/org/tasks` |
+| Settings | — | `/settings` |
 
 ---
 
 ## Home — Dashboard
 
-**Path:** Sidebar → **Home**
+**Path:** Sidebar → **Home** (`/dashboard`)
 
-The dashboard greets you with the Lira onboarding widget (the same widget you'll embed on your site, but pointed at your setup state) and an at-a-glance view of recent activity — pending tickets, escalation alerts, and quick-access shortcuts.
+The dashboard greets you with recent activity — open conversations, escalations needing a human, AI-resolved count, average response time — plus a **Launch checklist** (activate support, install the widget, teach Lira about your product, configure support email, invite teammates) and **Quick actions** shortcuts.
 
 ---
 
 ## Work
 
-The daily-driver pages.
-
 ### Inbox
 
-**Path:** Sidebar → Work → **Inbox**
+**Path:** Sidebar → Work → **Inbox** (`/support/inbox`)
 
-The read-only log of every AI conversation across chat, email, and the portal. Use it to QA what Lira told customers, investigate complaints, and learn from edge cases.
+The unified conversation queue across chat, email, voice, and the portal. Down the left it filters by:
+
+- **Assignment** — My inbox, Unassigned.
+- **Status** — All, Open, Pending, Escalated, Resolved.
+- **Teams** — your defined teams (e.g. Support, Billing, Engineering), plus **Manage teams**.
+- **Channels** — All channels, Chat, Email, Voice, Portal.
+
+**Compose** starts a new conversation; **CSV** exports the current list; the search box filters by text. Click any conversation to read and reply on the right.
 
 See: [Inbox guide](/platform/customer-support/inbox).
 
 ### Tickets
 
-**Path:** Sidebar → Work → **Tickets**
+**Path:** Sidebar → Work → **Tickets** (`/support/tickets`)
 
-The operator's daily queue. Every async piece of work — escalations, tickets opened by Lira, tickets you create manually — appears here. Click a ticket to read the thread, reply, change status, or reassign.
+The operator's daily queue for async work — escalations, tickets Lira opened, and tickets you create. Click a ticket to read the thread, reply, change status, or reassign.
 
 ### Customers
 
-**Path:** Sidebar → Work → **Customers**
+**Path:** Sidebar → Work → **Customers** (`/support/customers`)
 
-Every identified visitor that has chatted with Lira. Filter by account, plan, or recent activity. Click a customer to see their conversation history, open tickets, and any identity context the SDK sent.
+Every identified visitor that has chatted with Lira. Click a customer for their conversation history, open tickets, and identity context the SDK sent.
 
 ---
 
 ## Grow
 
-The pages that improve answer quality and coverage over time.
-
 ### Knowledge Base
 
-**Path:** Sidebar → Grow → **Knowledge Base**
+**Path:** Sidebar → Grow → **Knowledge Base** (`/org/knowledge`)
 
-The Knowledge Base is what Lira reads to answer visitor questions. It has four tabs:
+What Lira reads to answer questions. Four tabs:
 
-- **Documents** — drag-and-drop PDFs, DOCX, MD, CSV (max 50 MB per file).
-- **Connected Sources** — link Google Drive; Lira imports approved files directly.
+- **Documents** — drag-and-drop files, or **Write a note directly**. Supported: **DOCX, TXT, MD, CSV, XLSX**, up to **25 MB** per file.
+- **Connected Sources** — link Google Drive; Lira imports approved files.
 - **Web Sources** — paste a URL; Lira crawls and indexes the site.
 - **Query** — ask questions against the KB to verify what Lira will see.
 
@@ -83,100 +110,114 @@ Full reference: [Knowledge Base](/knowledge-base/overview).
 
 ### Proactive
 
-**Path:** Sidebar → Grow → **Proactive**
+**Path:** Sidebar → Grow → **Proactive** (`/support/proactive`)
 
-Configure triggers that fire contextual Lira messages when a visitor matches a condition — error state, abandoned step, idle on a high-intent screen.
+Set up automated outreach that fires when something happens in your product (trial expiring, payment declined, feature launch, renewal). It's a short wizard: **How it works → Connect your product → Create a rule**.
 
 See: [Proactive guide](/platform/customer-support/proactive).
 
 ### Analytics
 
-**Path:** Sidebar → Grow → **Analytics**
+**Path:** Sidebar → Grow → **Analytics** (`/support/analytics`)
 
-Resolution rate, deflection rate, response time, CSAT, top intents, and per-action performance.
+Resolution and deflection rates, response time, CSAT, top intents, and per-action performance.
 
 ---
 
 ## Admin
 
-Things you set up once and rarely revisit. The group is collapsed by default.
+Set-up-once surfaces. The group is collapsed until you click **Admin**.
 
 ### Members
 
-**Path:** Sidebar → Admin → **Members**
+**Path:** Sidebar → Admin → **Members** (`/org/members`)
 
-Manage who has access.
+Manage who has access. This is where you **add a teammate** — not under Settings.
 
-- **Invite a teammate** — enter the email, pick a role (admin / member), Lira generates a one-time invite link.
-- **Pending invites** — see active links, copy them again, or revoke.
-- **Role change** — admins can promote/demote (owner-only for the owner role).
-- **Remove** — admins can remove non-owner members.
+- **Invite a teammate** — at the top of the page, enter the person's **email**, pick a **Role** (Member or Admin), and click **Generate invite link**. It's a one-time, expiring link tied to that email; the invitee sets a password and lands directly in your org.
+- **Team Members** — the list below shows everyone, their role, and join date.
+- **Role / remove** — admins manage non-owner members from their row.
+- **Leave** — non-owners can leave from the bottom of the page. The owner must transfer ownership first.
 
-To **leave** an org, scroll to the bottom of the Members page (non-owners only). Owners must transfer ownership first.
+Roles: **Owner**, **Admin**, **Member** — see [Roles & permissions](/platform/customer-support/roles).
 
 ### Email
 
-**Path:** Sidebar → Admin → **Email**
+**Path:** Sidebar → Admin → **Email** (`/org/email`)
 
-Configure how Lira sends and receives email — sender identity, custom domain, notifications, auto-reply.
-
-- **Settings tab** — General, Sender Identity, Sending Domain, Notifications, Auto-Reply.
-- **Inbox tab** — inbound email threads Lira has handled.
-
-Full reference: [Email settings](/platform/email).
+Configure how Lira sends and receives email — sender identity, custom domain, notifications, auto-reply — plus an inbox of email threads Lira has handled. Full reference: [Email settings](/platform/email).
 
 ### Queues and SLA policies
 
-**Path:** Sidebar → Admin → **Queues** / **SLA policies**
+**Path:** Sidebar → Admin → **Queues** (`/support/queues`) / **SLA policies** (`/support/sla-policies`)
 
 Route tickets into queues and define response-time policies.
 
 ### Tasks
 
-**Path:** Sidebar → Admin → **Tasks**
+**Path:** Sidebar → Admin → **Tasks** (`/org/tasks`)
 
-Internal task tracker. Tasks created from tickets or directly inside your org land here.
+Internal task tracker. Tasks created from tickets or directly in your org land here.
 
 ---
 
 ## Settings
 
-**Path:** Sidebar → **Settings** (bottom)
+**Path:** Sidebar → **Settings** (`/settings`)
 
-Tabs along the left of the Settings page:
+Settings has **five top tabs** down the left: **Account**, **Organization**, **Support**, **Subscription**, **Billing**.
 
-### Account
+### Account tab
+
+Your personal account (not the org):
 
 - **Profile** — display name, profile picture.
 - **Security** — change email, change password.
-- **Organizations** — every org you belong to, with a Leave button for non-owners.
+- **Organizations** — every org you belong to, with a **Leave** button for non-owner orgs.
 - **Danger Zone** — delete your account.
 
-### Organization
+### Organization tab
 
-Edit your organization's profile — name, logo, website, industry, custom instructions. This profile is read by Lira on every conversation.
+Your org's profile (read by Lira on every conversation). Four sub-tabs:
 
-### Support
+- **General** — Organization ID, name, company name, logo, industry, company size, website, description; plus the org **Danger Zone** (delete organization).
+- **Culture** — tone and cultural context for replies.
+- **Products & Services** — what you sell, so Lira can speak to it.
+- **Instructions** — custom standing instructions for the agent.
 
-Module-level support settings. An **Environment card** at the top shows whether the workspace is in **SANDBOX** or **LIVE** mode, with the go-live switch. Below it, five grouped tabs:
+### Support tab
 
-- **Get connected** — Web SDK snippets (full-page, JavaScript API, NPM, floating widget), widget colour and greeting, the widget secret for signed identity (show / copy / rotate), and mobile SDKs.
-- **Channels** — toggle web chat, voice, and email; connect WhatsApp; configure the Lira-hosted page.
-- **AI behavior** — auto-reply, confidence threshold, force-escalate intents, volume limits, and the [Capabilities](/platform/customer-support/capabilities) catalog.
-- **Escalation** — escalation email and SLA target.
-- **Health & audit** — integration diagnostics plus the [agent audit log](/platform/customer-support/audit): every action run the agent made, with policy decision, redacted input/output, and estimated cost.
+The Customer Support module. At the top, an **Environment** card shows **SANDBOX** or **LIVE** with a **Sandbox / Production** toggle (the go-live switch). Below it, **seven** sub-tabs:
+
+- **Get connected** — install Lira: **Web widget** / **Full page** / **JavaScript** / **npm** snippets, **Appearance & greeting** (brand color, greeting message), and **Developer options** (signing secret for logged-in customers, mobile SDKs).
+- **Channels** — turn on **Web chat**, **Voice**, and **Email** (with your `support-…@liraintelligence.com` address and optional forwarding); set up **WhatsApp Business**; set up the **Lira-hosted page**.
+- **Behavior** — **Auto-reply** on/off, **Confidence to answer** slider (Cautious / Balanced / Strict), this-month usage, and Advanced: **Always escalate certain topics** and **Compliance guardrails** (fintech).
+- **Actions** — let Lira take real actions in your systems: connect an **MCP server** (recommended), a **REST adapter** with **Agent tool packs** (e.g. the Banking / Fintech pack), or declare **manually registered actions** (SDK). Money-moving actions auto-require customer step-up.
+- **Developers** — **Developer API keys** (create a key, use it as `LIRA_API_KEY`) and a CLI / API quickstart for MCP and native mobile sessions.
+- **Escalation** — where escalations go: alert email, **response-time target**, automatic-handoff triggers, and extra destinations (**Slack**, **Linear**, **Webhook**).
+- **Health & audit** — **Setup Health** on-demand diagnostics (widget, identity, notifications) and the **[Agent audit log](/platform/customer-support/audit)** — every action the agent ran, with policy decision, redacted input/output, and estimated cost.
 
 Full reference: [Settings Reference](/platform/customer-support/settings).
 
-### Subscription
+### Subscription tab
 
-Your current plan and entitlements, live monthly usage, launch status (sandbox or live), billing status, Paddle Checkout access, Paddle customer portal access, plan change requests, and sandbox extension requests. See [Subscription & Billing](/getting-started/plans-and-billing) and [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
+Your plan and entitlements, live monthly usage, launch status (sandbox / live), plan-change requests, and sandbox-extension requests. See [Subscription & Billing](/getting-started/plans-and-billing).
+
+### Billing tab
+
+Invoices, payment methods, and (for Enterprise) license management — **Invoices**, **Payment Methods**, **Enterprise License**, **License Key**.
+
+---
+
+## Activating Customer Support
+
+**Path:** Customer Support entry (before activation) → **Activate** — a **4-step wizard** (starting with **Email Setup**). Full guide: [Activation](/platform/customer-support/activation).
 
 ---
 
 ## Switching organizations
 
-If you belong to multiple orgs, the **org name at the top of the sidebar** is a dropdown. Click it, pick the other org, you switch.
+If you belong to multiple orgs, the **organization name at the top of the sidebar** is a dropdown. Click it and pick the other org to switch.
 
 ---
 
@@ -184,25 +225,39 @@ If you belong to multiple orgs, the **org name at the top of the sidebar** is a 
 
 | Task | Where |
 |---|---|
-| Invite a teammate | Admin → Members → Invite a teammate |
-| Remove a teammate | Admin → Members → row → Remove |
-| Activate customer support | Customer Support → Activate (one-time wizard) |
-| Get the widget snippet | Settings → Support → Get connected |
-| Get the widget secret | Settings → Support → Get connected → Widget secret |
-| Set up a custom support email | Settings → Support → Channels → Email Support |
+| Add / invite a teammate | **Admin → Members → Invite a teammate** (email + role → Generate invite link) |
+| Remove a teammate | Admin → Members → member's row |
+| Change a teammate's role | Admin → Members → member's row |
+| Leave an organization | Admin → Members → Leave (non-owner) — or Settings → Account → Organizations |
+| Switch organization | Click the org name at the top of the sidebar |
+| Activate customer support | Customer Support → Activate (4-step wizard) |
+| Get the widget snippet | Settings → Support → Get connected → Web widget |
+| Get the widget / signing secret | Settings → Support → Get connected → Developer options → signing secret |
+| Change widget color or greeting | Settings → Support → Get connected → Appearance & greeting |
+| Turn a channel on/off (chat, voice, email) | Settings → Support → Channels |
+| Set up a custom support email | Settings → Support → Channels → Email |
+| Connect WhatsApp | Settings → Support → Channels → WhatsApp Business |
+| Set up the hosted support page | Settings → Support → Channels → Lira-hosted page |
+| Turn auto-reply on/off | Settings → Support → Behavior → Auto-reply |
+| Adjust the confidence threshold | Settings → Support → Behavior → Confidence to answer |
+| Always escalate a topic | Settings → Support → Behavior → Always escalate certain topics |
+| Connect an MCP server / tools | Settings → Support → Actions |
+| Enable the Banking / Fintech actions | Settings → Support → Actions → Agent tool packs |
+| Create a developer API key | Settings → Support → Developers → New key |
+| Set the escalation email / SLA target | Settings → Support → Escalation |
+| Send escalations to Slack / Linear / a webhook | Settings → Support → Escalation |
+| Run setup diagnostics | Settings → Support → Health & audit → Setup Health |
+| Review every action the agent ran | Settings → Support → Health & audit → Agent audit log |
 | Upload company docs | Grow → Knowledge Base → Documents |
 | Crawl your help center | Grow → Knowledge Base → Web Sources |
 | Connect Google Drive | Grow → Knowledge Base → Connected Sources |
-| Review what Lira said today | Work → Inbox |
+| Set up proactive outreach | Grow → Proactive |
+| Review what Lira said | Work → Inbox |
 | Reply to a ticket | Work → Tickets → click ticket |
-| Override a capability's risk or scope | Settings → Support → AI behavior → Capabilities → row → Edit |
-| Review every action the agent ran | Settings → Support → Health & audit → Agent audit log |
-| Disable a capability for your org | Settings → Support → AI behavior → Capabilities → row → toggle Enabled |
 | See deflection / CSAT | Grow → Analytics |
-| Check plan, usage, and billing | Settings → Subscription |
+| Check plan, usage, and launch status | Settings → Subscription |
+| See invoices / payment methods | Settings → Billing |
 | Go live / return to sandbox | Settings → Support → Environment card |
-| Request a plan change or sandbox extension | Settings → Subscription |
+| Edit the org profile Lira reads | Settings → Organization |
 | Change your display name | Settings → Account → Profile |
 | Change your password | Settings → Account → Security |
-| Leave an organization | Admin → Members → Leave (non-owner) |
-| Switch organization | Click org name at top of sidebar |

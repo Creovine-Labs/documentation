@@ -1,6 +1,46 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import type {Config, LoadContext, Plugin} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+
+/**
+ * Mirrors every `docs/**` Markdown file into `static/md/**` so the docs UI can
+ * offer "Copy page" / "Download .md" (see src/components/DocMarkdownActions).
+ *
+ * Docusaurus compiles MDX to React at build time, so the original Markdown
+ * isn't otherwise reachable at runtime. A doc at `docs/platform/.../widget.md`
+ * is served verbatim at `/md/platform/.../widget.md`. `loadContent` runs for
+ * both `start` and `build` (and on hot reload), so the mirror is regenerated
+ * before the static dir is served/copied — output is derived, never committed.
+ */
+function docsRawMarkdownPlugin(context: LoadContext): Plugin {
+  const docsDir = path.join(context.siteDir, 'docs');
+  const outDir = path.join(context.siteDir, 'static', 'md');
+
+  const mirror = (src: string, dest: string): void => {
+    for (const entry of fs.readdirSync(src, {withFileTypes: true})) {
+      const from = path.join(src, entry.name);
+      const to = path.join(dest, entry.name);
+      if (entry.isDirectory()) {
+        mirror(from, to);
+      } else if (entry.isFile() && /\.mdx?$/.test(entry.name)) {
+        fs.mkdirSync(path.dirname(to), {recursive: true});
+        fs.copyFileSync(from, to);
+      }
+    }
+  };
+
+  return {
+    name: 'docs-raw-markdown',
+    async loadContent() {
+      fs.rmSync(outDir, {recursive: true, force: true});
+      if (fs.existsSync(docsDir)) {
+        mirror(docsDir, outDir);
+      }
+    },
+  };
+}
 
 const config: Config = {
   title: 'Lira Docs',
@@ -81,6 +121,8 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
+
+  plugins: [docsRawMarkdownPlugin],
 
   themes: [
     [

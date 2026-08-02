@@ -134,7 +134,7 @@ That's the typical shape of a working Lira conversation.
 |---|---|
 | Change her welcome line | Customer Support → Activate → Welcome message |
 | Tighten her tone | Settings → Organization → Custom instructions |
-| Let her cancel subs | Settings → Support → AI behavior → Capabilities |
+| Let her cancel subs | Settings → Support → Actions |
 | Bias her toward escalation | Customer Support → Activate → Handoff threshold |
 | Send tickets to a specific person | Customer Support → Activate → Default escalation owner |
 | Audit what she said today | Work → Inbox |

@@ -112,7 +112,7 @@ Admins read this in **Settings → Support → Health & audit → Agent audit lo
 
 ## Admin overrides
 
-Org admins can override a capability's metadata in **Settings → Support → AI behavior → Capabilities**. The engine enforces one invariant: **overrides may only tighten policy, never loosen it**.
+Org admins configure what the agent can call in **Settings → Support → Actions**. The engine enforces one invariant: **overrides may only tighten policy, never loosen it**.
 
 If a built-in is `read_private` / `verified_visitor`, an admin may override it to `safe_write` / `verified_customer`, but a write that tries to drop it to `read_public` / `public` is refused with a `RISK_LOOSENED` or `SCOPE_LOOSENED` error. This holds at two layers:
 

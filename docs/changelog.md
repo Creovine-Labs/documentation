@@ -14,6 +14,23 @@ Lira is now exclusively a **customer support platform**. The Meetings, Interview
 
 ---
 
+## 2026-07-29 — Escalation routing to Slack, Linear and webhooks
+
+- **Escalation destinations are now configurable** — Settings → Support → Escalation gains a *Also send escalations to your tools* card: connect Slack over OAuth and pick a channel, connect Linear and pick a team, or POST to your own `https://` endpoint signed with HMAC-SHA256.
+- **Fixed: the outbox never fired.** The Slack, Linear and webhook adapters have existed since Phase 6, but `outbox_providers`, `outbox_webhook_url` and `outbox_webhook_secret` were missing from the config write schema and had no UI, so no organization could ever enable delivery. All three are now settable and the fan-out works end to end for `ticket.created`, `ticket.escalated` and `ticket.resolved`.
+- **New docs** — [Integrations](/platform/customer-support/integrations), [SLA policies](/platform/customer-support/sla), [Routing & assignment](/platform/customer-support/routing), [Roles & permissions](/platform/customer-support/roles), [Automation & rules](/platform/customer-support/automation), and a public [API reference](/platform/customer-support/api-reference). Each states plainly what is *not* supported as well as what is.
+
+---
+
+## 2026-07-29 — Self-serve signup restored
+
+- **Anyone can sign up** — `/signup` is open again. Create an account, verify your email, and the onboarding flow stands up your organization on the Free plan, in sandbox. No invite code, no scoping call, no card.
+- **Self-serve plan upgrades** — Pro and Scale are purchased from **Settings → Billing** through Paddle checkout. Enterprise remains a conversation with our team.
+- **Concierge invites still work** — a `?invite=…` link pre-fills signup and attaches the new account to the inviting organization, but is no longer required. This supersedes the 2026-05-26 entry below.
+- **Docs corrected** — Get an Account, Quickstart, Authentication, and Subscription & Billing no longer describe Lira as invite-only.
+
+---
+
 ## 2026-07-20 — Paddle-backed subscription billing
 
 - **Subscription & Billing docs refreshed** — plan, usage, sandbox/live, plan-change, downgrade, and limit behavior now match the current platform.
@@ -24,6 +41,10 @@ Lira is now exclusively a **customer support platform**. The Meetings, Interview
 ---
 
 ## 2026-05-26 — Concierge onboarding + per-employee invites
+
+:::note Superseded
+The invite-only changes in this entry were reversed on **2026-07-29** — signup is self-serve again. The per-employee invite system below is still current.
+:::
 
 - **Self-serve org creation removed** — new organizations are now provisioned by the Lira team after a scoping call. The in-app "New organization" entry opens a contact-team modal instead.
 - **Per-employee invite system** — org admins generate one-time, expiring invite links scoped to a specific email + role. Invitees set a password (if new) and land directly in the org. Replaces the static LRA-XXXX shared-code join flow.

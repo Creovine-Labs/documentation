@@ -13,7 +13,7 @@ Lira authenticates **dashboard users** with email + password or Google Sign-In, 
 
 Users sign in two ways:
 
-- **Email + password** — invite-only. Accounts are issued by the Lira team (see [Get an Account](/getting-started/get-an-account)) or by an org admin via a per-employee invite link from the **Members** page. There's no public sign-up button; visit `/login` to sign in.
+- **Email + password** — self-serve. Anyone can create an account at `/signup` and stand up their own organization (see [Get an Account](/getting-started/get-an-account)). An org admin can also invite teammates directly via a per-employee invite link from the **Members** page. Existing users sign in at `/login`.
 - **Google Sign-In** — for users whose email already has an account on Lira. Powered by `@react-oauth/google` on the frontend; the backend validates the Google ID token and issues a JWT.
 
 Behind both paths, the backend issues a **7-day JWT** scoped to the user + their organization.

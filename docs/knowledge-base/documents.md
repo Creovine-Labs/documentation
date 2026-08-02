@@ -31,15 +31,16 @@ Once uploaded, each file appears in the document list below with a status badge 
 
 | Format | Extension |
 |--------|-----------|
-| PDF | `.pdf` |
 | Word Document | `.docx`, `.doc` |
 | Plain Text | `.txt` |
 | Markdown | `.md` |
 | CSV | `.csv` |
 | Excel Spreadsheet | `.xlsx` |
 
+The upload picker accepts exactly these types (`.docx,.doc,.txt,.md,.csv,.xlsx`). **PDFs are not accepted as direct uploads** — to bring a PDF into the Knowledge Base, store it in Google Drive and pull it in via [Connected Sources](/knowledge-base/connected-sources), or convert it to Word / text first. You can also **Write a note directly** in the Documents tab instead of uploading a file.
+
 :::info Maximum file size
-Files must be **50 MB or smaller**. If your file is larger, consider splitting it or converting it to a more compact format (e.g., save a large Word file as plain text).
+Files must be **25 MB or smaller**. If your file is larger, consider splitting it or converting it to a more compact format (e.g., save a large Word file as plain text).
 :::
 
 ---
@@ -55,7 +56,7 @@ After uploading, a document moves through these states:
 | **Indexed** | Ready — Lira can now retrieve content from this document |
 | **Failed** | Processing encountered an error |
 
-Processing typically takes a few seconds for small files and up to a couple of minutes for large PDFs. The list auto-refreshes every 5 seconds while processing is in progress.
+Processing typically takes a few seconds for small files and up to a couple of minutes for large spreadsheets or documents. The list auto-refreshes every 5 seconds while processing is in progress.
 
 ### If a document fails
 
