@@ -40,7 +40,7 @@ Both key sets are valid simultaneously. You never flip a switch to move between 
 | `lira_pk_test_…` | Publishable — safe in HTML | Your staging website or app build |
 | `lira_pk_live_…` | Publishable — safe in HTML | Your production website or app build |
 
-Find all four in **Settings → Support → Developers**. Secret keys are shown once at creation; publishable keys can be copied any time and rotated per mode.
+Find all four in **Settings → Support → API keys**. Secret keys are shown once at creation; publishable keys can be copied any time and rotated per mode.
 
 :::danger Never ship a secret key to a browser or a mobile binary
 `lira_sk_…` keys belong on your server. Publishable `lira_pk_…` keys are the ones designed to be public.
@@ -89,7 +89,7 @@ Test mode exists for building and QA. It shows a SANDBOX badge to end users, sup
 
 ## Viewing test data in the dashboard
 
-The topbar shows **TEST DATA** or **LIVE DATA**. Click it to switch. The inbox, tickets, analytics and dashboard counts all follow your selection, and a ticket you create by hand is filed in the mode you're currently viewing.
+The topbar shows **VIEWING: TEST** or **VIEWING: LIVE**. Click it to switch. The inbox, tickets, analytics and dashboard counts all follow your selection, and a ticket you create by hand is filed in the mode you're currently viewing.
 
 The choice is yours alone — your teammate can be looking at live data while you debug staging.
 
@@ -107,7 +107,7 @@ If you integrated before test and live keys existed, **you do not have to change
 
 ### Migrating, at your pace
 
-1. Create a **test** key and a **live** key in **Settings → Support → Developers → New key**.
+1. Create a **test** key and a **live** key in **Settings → Support → API keys → New key**.
 2. Point staging at the test key and production at the live key.
 3. Copy the matching publishable keys into your staging and production embeds.
 4. Once nothing is using the legacy key (check **Last used** in the dashboard), revoke it.
@@ -168,7 +168,7 @@ INVALID_PUBLISHABLE_KEY — The publishable key on this embed was not recognised
 for this organization. Running in TEST mode until it is fixed.
 ```
 
-Fix it by copying the current key from **Settings → Support → Developers → Publishable keys**.
+Fix it by copying the current key from **Settings → Support → API keys → Publishable keys**.
 
 ## Server-to-server API
 

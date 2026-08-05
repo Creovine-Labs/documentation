@@ -13,11 +13,11 @@ All Support settings live at **Settings → Support**. The page has two parts:
 
 | Tab | What it holds |
 |---|---|
-| **Get connected** | Install snippets (Web widget / Full page / JavaScript / npm), widget appearance & greeting, the signing secret, mobile SDKs |
+| **Get connected** | Install snippets (Web widget / Full page / JavaScript / npm), widget appearance & greeting |
 | **Channels** | Web chat, voice, email, WhatsApp, and the Lira-hosted page |
 | **Behavior** | Auto-reply, confidence threshold, always-escalate topics, and compliance guardrails |
 | **Actions** | Let Lira take real actions — connect an MCP server, a REST adapter with agent tool packs, or manually registered actions |
-| **Developers** | Developer API keys (`LIRA_API_KEY`) and the CLI / API quickstart |
+| **API keys** | Every credential in one place: publishable keys (`lira_pk_*`, for embeds), secret keys (`lira_sk_*`, for your backend), and the signing secret for logged-in customers — plus the CLI / API quickstart |
 | **Escalation** | Where conversations go when a human steps in — alert email, SLA target, and Slack / Linear / webhook destinations |
 | **Health & audit** | Integration diagnostics and the agent audit log |
 

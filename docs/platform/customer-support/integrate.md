@@ -47,7 +47,7 @@ Reference: [Activation guide](/platform/customer-support/activation)
 Location: **Settings → Organization → General** (Copy button).
 
 **API key** — format `lira_sk_...`. Mobile only. Not needed for website or web app.
-Location: **Settings → Support → Developers → New key**. Tick scope **`sessions:mint`**. Shown once.
+Location: **Settings → Support → API keys → New key**. Tick scope **`sessions:mint`**. Shown once.
 
 **API key stays server-side.** Never in app binaries or browser code.
 
@@ -152,7 +152,7 @@ Customer-facing email, ticket emails, proactive outreach, and WhatsApp are dry-r
 
 **These DO fire for real in sandbox — configure with care:**
 Slack, Linear, and outbound webhook escalations, plus escalation email to your team.
-Team ticket alerts are sent, tagged `[SANDBOX]`.
+Team ticket alerts are suppressed too — check the dashboard, where the ticket appears exactly as it would live.
 
 ### Going live
 

@@ -58,7 +58,7 @@ Create a support route in your app, add a container, and load the Lira runtime:
 **live**. Use `lira_pk_test_…` on staging and preview deploys and
 `lira_pk_live_…` in production — most teams read it from the environment
 variable that already distinguishes their builds. Copy both from
-**Settings → Support → Developers → Publishable keys**, and see
+**Settings → Support → API keys → Publishable keys**, and see
 [Test and live mode](/platform/customer-support/test-and-live-mode).
 
 Leaving it out keeps the behaviour you have today: the embed follows your
@@ -478,5 +478,5 @@ In the Lira dashboard:
 - **Support → Activate** shows the SDK snippet after activation.
 - **Settings → Support → Get connected** shows full-page SDK, JavaScript API, and
   floating widget snippets.
-- **Settings → Support → Get connected → Widget secret** shows the server-side
+- **Settings → Support → API keys → Signing secret** shows the server-side
   widget secret for signed visitors.

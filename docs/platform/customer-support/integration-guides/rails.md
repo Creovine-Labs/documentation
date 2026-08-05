@@ -128,7 +128,7 @@ In `app/views/layouts/application.html.erb`, before the closing `</body>`:
 ## Common pitfalls
 
 **Identity not recognised**
-- Confirm `LIRA_WIDGET_SECRET` matches **Lira Settings → Support → Get connected → Widget secret** exactly
+- Confirm `LIRA_WIDGET_SECRET` matches **Lira Settings → Support → API keys → Signing secret** exactly
 - The `email.strip.downcase` step matters — Lira's backend lowercases + trims before verifying the HMAC
 
 **CSP errors**

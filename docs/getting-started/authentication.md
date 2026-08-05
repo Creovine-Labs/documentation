@@ -75,6 +75,6 @@ See [Google Drive Source](/knowledge-base/google-drive) for setup.
 
 ## API keys and CLI
 
-For programmatic access — CI, backend automation, native support session minting, and MCP setup — API keys can be generated from **Settings → Support → Developers**. Each key is scoped to a single organization and authorizes only the permissions selected at creation time.
+For programmatic access — CI, backend automation, native support session minting, and MCP setup — API keys can be generated from **Settings → Support → API keys**. Each key is scoped to a single organization and authorizes only the permissions selected at creation time.
 
 Treat keys like passwords. Rotate them via the same panel if a key is ever exposed. See [Developer API keys & CLI](/platform/customer-support/developer-api).

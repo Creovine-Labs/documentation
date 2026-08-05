@@ -26,7 +26,7 @@ Authorization: Bearer lira_sk_test_...   # staging
 Authorization: Bearer lira_sk_live_...   # production
 ```
 
-Keys are created by **any member** of the organization in **Settings → Support → Developers → New key**, shown once, and scoped to a single organization. Keep them server-side — a secret Lira API key must never reach a browser or a mobile binary. See [Developer API keys & CLI](/platform/customer-support/developer-api).
+Keys are created by **any member** of the organization in **Settings → Support → API keys → New key**, shown once, and scoped to a single organization. Keep them server-side — a secret Lira API key must never reach a browser or a mobile binary. See [Developer API keys & CLI](/platform/customer-support/developer-api).
 
 ## Test and live mode
 

@@ -216,7 +216,7 @@ Go to **Settings → Support → Escalation** (or revisit Step 3 in the activati
 
 By default, the widget treats every visitor as anonymous. If your website has logged-in users and you want Lira to greet them by name and access their account details, you can enable **identified visitor mode**.
 
-This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature to the SDK. The widget secret is available from **Settings → Support → Get connected → Widget secret**.
+This requires your server to compute an HMAC-SHA256 signature of the visitor's email using your widget secret, then pass the email, name, and signature to the SDK. The widget secret is available from **Settings → Support → API keys → Signing secret**.
 
 This is optional and can be set up any time after going live.
 
@@ -234,7 +234,7 @@ Every setting you configure during activation can be changed later:
 | Web SDK snippets | Settings → Support → Get connected |
 | Portal slug | Settings → Support → Channels → Hosted page |
 | Widget colour & greeting | Settings → Support → Get connected |
-| Widget secret (identified visitors) | Settings → Support → Get connected → Widget secret |
+| Widget secret (identified visitors) | Settings → Support → API keys → Signing secret |
 | Auto-reply & confidence threshold | Settings → Support → Behavior |
 | Ticketing email + SLA target | Settings → Support → Escalation (or activation Step 3) |
 | Sandbox / live environment | Settings → Support → Environment card (above the tabs) |

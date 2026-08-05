@@ -41,7 +41,7 @@ See the [Troubleshooting guide](/platform/customer-support/integration-guides/tr
 Three things — get them from your **Lira dashboard**:
 
 1. **Your `org_id`** — Settings → Organization → Org ID
-2. **Your widget secret** — Settings → Support → Get connected → Widget secret (used to sign logged-in visitor emails server-side)
+2. **Your widget secret** — Settings → Support → API keys → Signing secret (used to sign logged-in visitor emails server-side)
 3. **Activated support module** — if you haven't activated yet, the Lira widget will guide you through it first
 
 Each per-framework guide assumes you have these in hand.

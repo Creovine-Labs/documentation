@@ -28,7 +28,7 @@ You're using identified-visitor mode (passing `data-email`, `data-sig`, or calli
 [Lira] ⚠ IDENTITY_SIGNATURE_MISMATCH — running degraded
 ```
 
-**Fix:** Make sure your server's `LIRA_WIDGET_SECRET` env var matches exactly what's in **Lira dashboard → Settings → Support → Get connected → Widget secret**. If you rotated the secret in the dashboard, update your backend too. Both sides MUST use the same secret. The chat keeps working in anonymous mode until you fix this.
+**Fix:** Make sure your server's `LIRA_WIDGET_SECRET` env var matches exactly what's in **Lira dashboard → Settings → Support → API keys → Signing secret**. If you rotated the secret in the dashboard, update your backend too. Both sides MUST use the same secret. The chat keeps working in anonymous mode until you fix this.
 
 ### 2. Web SDK Runtime not enabled {#chat-not-enabled}
 
@@ -46,7 +46,7 @@ The embed snippet on your site has a typo, an old org ID, or an ID for a differe
 
 Two causes, both about **[test vs live mode](/platform/customer-support/test-and-live-mode)**:
 
-**1. The dashboard is showing the other mode.** The topbar says **TEST DATA** or **LIVE DATA**. Click it and pick the one you expect. Test conversations never appear in the live view, by design.
+**1. The dashboard is showing the other mode.** The topbar says **VIEWING: TEST** or **VIEWING: LIVE**. Click it and pick the one you expect. Test conversations never appear in the live view, by design.
 
 **2. The embed's publishable key isn't recognised.** Open your browser console and look for:
 
@@ -55,9 +55,9 @@ INVALID_PUBLISHABLE_KEY — The publishable key on this embed was not recognised
 for this organization. Running in TEST mode until it is fixed.
 ```
 
-An unrecognised key (typo, wrong workspace, or one you rotated out) is deliberately forced to **test** rather than being allowed to become live traffic. Your production conversations are therefore landing under **Test data**.
+An unrecognised key (typo, wrong workspace, or one you rotated out) is deliberately forced to **test** rather than being allowed to become live traffic. Your production conversations are therefore landing under **Viewing: Test**.
 
-**Fix:** copy the current key from **Settings → Support → Developers → Publishable keys** and redeploy. Remember `lira_pk_test_…` belongs on staging and `lira_pk_live_…` in production.
+**Fix:** copy the current key from **Settings → Support → API keys → Publishable keys** and redeploy. Remember `lira_pk_test_…` belongs on staging and `lira_pk_live_…` in production.
 
 The same applies to mobile: the mode comes from the key **your backend** mints with, so a production app pointed at your staging backend produces test conversations.
 
@@ -147,7 +147,7 @@ The Setup Health check reports "Widget CDN reachable" as failed.
 
 The Setup Health check reports your widget secret isn't provisioned.
 
-**Fix:** The secret is generated at activation. Open **Settings → Support → Get connected → Widget secret** — if it shows "Secret not available", complete activation first. If a secret exists but you need a fresh one, click **Rotate**, then copy the new value into your backend `LIRA_WIDGET_SECRET`.
+**Fix:** The secret is generated at activation. Open **Settings → Support → API keys → Signing secret** — if it shows "Secret not available", complete activation first. If a secret exists but you need a fresh one, click **Rotate**, then copy the new value into your backend `LIRA_WIDGET_SECRET`.
 
 ---
 

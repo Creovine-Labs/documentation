@@ -24,10 +24,10 @@ What test mode guarantees:
 
 - **Separate quota.** Test conversations and AI replies never consume the volume your live plan is paying for, and hitting a test cap never throttles real customers.
 - **No real-world side effects.** Outbound email, Slack, Linear and webhook deliveries are suppressed and previewed instead.
-- **Out of the live inbox.** Test conversations and tickets are only visible when the dashboard is switched to **Test data** (topbar switch), so a staging integration never pollutes the queue your team works.
+- **Out of the live inbox.** Test conversations and tickets are only visible when the dashboard is switched to **Viewing: Test** (topbar switch), so a staging integration never pollutes the queue your team works.
 - **Isolated threads.** A test embed cannot resume, read, or hide a live conversation, and vice versa — even for the same customer.
 
-Switch what the dashboard shows with the **TEST DATA / LIVE DATA** control in the topbar.
+Switch what the dashboard shows with the **VIEWING: TEST / VIEWING: LIVE** control in the topbar.
 
 :::caution Going live does not disturb your test setup
 Going live turns on real sends for **live-key** traffic. Your test keys keep behaving exactly as before.
@@ -41,7 +41,7 @@ An embed that sends **no** publishable key at all (every embed created before te
 
 ## Create a key
 
-**Any member** of the organization can create a key in **Settings → Support → Developers → New key** — you do not need to be an owner or admin. Developers usually aren't org admins, so requiring it only blocked the people doing the integration.
+**Any member** of the organization can create a key in **Settings → Support → API keys → New key** — you do not need to be an owner or admin. Developers usually aren't org admins, so requiring it only blocked the people doing the integration.
 
 1. Give it a name and pick the **mode** — Test (the default) or Live.
 2. Pick only the permissions it needs.

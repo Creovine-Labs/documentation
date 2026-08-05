@@ -189,11 +189,11 @@ Your org's profile (read by Lira on every conversation). Four sub-tabs:
 
 The Customer Support module. At the top, an **Environment** card shows **SANDBOX** or **LIVE** with a **Sandbox / Production** toggle (the go-live switch). Below it, **seven** sub-tabs:
 
-- **Get connected** — install Lira: **Web widget** / **Full page** / **JavaScript** / **npm** snippets, **Appearance & greeting** (brand color, greeting message), and **Developer options** (signing secret for logged-in customers, mobile SDKs).
+- **Get connected** — install Lira: **Web widget** / **Full page** / **JavaScript** / **npm** snippets and **Appearance & greeting** (brand color, greeting message). Credentials live under **API keys**.
 - **Channels** — turn on **Web chat**, **Voice**, and **Email** (with your `support-…@liraintelligence.com` address and optional forwarding); set up **WhatsApp Business**; set up the **Lira-hosted page**.
 - **Behavior** — **Auto-reply** on/off, **Confidence to answer** slider (Cautious / Balanced / Strict), this-month usage, and Advanced: **Always escalate certain topics** and **Compliance guardrails** (fintech).
 - **Actions** — let Lira take real actions in your systems: connect an **MCP server** (recommended), a **REST adapter** with **Agent tool packs** (e.g. the Banking / Fintech pack), or declare **manually registered actions** (SDK). Money-moving actions auto-require customer step-up.
-- **Developers** — **Developer API keys** (create a key, use it as `LIRA_API_KEY`) and a CLI / API quickstart for MCP and native mobile sessions.
+- **API keys** — every credential in one place: **publishable keys** (`lira_pk_test_` / `lira_pk_live_`, safe in your HTML), **secret keys** (`lira_sk_test_` / `lira_sk_live_`, server-side, used as `LIRA_API_KEY`), and the **signing secret** for logged-in customers — plus a CLI / API quickstart for MCP and native mobile sessions.
 - **Escalation** — where escalations go: alert email, **response-time target**, automatic-handoff triggers, and extra destinations (**Slack**, **Linear**, **Webhook**).
 - **Health & audit** — **Setup Health** on-demand diagnostics (widget, identity, notifications) and the **[Agent audit log](/platform/customer-support/audit)** — every action the agent ran, with policy decision, redacted input/output, and estimated cost.
 
@@ -232,7 +232,10 @@ If you belong to multiple orgs, the **organization name at the top of the sideba
 | Switch organization | Click the org name at the top of the sidebar |
 | Activate customer support | Customer Support → Activate (4-step wizard) |
 | Get the widget snippet | Settings → Support → Get connected → Web widget |
-| Get the widget / signing secret | Settings → Support → Get connected → Developer options → signing secret |
+| Get the signing secret (logged-in customers) | Settings → Support → API keys → Signing secret |
+| Get a publishable or secret API key | Settings → Support → API keys |
+| Switch between test and live data | Topbar → **VIEWING: TEST / LIVE** |
+| Go live (turn on real sends + billing) | Topbar → Go live, or Settings → Support → Workspace mode |
 | Change widget color or greeting | Settings → Support → Get connected → Appearance & greeting |
 | Turn a channel on/off (chat, voice, email) | Settings → Support → Channels |
 | Set up a custom support email | Settings → Support → Channels → Email |
@@ -243,7 +246,7 @@ If you belong to multiple orgs, the **organization name at the top of the sideba
 | Always escalate a topic | Settings → Support → Behavior → Always escalate certain topics |
 | Connect an MCP server / tools | Settings → Support → Actions |
 | Enable the Banking / Fintech actions | Settings → Support → Actions → Agent tool packs |
-| Create a developer API key | Settings → Support → Developers → New key |
+| Create a developer API key | Settings → Support → API keys → New key |
 | Set the escalation email / SLA target | Settings → Support → Escalation |
 | Send escalations to Slack / Linear / a webhook | Settings → Support → Escalation |
 | Run setup diagnostics | Settings → Support → Health & audit → Setup Health |

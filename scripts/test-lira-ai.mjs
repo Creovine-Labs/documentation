@@ -134,6 +134,12 @@ const CASES = [
     why: 'setContext / mint context, plus product-specific KB content for different answers.',
   },
   {
+    q: 'Where do I find my widget signing secret in the dashboard?',
+    expect: ['api keys'],
+    forbid: ['get connected', 'developer options'],
+    why: 'It moved to Settings → Support → API keys. Users hunted for it under Get connected.',
+  },
+  {
     q: 'Does test traffic use my paid plan quota?',
     expect: ['no'],
     forbid: ['yes, it does', 'counts against your plan'],

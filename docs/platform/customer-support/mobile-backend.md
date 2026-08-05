@@ -45,7 +45,7 @@ customer. That's it. That's the whole job.
 ## What you need
 
 1. **Two Lira API keys — one per environment**
-   Dashboard → **Settings → Support → Developers → New key** → tick **`sessions:mint`**. Any member can do this — you don't need admin rights.
+   Dashboard → **Settings → Support → API keys → New key** → tick **`sessions:mint`**. Any member can do this — you don't need admin rights.
    - **Test** key (`lira_sk_test_…`) for your staging environment
    - **Live** key (`lira_sk_live_…`) for production
 
@@ -285,7 +285,7 @@ tell your mobile developer the endpoint is live and give them its URL.
 
 | What you see | Fix |
 |---|---|
-| `401` from Lira | Wrong or revoked API key. Create a new one in Settings → Support → Developers. |
+| `401` from Lira | Wrong or revoked API key. Create a new one in Settings → Support → API keys. |
 | `403` scope error | The key is missing the **`sessions:mint`** scope. Create a new key with it ticked. |
 | `404` | Wrong Org ID in the URL. Recopy it from Settings → Organization → General. |
 | Response has no `ws_url` | You're calling the wrong endpoint — check the URL path exactly. |

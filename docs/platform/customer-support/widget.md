@@ -44,7 +44,7 @@ The widget is a single `<script>` tag. Paste it before the closing `</body>` tag
 
 `data-publishable-key` is what tells Lira whether this embed is **test** or **live**. Use `lira_pk_test_…` on staging and preview deploys, and `lira_pk_live_…` in production — both are valid at once against the same workspace, so your staging site never consumes live quota, never triggers real emails or Slack/Linear/webhook deliveries, and never appears in the live inbox.
 
-Copy both keys from **Settings → Support → Developers → Publishable keys**. They are publishable: shipping them in your HTML is expected and safe.
+Copy both keys from **Settings → Support → API keys → Publishable keys**. They are publishable: shipping them in your HTML is expected and safe.
 
 An embed with **no** publishable key follows your workspace environment, exactly as before — nothing you have already shipped breaks. An embed whose key is wrong (typo, rotated out) is forced into test mode rather than going live, and logs an `INVALID_PUBLISHABLE_KEY` warning to the browser console.
 
@@ -172,7 +172,7 @@ The `data-sig` is a cryptographic signature that **proves your server generated 
 
 ### The widget secret
 
-The widget secret is a unique hex key tied to your organisation. It lives in **Settings → Support → Get connected → Widget secret**.
+The widget secret is a unique hex key tied to your organisation. It lives in **Settings → Support → API keys → Signing secret**.
 
 **Your server uses this key to compute the signature.** The secret itself must **never** appear in your frontend code, your HTML, or the browser — it should only ever exist on your backend.
 
@@ -331,7 +331,7 @@ If you haven't wired identity yet (or the visitor genuinely isn't logged in), Li
 
 ### Rotating the secret
 
-If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Settings → Support → Get connected → Widget secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
+If your secret is ever accidentally exposed (committed to a repository, logged, etc.), rotate it immediately from **Settings → Support → API keys → Signing secret → Rotate**. You'll be asked to confirm, and a new secret is generated instantly. Update your server-side environment variable with the new value — the old secret stops working immediately.
 
 ---
 

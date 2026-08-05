@@ -55,7 +55,7 @@ npm install @liraintelligence/support
 
 ## Step 3 — Fill in your widget secret
 
-Open `.env.local` and replace the empty `LIRA_WIDGET_SECRET=` line with your secret from **Lira Settings → Support → Get connected → Widget secret**.
+Open `.env.local` and replace the empty `LIRA_WIDGET_SECRET=` line with your secret from **Lira Settings → Support → API keys → Signing secret**.
 
 ```env
 NEXT_PUBLIC_LIRA_ORG_ID=org-xxxxxxxxxxxx
@@ -196,7 +196,7 @@ The widget runtime needs the browser. Make sure components that use `useLira`, `
 
 **Identity not recognised**
 - Check `/api/lira/sign` returns `{ sig: "..." }` not an error (try hitting it directly)
-- Confirm `LIRA_WIDGET_SECRET` matches what's in **Lira Settings → Support → Get connected → Widget secret** exactly
+- Confirm `LIRA_WIDGET_SECRET` matches what's in **Lira Settings → Support → API keys → Signing secret** exactly
 - Email is lowercased + trimmed on both signing and verification — make sure your client passes the same case
 
 ---
