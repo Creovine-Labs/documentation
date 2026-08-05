@@ -7,9 +7,16 @@ description: Build a native, in-app support experience on Lira's chat WebSocket 
 
 # Native mobile support
 
+:::tip New here? Don't start on this page.
+This is the **deep technical reference** — every event and payload. To actually
+get set up, start at **[Add Lira to your app](/platform/customer-support/integrate)**,
+then follow the step-by-step page for your role:
+**[the backend part](/platform/customer-support/mobile-backend)** ·
+**[the app part](/platform/customer-support/mobile-frontend)**.
+:::
+
 Deliver support **inside your mobile app**, native, the way Cash App, Monzo, and
-Revolut do it — your own chat UI over Lira's API. **Not** a WebView, and **not**
-MCP (MCP is separate — it's how the AI takes *actions*; see [MCP server](/platform/customer-support/mcp)).
+Revolut do it — your own chat UI over Lira's API.
 
 On native, **you own the UI** — it's your app, your design system, your screen.
 Lira owns the intelligence and puts everything the UI needs **on the wire**:
@@ -328,6 +335,11 @@ support screen — implements **everything on this page**: streaming, an animate
 typing indicator, quick-reply chips, avatars for the customer / assistant /
 human agent, the org logo in the header, confirm-before-action, history replay,
 proactive + handback, and CSAT. It's the fastest way to see the full loop, and
-the mapping copies directly to Swift, Kotlin, or React Native. Ask the Lira team
-for it. WebView remains a documented quick-start fallback, but native is the
-recommended experience.
+the mapping copies directly to Swift, Kotlin, or React Native. It ships with a
+tiny demo backend, so you can run the entire loop on your laptop.
+
+**To get it, email [info@liraintelligence.com](mailto:info@liraintelligence.com)**
+and ask for the `lira-mobile-demo` reference app — we'll send it over.
+
+WebView remains a documented quick-start fallback, but native is the recommended
+experience.
