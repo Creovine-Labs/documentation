@@ -136,7 +136,7 @@ host page** (DOM navigation, prefilling inputs). They don't apply to a native
 app — ignore them unless you deliberately implement host-side actions.
 :::
 
-## What you build — UX checklist
+## What you build — UX checklist {#design-spec}
 
 Everything below is **yours to render** (it's your app), and every item is fed
 by an event Lira already sends. This table is the spec — copy the reference app

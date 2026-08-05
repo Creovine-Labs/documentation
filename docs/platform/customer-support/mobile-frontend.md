@@ -20,6 +20,19 @@ keywords:
 
 **Who this page is for:** the **mobile / frontend engineer**.
 
+:::danger Designing the screens? Read the UI/UX spec FIRST
+**→ [Mobile chat UI/UX spec — what every screen and state must show](/platform/customer-support/native-mobile#design-spec)**
+
+You build the chat UI, so **your designer needs this before they open Figma.**
+Lira sends states a normal chat mockup does not include — a typing indicator,
+streaming text that arrives word by word, quick-reply chips, an
+approve/deny confirmation card, human-agent avatars, and **markdown that must
+render** (bold, lists, and code blocks — the AI does send code).
+
+Design without it and the mockups will not match what the API actually sends.
+Hand this link to your designer at the same time you start building.
+:::
+
 **What you're building:** a support chat screen inside your app. You design the
 screen (it's your app, your styling). Lira sends you the words to put in it.
 
