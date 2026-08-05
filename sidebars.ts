@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
           label: 'Customer Support',
           link: { type: 'doc', id: 'platform/customer-support' },
           items: [
+            'platform/customer-support/integrate',
             'platform/customer-support/onboarding',
             'platform/customer-support/activation',
             'platform/customer-support/sandbox-and-going-live',

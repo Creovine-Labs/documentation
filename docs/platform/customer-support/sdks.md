@@ -14,8 +14,19 @@ the roadmap.
 | SDK | Status | Install |
 |-----|--------|---------|
 | [**Web SDK** — `@liraintelligence/support`](/platform/customer-support/web-sdk) | **Available** | `npm install @liraintelligence/support` |
-| **React Native SDK** | Planned — Q2 2026 | — |
+| **React Native SDK** (drop-in package) | Planned — Q2 2026 | — |
 | **Standalone Runtime** (`setContext` + `registerAction`) | Will extract once a second Lira product consumes it | — |
+
+:::warning Doing native mobile? You are NOT blocked — read this
+"No React Native SDK yet" does **not** mean no mobile support. **Native mobile
+(iOS, Android, Flutter, React Native) is fully supported today** — you build your
+own chat screen on Lira's chat WebSocket with a session token minted by your
+backend. The **[Native mobile guide](/platform/customer-support/native-mobile)**
+is the complete spec, with a runnable **Flutter reference app**.
+
+The table above only tracks *drop-in packages*. Not sure which path is yours?
+Start at **[Integrate Lira](/platform/customer-support/integrate)**.
+:::
 
 ---
 
