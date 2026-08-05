@@ -24,9 +24,6 @@ streaming replies, quick-reply chips, confirm-before-action, human-agent
 identity, history. This page is the complete contract: every event, every
 payload, and exactly **what you build** for each one.
 
-There's a runnable Flutter reference that implements 100% of this — see
-[Reference app](#reference-app).
-
 ```
 Your app  ──►  Your backend (mints a Lira session token — holds the API key)
    │
@@ -45,8 +42,6 @@ must-haves so the experience stays clean:
 - **Quick-reply chips** from the `suggestions` event.
 - **Confirm-before-action** sheet for the `confirm` event.
 - **Reconnect** control when the socket drops, so late human replies still arrive.
-
-The [reference app](#reference-app) already implements all of it.
 :::
 
 ## 1. Your backend mints a session token
@@ -139,8 +134,7 @@ app — ignore them unless you deliberately implement host-side actions.
 ## What you build — UX checklist {#design-spec}
 
 Everything below is **yours to render** (it's your app), and every item is fed
-by an event Lira already sends. This table is the spec — copy the reference app
-to see each one implemented.
+by an event Lira already sends. This table is the spec.
 
 | UX element | Who supplies it | Driven by |
 |---|---|---|
@@ -160,13 +154,45 @@ to see each one implemented.
 | **History on resume** | You replay the thread | `history` |
 | **Resolved + CSAT** | You render a closing state and rating | `status: "resolved"`; send `end` with a score |
 
+## Screen states to design
+
+The events above cover a working conversation. These are the states around it —
+design them or the screen feels broken in normal use.
+
+| State | When | What to show |
+|---|---|---|
+| **Connecting** | Minting the session and opening the socket | A spinner in the message area. Keep the input visible but disabled. |
+| **Empty** | First open, no history | A one-line greeting and 2–3 starter chips ("Track my order", "Talk to a human"). Never a blank screen. |
+| **Resuming** | `history` arrives | Render past messages instantly, scrolled to the newest. No animation — it isn't new. |
+| **Sending** | User tapped send | Show the bubble immediately with a subtle "sending" tick. Don't wait for the server. |
+| **Send failed** | Socket dropped mid-send | Keep the bubble, mark it failed, offer **Retry**. Never silently drop a message. |
+| **Disconnected** | Socket closed | A thin bar: "Reconnecting…". Reconnect automatically; a human agent may still reply. |
+| **Session expired** | Token past its TTL (default 1h) | Mint a new session and reconnect silently. The user should not see this. |
+| **Action running** | After the user approves a `confirm` | Disable the approve button and show progress until `action_result`. |
+| **Resolved** | `status: "resolved"` | Show the CSAT prompt, then a "Start a new chat" button. |
+
+### Layout rules
+
+- **Auto-scroll to the newest message**, but stop if the user has scrolled up — show a "jump to latest" button instead. Yanking the view is the most common chat-UI complaint.
+- **Keyboard and safe area** — the input must sit above the keyboard and the home indicator. Test on a notched device.
+- **Timestamps** — group by time and show one per group, not per bubble.
+- **Long content** — code blocks scroll horizontally rather than wrapping; links are tappable.
+- **Tap targets** at least 44×44pt. Chips and the confirm buttons are the ones people miss.
+
+### Accessibility
+
+Label the send button, the chips, and the approve/deny buttons for screen readers.
+Announce a new AI reply politely so it isn't read mid-stream. Respect the OS text
+size — bubbles must grow with it, never clip. Don't rely on colour alone to show a
+failed message; add an icon or text.
+
 ## Render markdown
 
 AI replies come back as **markdown** — `**bold**`, `` `code` ``, fenced code
 blocks, lists, links. Render it, don't print it raw, or customers see literal
 asterisks and backticks. This is a UI responsibility you can't skip:
 
-- **Flutter** — `flutter_markdown` (`MarkdownBody`), as in the reference app.
+- **Flutter** — `flutter_markdown` (`MarkdownBody`).
 - **Swift** — `AttributedString(markdown:)` or a markdown view.
 - **Kotlin/Compose** — a markdown renderer (e.g. `compose-markdown`).
 - **React Native** — `react-native-markdown-display`.
@@ -328,18 +354,3 @@ authenticates the REST endpoints under `rest_base_url` (`?sessionToken=…`):
 - `GET /chat/conversation/ORG_ID/CONV_ID` — one conversation with messages
 - `GET /chat/history/ORG_ID` — most recent conversation as a flat list
 
-## Reference app
-
-A complete, runnable Flutter reference — a fintech-style app with a native
-support screen — implements **everything on this page**: streaming, an animated
-typing indicator, quick-reply chips, avatars for the customer / assistant /
-human agent, the org logo in the header, confirm-before-action, history replay,
-proactive + handback, and CSAT. It's the fastest way to see the full loop, and
-the mapping copies directly to Swift, Kotlin, or React Native. It ships with a
-tiny demo backend, so you can run the entire loop on your laptop.
-
-**To get it, email [info@liraintelligence.com](mailto:info@liraintelligence.com)**
-and ask for the `lira-mobile-demo` reference app — we'll send it over.
-
-WebView remains a documented quick-start fallback, but native is the recommended
-experience.

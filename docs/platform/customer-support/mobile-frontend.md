@@ -133,20 +133,6 @@ Handle the first three; the rest are optional upgrades.
 
 ---
 
-## A working reference app
-
-We have a **complete, runnable Flutter app** — a fintech-style app with a native
-support screen implementing everything on this page: streaming, typing
-indicator, quick-reply chips, avatars, confirm-before-action, history, and CSAT.
-It comes with a tiny demo backend so you can run the whole loop on your laptop.
-
-**Ask us for the `lira-mobile-demo` reference app** — it's the fastest way to see
-the full flow, and the code maps directly to Swift, Kotlin, and React Native.
-
-📧 [info@liraintelligence.com](mailto:info@liraintelligence.com)
-
----
-
 ## Checklist
 
 - [ ] Got the `/support/session` URL from your backend engineer
