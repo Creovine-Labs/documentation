@@ -90,15 +90,28 @@ Use your **test** key (`lira_sk_test_…`) from staging and your **live** key (`
 **Body**
 ```json
 {
-  "customer": { "email": "ada@example.com", "name": "Ada Lovelace" },
+  "customer": {
+    "email": "ada@example.com",
+    "name": "Ada Lovelace",
+    "externalCustomerId": "user_123"
+  },
   "context":  { "app": "my-app", "platform": "mobile" },
   "ttlSeconds": 3600
 }
 ```
 
 - `customer` — **the logged-in user from your own session.** Never accept this from the app; take it from your auth. This is what tells Lira who it's talking to.
+  - `email` (required) — identifies the customer. Lira greets them by name and their whole support history follows this address across devices.
+  - `name` (optional but recommended) — the AI addresses them by name.
+  - **`externalCustomerId` (send it)** — your own id for this user. Two things depend on it: the session is marked **verified customer** rather than verified visitor, which is what unlocks account-scoped actions; and it is handed to your [MCP server](/platform/customer-support/mcp) as `_meta['io.lira/customer'].external_customer_id` so your tools can resolve *whose* account to act on. Email can change; this doesn't. Omit it and account-scoped tools have only an email to work with.
 - `context` — optional free-form info you want the AI to know (plan, app version…).
 - `ttlSeconds` — how long the session lasts. 3600 (1 hour) is a good default.
+
+:::tip What the AI actually knows about the signed-in user
+From the session alone: their **name, email, and that they are verified** — so "Hi John, I can see you're on the Personal plan" style greetings work with no extra wiring, and your dashboard shows the conversation under the right customer.
+
+It does **not** magically know their balance, transactions, or tickets in *your* systems. That comes from tools: connect an [MCP server](/platform/customer-support/mcp), and Lira calls it with the verified identity above. Identity is plumbed for you; the account lookups are yours to expose.
+:::
 
 **Response** — pass this straight back to your app:
 
@@ -134,7 +147,11 @@ app.post('/support/session', requireAuth, async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        customer: { email: req.user.email, name: req.user.name },  // from YOUR auth
+        customer: {
+          email: req.user.email,                  // from YOUR auth
+          name: req.user.name,
+          externalCustomerId: String(req.user.id), // your id — unlocks account-scoped tools
+        },
         context: { app: 'my-app', platform: 'mobile' },
         ttlSeconds: 3600,
       }),
@@ -155,7 +172,11 @@ async def support_session(user = Depends(current_user)):
             f"https://api.creovine.com/lira/v1/support/sessions/orgs/{LIRA_ORG_ID}/mint",
             headers={"Authorization": f"Bearer {LIRA_API_KEY}"},
             json={
-                "customer": {"email": user.email, "name": user.name},   # from YOUR auth
+                "customer": {
+                    "email": user.email,                       # from YOUR auth
+                    "name": user.name,
+                    "externalCustomerId": str(user.id),        # your id
+                },
                 "context": {"app": "my-app", "platform": "mobile"},
                 "ttlSeconds": 3600,
             },
@@ -171,7 +192,8 @@ async def support_session(user = Depends(current_user)):
 def support_session
   res = Faraday.post(
     "https://api.creovine.com/lira/v1/support/sessions/orgs/#{ENV['LIRA_ORG_ID']}/mint",
-    { customer: { email: current_user.email, name: current_user.name },
+    { customer: { email: current_user.email, name: current_user.name,
+                    externalCustomerId: current_user.id.to_s },
       context: { app: "my-app", platform: "mobile" },
       ttlSeconds: 3600 }.to_json,
     { "Authorization" => "Bearer #{ENV['LIRA_API_KEY']}",
@@ -187,7 +209,11 @@ end
 func supportSession(w http.ResponseWriter, r *http.Request) {
     user := currentUser(r)  // from YOUR auth
     body, _ := json.Marshal(map[string]any{
-        "customer":   map[string]string{"email": user.Email, "name": user.Name},
+        "customer": map[string]string{
+            "email":              user.Email,
+            "name":               user.Name,
+            "externalCustomerId": user.ID, // your id — unlocks account-scoped tools
+        },
         "context":    map[string]string{"app": "my-app", "platform": "mobile"},
         "ttlSeconds": 3600,
     })
@@ -211,7 +237,11 @@ public function supportSession(Request $request) {
     $user = $request->user();   // from YOUR auth
     $res = Http::withToken(env('LIRA_API_KEY'))
         ->post("https://api.creovine.com/lira/v1/support/sessions/orgs/".env('LIRA_ORG_ID')."/mint", [
-            'customer'   => ['email' => $user->email, 'name' => $user->name],
+            'customer'   => [
+                'email'              => $user->email,
+                'name'               => $user->name,
+                'externalCustomerId' => (string) $user->id, // your id
+            ],
             'context'    => ['app' => 'my-app', 'platform' => 'mobile'],
             'ttlSeconds' => 3600,
         ]);
@@ -239,6 +269,7 @@ tell your mobile developer the endpoint is live and give them its URL.
 - [ ] Key + Org ID stored as env vars (**not** in the repo, **not** in the app)
 - [ ] `POST /support/session` exists and requires your normal login
 - [ ] `customer` comes from **your authenticated session**, never from the request body
+- [ ] `externalCustomerId` is your own user id — without it, account-scoped tools only see an email
 - [ ] `curl` returns a `ws_url`
 - [ ] Mobile developer told the endpoint URL → send them **[the app part](/platform/customer-support/mobile-frontend)**
 
