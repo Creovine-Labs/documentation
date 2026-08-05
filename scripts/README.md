@@ -17,3 +17,18 @@ Uploaded documents are unaffected by crawls.
 
 `knowledge-extra/` is not published to the docs site — it is extra context
 written specifically for the AI.
+
+## test-lira-ai.mjs
+
+Tests the AI from a customer's perspective, in the terminal — no widget needed:
+
+```bash
+node scripts/test-lira-ai.mjs
+```
+
+Each case asserts on the **answer**: `expect` phrases must appear, `forbid`
+phrases must not. The `forbid` list is what catches regressions — e.g. the AI
+inventing a mobile SDK, gating signup behind a demo, or claiming a plan includes
+localized voice. Exits non-zero on failure, so it can gate a release.
+
+Add a case whenever a wrong answer is found in the wild, so it can't come back.
