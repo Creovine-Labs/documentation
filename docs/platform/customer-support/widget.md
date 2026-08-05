@@ -69,6 +69,28 @@ Your `data-org-id` is tied to your organisation and never changes. You do not ne
 
 ---
 
+## Telling Lira about the signed-in user
+
+The same runtime the script tag loads exposes `window.Lira.setContext(...)`, so
+a plain widget embed can pass product context without adopting the full SDK:
+
+```html
+<script>
+  window.Lira.setContext({
+    external_customer_id: 'user_123',   // your id — used by MCP tools
+    productType: 'corporate',           // if one workspace serves several products
+    account: { plan: 'scale' },
+  })
+</script>
+```
+
+No key is reserved — Lira reads the whole object, and one level of nesting is
+flattened. Identity itself (name, email, verified) comes from the `data-email` /
+`data-sig` attributes below. Full detail: [what the AI knows about a signed-in
+user](/platform/customer-support/web-sdk#what-the-ai-knows).
+
+---
+
 ## Updating the widget after installation
 
 The only thing you might want to change after the initial install is the `data-greeting` attribute. You can do this at any time:

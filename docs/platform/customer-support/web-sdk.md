@@ -171,6 +171,64 @@ window.Lira.destroy()
 
 ---
 
+## What the AI knows about a signed-in user {#what-the-ai-knows}
+
+Two calls decide this, and they do different jobs.
+
+**`identify()` — who they are.** With a valid HMAC signature, the visitor is a
+*verified* customer: Lira greets them by name, their history follows them across
+devices and browsers, and account-scoped tools unlock. Without the signature the
+chat still works, but stays anonymous.
+
+**`setContext()` — what they're using.** Free-form, and **no key is reserved** —
+Lira reads the whole object, so use whatever your systems already call things.
+One level of nesting is flattened, so the shape below works as written.
+
+```js
+window.Lira.identify({ email: user.email, name: user.name, sig: serverHmac })
+
+window.Lira.setContext({
+  // Your own id for this user. Hand it over if you connect an MCP server —
+  // it is passed to your tools as _meta['io.lira/customer'].external_customer_id
+  // so they can resolve WHOSE account to act on. Email can change; this doesn't.
+  external_customer_id: user.id,
+
+  // Anything that changes the answer. If one workspace serves several
+  // products, put the distinguishing field here.
+  productType: 'corporate',
+  route: window.location.pathname,
+  account: { plan: user.plan, status: user.subscriptionStatus },
+})
+```
+
+Call `setContext` after `identify()` and before the first message; call it again
+whenever the state changes (route, plan, tab) and the AI sees the update.
+
+:::info What this does and does not give you
+From identity and context alone, Lira knows **who** the customer is and **what
+they are using** — enough to greet them properly, route correctly, and tell a
+Corporate customer from a Personal one.
+
+It does **not** know their balance, transactions, or orders. That needs tools:
+connect an [MCP server](/platform/customer-support/mcp) and Lira calls it with
+the verified identity above. Context is **advisory** — tools must still read
+authoritative data from your systems before any write.
+:::
+
+### Multi-product workspaces
+
+One workspace can serve several products (say Personal, SME and Corporate).
+Pass the distinguishing field in `setContext` — or, on mobile, in the session
+mint `context` — and the AI knows which product each conversation is about.
+
+That gets you the right framing. To get genuinely different *answers*, the
+[Knowledge Base](/knowledge-base/overview) needs product-specific
+content: an agent that knows a customer is Corporate but has only generic
+material will still answer generically. Label or separate your content per
+product when you load it.
+
+---
+
 ## Option 3: NPM package
 
 Use the NPM package when your app is bundled with React, Next.js, Vue, Remix, or

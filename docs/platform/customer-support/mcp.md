@@ -107,6 +107,18 @@ Lira never lets the model call your server directly. Each tool you approve becom
   ```
 
   Resolve *whose* account to act on from `email` / `external_customer_id` here — never trust an id passed in the tool arguments, which originate from the model.
+
+  **Where `external_customer_id` comes from — you have to send it.** It is not
+  invented by Lira:
+
+  | Surface | Set it in |
+  |---|---|
+  | Native mobile / headless | `customer.externalCustomerId` in the [session mint](/platform/customer-support/mobile-backend) |
+  | Website / web app | `external_customer_id` in [`window.Lira.setContext(...)`](/platform/customer-support/web-sdk#what-the-ai-knows) |
+
+  Omit it and your tools receive only the verified `email`. That still works if
+  you can resolve accounts by email — but email changes, and your own id
+  doesn't, so send it.
 - Strict input schemas on each tool so inputs are validated on your side too.
 
 ## Risk levels

@@ -31,7 +31,9 @@ const CASES = [
   },
   {
     q: 'How do I integrate Lira into my mobile app?',
-    expect: ['session token', 'websocket'],
+    // "mint a support session" is the same claim as "session token" — the
+  // assertion is the mechanism (backend mints, app opens a socket), not wording.
+    expect: ['session', 'websocket'],
     forbid: ['web sdk', 'webhook', 'not supported'],
     why: 'Mobile = backend mints a session token + app opens the WebSocket. Not the Web SDK.',
   },
@@ -100,7 +102,9 @@ const CASES = [
     // A spoken concierge won't reliably read out command names; the claim that
     // matters is "not dashboard-only", which the forbid list enforces.
     expect: ['terminal'],
-    forbid: ['dashboard only', 'only in the dashboard', 'not possible', 'must use the dashboard'],
+    // "dashboard only" alone also fires inside the correct negation
+    // "it's not limited to the dashboard only" — scope it to real denials.
+    forbid: ['is dashboard only', 'only in the dashboard', 'not possible', 'must use the dashboard'],
     why: 'The CLI has both switches: `lira mode` for the key, `lira env go-live` for the workspace.',
   },
   {
@@ -108,6 +112,26 @@ const CASES = [
     expect: ['no'],
     forbid: ['yes, it will', 'starts sending'],
     why: 'Live keys stay inert until the workspace goes live — no bypassing the commercial gate.',
+  },
+  {
+    q: 'Does the AI know which of my logged-in users it is talking to?',
+    // A spoken answer needn't name the JS function; "recognises them by email
+    // and external customer id" is the correct answer.
+    expect: ['yes'],
+    forbid: ['anonymous only', "can't know", 'not possible'],
+    why: 'Identity is plumbed: identify() on web, the session mint on mobile.',
+  },
+  {
+    q: 'My MCP tools need my own customer id, not the email. How do I send it?',
+    expect: ['external'],
+    forbid: ['only email', 'not supported', "can't send"],
+    why: 'external_customer_id via setContext (web) or externalCustomerId at mint (mobile). Orgs hit this the moment they wire MCP.',
+  },
+  {
+    q: 'One workspace serves Personal, SME and Corporate. How does the AI know which product a customer is on?',
+    expect: ['context'],
+    forbid: ['separate workspace', 'not possible', 'one product'],
+    why: 'setContext / mint context, plus product-specific KB content for different answers.',
   },
   {
     q: 'Does test traffic use my paid plan quota?',
