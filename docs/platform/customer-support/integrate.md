@@ -87,7 +87,7 @@ iOS, Android, Flutter, React Native. Two roles, two pages.
 
 Backend first. The app cannot connect until that endpoint exists.
 
-The chat screen design is on [Native mobile support](/platform/customer-support/native-mobile).
+The chat screen design is on [Native mobile support](/platform/customer-support/mobile-frontend).
 
 
 ---

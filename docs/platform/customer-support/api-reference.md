@@ -170,5 +170,5 @@ MCP tool invocation is rate limited per organization. Sustained excess returns `
 - [Developer API keys & CLI](/platform/customer-support/developer-api)
 - [MCP server](/platform/customer-support/mcp)
 - [Web SDK](/platform/customer-support/web-sdk) — the browser-side counterpart to a minted session
-- [Native mobile](/platform/customer-support/native-mobile)
+- [Native mobile](/platform/customer-support/mobile-frontend)
 - [Security & actions governance](/platform/customer-support/security)

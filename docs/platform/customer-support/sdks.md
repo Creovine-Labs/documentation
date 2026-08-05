@@ -21,7 +21,7 @@ the roadmap.
 "No React Native SDK yet" does **not** mean no mobile support. **Native mobile
 (iOS, Android, Flutter, React Native) is fully supported today** — you build your
 own chat screen on Lira's chat WebSocket with a session token minted by your
-backend. The **[Native mobile guide](/platform/customer-support/native-mobile)**
+backend. The **[Native mobile guide](/platform/customer-support/mobile-frontend)**
 is the complete spec.
 
 The table above only tracks *drop-in packages*. Not sure which path is yours?

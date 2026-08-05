@@ -33,7 +33,7 @@ Where customers reach you. All share one agent, one knowledge base, and one inbo
 | **Email** | A dedicated support address per organization, or forward from your own domain. Inbound parsing and threaded outbound replies. |
 | **Voice** | Real-time voice conversations with the AI agent. |
 | **WhatsApp Business API** | Your own WABA and number. Available on Scale. |
-| **Native mobile** | iOS/Android support session over the REST and realtime APIs, plus push. See [Native mobile](/platform/customer-support/native-mobile). |
+| **Native mobile** | iOS/Android support session over the REST and realtime APIs, plus push. See [Native mobile](/platform/customer-support/mobile-frontend). |
 
 ## Escalation destinations
 

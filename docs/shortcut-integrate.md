@@ -9,4 +9,4 @@ description: Shortcut to the integration chooser.
 
 Start here → **[Integrate Lira — start here](/platform/customer-support/integrate)**
 
-Building a mobile app? → **[Native mobile support](/platform/customer-support/native-mobile)**
+Building a mobile app? → **[Native mobile support](/platform/customer-support/mobile-frontend)**

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
 title: "Mobile: the app part"
-description: For the mobile/frontend engineer. Build a native support chat screen in your app — connect, send a message, show the streaming reply. Then add the extras.
+description: "The complete mobile guide for the frontend engineer — connect to Lira, then build the chat screen: every event, every screen state, markdown, chips, confirm-before-action, avatars, and accessibility."
 keywords:
   - mobile frontend
   - mobile app
@@ -14,6 +14,10 @@ keywords:
   - websocket
   - chat ui
   - native
+  - ui
+  - ux
+  - design
+  - chat screen
 ---
 
 # Mobile: the app part
@@ -133,6 +137,231 @@ Handle the first three; the rest are optional upgrades.
 
 ---
 
+## What you build — UX checklist {#design-spec}
+
+Everything below is **yours to render** (it's your app), and every item is fed
+by an event Lira already sends. This table is the spec.
+
+| UX element | Who supplies it | Driven by |
+|---|---|---|
+| **Customer avatar** | You (your logged-in user) | your app |
+| **Assistant name + avatar** | You (brand the assistant however you like) | your app / your [support settings](/platform/customer-support/settings) |
+| **Org logo in the header** | You (your brand) | your app |
+| **Typing indicator (animated)** | You render the animation | `typing` |
+| **Streaming reply** | You render incremental text | `reply_start` / `reply_chunk` / `reply_end` |
+| **Quick-reply chips** | Lira sends them; you render tappable chips | `suggestions` |
+| **Confirm-before-action sheet** | You render a native sheet | `confirm` → `confirm_response` |
+| **Step-up (PIN/biometric)** | You re-auth + your backend mints a proof | `step_up` → `step_up_response` |
+| **Rich card** | You render the card | `card` |
+| **Action result** | You show a result line/toast | `action_result` |
+| **Human-agent identity (name + avatar)** | Lira supplies the identity; you render it | `agent_reply`, and `role: "agent"` in `history` |
+| **Proactive message** | You render it | `proactive` |
+| **Handback note** | You render a system line | `handback` |
+| **History on resume** | You replay the thread | `history` |
+| **Resolved + CSAT** | You render a closing state and rating | `status: "resolved"`; send `end` with a score |
+
+## Screen states to design
+
+The events above cover a working conversation. These are the states around it —
+design them or the screen feels broken in normal use.
+
+| State | When | What to show |
+|---|---|---|
+| **Connecting** | Minting the session and opening the socket | A spinner in the message area. Keep the input visible but disabled. |
+| **Empty** | First open, no history | A one-line greeting and 2–3 starter chips ("Track my order", "Talk to a human"). Never a blank screen. |
+| **Resuming** | `history` arrives | Render past messages instantly, scrolled to the newest. No animation — it isn't new. |
+| **Sending** | User tapped send | Show the bubble immediately with a subtle "sending" tick. Don't wait for the server. |
+| **Send failed** | Socket dropped mid-send | Keep the bubble, mark it failed, offer **Retry**. Never silently drop a message. |
+| **Disconnected** | Socket closed | A thin bar: "Reconnecting…". Reconnect automatically; a human agent may still reply. |
+| **Session expired** | Token past its TTL (default 1h) | Mint a new session and reconnect silently. The user should not see this. |
+| **Action running** | After the user approves a `confirm` | Disable the approve button and show progress until `action_result`. |
+| **Resolved** | `status: "resolved"` | Show the CSAT prompt, then a "Start a new chat" button. |
+
+### Layout rules
+
+- **Auto-scroll to the newest message**, but stop if the user has scrolled up — show a "jump to latest" button instead. Yanking the view is the most common chat-UI complaint.
+- **Keyboard and safe area** — the input must sit above the keyboard and the home indicator. Test on a notched device.
+- **Timestamps** — group by time and show one per group, not per bubble.
+- **Long content** — code blocks scroll horizontally rather than wrapping; links are tappable.
+- **Tap targets** at least 44×44pt. Chips and the confirm buttons are the ones people miss.
+
+### Accessibility
+
+Label the send button, the chips, and the approve/deny buttons for screen readers.
+Announce a new AI reply politely so it isn't read mid-stream. Respect the OS text
+size — bubbles must grow with it, never clip. Don't rely on colour alone to show a
+failed message; add an icon or text.
+
+## Render markdown
+
+AI replies come back as **markdown** — `**bold**`, `` `code` ``, fenced code
+blocks, lists, links. Render it, don't print it raw, or customers see literal
+asterisks and backticks. This is a UI responsibility you can't skip:
+
+- **Flutter** — `flutter_markdown` (`MarkdownBody`).
+- **Swift** — `AttributedString(markdown:)` or a markdown view.
+- **Kotlin/Compose** — a markdown renderer (e.g. `compose-markdown`).
+- **React Native** — `react-native-markdown-display`.
+
+Render markdown only for **AI / agent** messages; the customer's own text is
+plain. Style code blocks with a monospace font and, ideally, a copy button —
+Lira often returns copyable snippets (IDs, commands, config).
+
+## Streaming replies
+
+Accumulate `reply_chunk.body` into the bubble keyed by `message_id`; finalize on
+`reply_end` (replace the text if `reply_end` carries a `body`). Between the
+customer's message and `reply_start`, show the `typing` indicator — **animated**,
+not a static "typing…" label (a frozen label reads as a hang):
+
+```dart
+case 'typing':      setState(() => typing = true); break;
+case 'reply_start': typing = false; addBubble(role: 'lira', id: e['message_id'], streaming: true); break;
+case 'reply_chunk': byId(e['message_id']).text += e['body']; break;
+case 'reply_end':   final m = byId(e['message_id']); if (e['body'] != null) m.text = e['body']; m.streaming = false; break;
+```
+
+## Quick-reply chips
+
+Lira offers chips in guided moments (e.g. "Open a ticket" / "Keep chatting" /
+"Connect me with a teammate"). Render the latest `suggestions` set below the
+thread; tapping a chip sends its text as a normal `message`, and you clear the
+chips when the customer sends anything.
+
+## Confirm-before-action
+
+This is what makes actions safe on mobile. When the AI wants to do something that
+needs permission (e.g. **freeze a card**), you receive:
+
+```json
+{ "type": "confirm", "pending_id": "pend_…", "tool_name": "…",
+  "title": "Freeze card", "body": "Freeze your card ending 4291?", "arguments": { … } }
+```
+
+Show your own native confirm sheet, then send back:
+
+```json
+{ "type": "confirm_response", "pending_id": "pend_…", "approved": true }
+```
+
+The AI then runs the action and streams the result. Send `"approved": false` to
+decline. For a `step_up` event, re-authenticate the customer (PIN/biometric),
+have your backend mint a step-up proof, and reply with
+`{ "type": "step_up_response", "pending_id": "…", "step_up_token": "…" }`.
+
+**Minting the step-up proof** is the same session-mint call your backend already
+makes — just add `"stepUp": true`. It returns a short-lived proof token you pass
+straight back as `step_up_token`:
+
+```bash
+curl -X POST https://api.creovine.com/lira/v1/support/sessions/orgs/ORG_ID/mint \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "customer": { "email": "customer@example.com" }, "stepUp": true, "ttlSeconds": 300 }'
+```
+
+Do this only *after* the customer passes a fresh re-auth (PIN/biometric) on the
+device, so the proof genuinely represents a second factor.
+
+The `title` and `body` are already customer-friendly (e.g. **"Are you sure you
+want to proceed with card freeze? Confirm to proceed."**) — never the raw tool
+name. Render them as-is, or substitute your own copy keyed off `tool_name` if
+you want a more branded prompt (e.g. "Freeze your card ending 4291?").
+
+## Human takeover — identity & avatars
+
+When a teammate steps into the conversation from the Lira inbox, the customer's
+socket receives `agent_reply` events carrying the teammate's **name and avatar**:
+
+```json
+{ "type": "agent_reply", "body": "Hi Ada, I've got this from here.",
+  "sender_name": "Sam Rivera", "sender_avatar": "https://…/sam.png" }
+```
+
+Render the teammate's avatar and name on their bubbles (and, if you like, a
+"You're now chatting with Sam" system line). When Lira resumes, you get a
+`handback` event — clear the human identity and continue. Resumed threads carry
+the same identity: `history` messages with `role: "agent"` include
+`sender_name` / `sender_avatar`.
+
+Avatars overall:
+
+- **Customer** — from your logged-in user (your app).
+- **Assistant** — your brand. Lira is the engine; the *face* the customer sees
+  is your choice (name it, give it your logo).
+- **Human agent** — comes from Lira on `agent_reply` / `history` (`sender_avatar`,
+  `sender_name`). Render it; fall back to initials if there's no image.
+
+:::tip Require support agents to set a profile photo
+`sender_avatar` may be an `http(s)` URL **or** a base64 `data:` URI (that's how
+uploaded photos are stored) — make sure your image widget handles **both** (e.g.
+decode `data:` URIs), or a real photo will silently fall back to initials.
+
+Strongly encourage — or require — every teammate who answers customers to set a
+profile picture in the dashboard. A real face on the human's replies is a big
+authenticity signal for the customer; initials read as a bot.
+:::
+
+## History on resume
+
+Because the session is keyed to the customer, reopening support **resumes the
+same conversation** and Lira replays it as one `history` event. Render its
+`messages` (respecting each `role`) so the customer sees their thread instead of
+a blank screen — don't rely on the `welcome` line alone.
+
+## Resolving & CSAT
+
+On `status: "resolved"`, show a closing state. To collect satisfaction, send an
+`end` with the score:
+
+```json
+{ "type": "end", "body": "5" }
+```
+
+### Wipe the local thread on close
+
+When a conversation resolves, **clear the customer's local transcript** (after
+CSAT). The organization keeps the full record on their dashboard; the customer
+starts fresh on their next issue, so history stays organized and trackable per
+issue rather than one endless thread. Wiping is a **client** action — you own
+the on-device store — Lira never asks you to keep it.
+
+### Clearing the chat (optional)
+
+You may also offer the customer a manual **"Clear chat"** that wipes only their
+on-device thread. It does **not** delete anything on the organization's side —
+the dashboard retains the conversation. Purely a local convenience; include it
+or not.
+
+## Human takeover — the AI pauses
+
+When a teammate **takes over** from the dashboard, Lira **pauses**: the AI stops
+auto-replying and the teammate answers directly (you receive `agent_reply` with
+their name + avatar). Any teammate reply — from the inbox or a ticket —
+automatically triggers takeover. When the teammate **hands back**, you receive
+`handback` and the AI resumes. From the app's side there's nothing special to
+implement beyond rendering `agent_reply` and `handback` (already in the event
+catalogue) — the pause/resume is enforced server-side.
+
+**Notifying the customer.** While the AI is answering, replies are instant and
+the customer is watching — no notification needed. Once a **human** is handling,
+replies can arrive minutes later, so Lira also emails the customer on a human
+reply (production; suppressed in sandbox) as a "come back to the chat" nudge.
+For a true mobile push when the app is backgrounded, wire your own
+FCM/APNs off your backend — Lira delivers the message over the socket and by
+email; the push channel is yours.
+
+## History & tickets (REST)
+
+For conversation history and tickets outside the socket, the same session token
+authenticates the REST endpoints under `rest_base_url` (`?sessionToken=…`):
+
+- `GET /chat/conversations/ORG_ID` — the customer's conversations
+- `GET /chat/conversation/ORG_ID/CONV_ID` — one conversation with messages
+- `GET /chat/history/ORG_ID` — most recent conversation as a flat list
+
+---
+
 ## Checklist
 
 - [ ] Got the `/support/session` URL from your backend engineer
@@ -153,14 +382,3 @@ Handle the first three; the rest are optional upgrades.
 | Connects, but replies are empty | The knowledge base is empty. Dashboard → **Grow → Knowledge Base** → add your content. |
 | No `ws_url` in the response | Backend issue — send your backend engineer to [their page](/platform/customer-support/mobile-backend). |
 
----
-
-## Next page
-
-**[Native mobile support →](/platform/customer-support/native-mobile)**
-
-This page gets you connected. The next page shows **what the chat screen should
-look like** — the typing indicator, chips, code blocks, avatars, and every event.
-Read it before you design the screen.
-
-You don't need Figma to start. Build from that page, then refine the design later.
