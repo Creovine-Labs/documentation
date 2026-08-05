@@ -32,6 +32,7 @@ Create `support.html` (or wherever you want the support hub to live) and paste:
   <script
     src="https://widget.liraintelligence.com/v1/widget.js"
     data-org-id="YOUR_ORG_ID"
+    data-publishable-key="lira_pk_live_YOUR_KEY"
     data-mode="fullscreen"
     data-target="#lira-support-root"
   ></script>
@@ -57,6 +58,7 @@ To put a chat bubble on every page of your site, add this single line before `</
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="YOUR_ORG_ID"
+  data-publishable-key="lira_pk_live_YOUR_KEY"
   data-position="bottom-right"
 ></script>
 ```

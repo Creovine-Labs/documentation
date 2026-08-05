@@ -8,6 +8,10 @@ description: What the free sandbox includes, the testing caps that apply, and ex
 
 Every new Lira organisation starts in **sandbox** — a free environment where you can test the entire product before paying anything. When you're ready, you flip the workspace to **live** from the Environment card at the top of **Settings → Support**. That switch is the commercial moment: your plan's limits apply and, for paid plans, Paddle-backed billing begins.
 
+:::tip You don't have to choose one or the other
+Going live does **not** end your ability to test. With [test and live keys](/platform/customer-support/test-and-live-mode), a live workspace keeps running test traffic from your staging environment at the same time — separately capped, no real sends, kept out of the live inbox. The caps on this page apply to **test-mode traffic**, whether or not your workspace has gone live.
+:::
+
 ---
 
 ## What sandbox includes
@@ -24,13 +28,16 @@ Two things stay locked even in sandbox: real WhatsApp message sending (requires 
 
 ## Sandbox testing caps
 
-Sandbox is free, so a fixed set of monthly testing caps applies to every sandbox org (they replace plan limits while you're in sandbox):
+Testing is free, so a fixed set of monthly caps applies to **test-mode traffic** — that means a sandbox workspace, and also the test-key traffic of a workspace that has already gone live:
 
 | Cap | Default |
 |---|---|
 | Conversations per month | 500 |
 | AI replies per month | 500 |
+| AI calls per month (all pipeline stages) | 2,000 |
 | Knowledge Base size | 200 web pages / 25 documents |
+
+Test and live volumes are counted **separately**: hitting a test cap never throttles your real customers, and heavy live usage never blocks your staging tests.
 
 Caps reset monthly, like plan limits. If you hit one, the widget and dashboard show a friendly message — testing pauses for the rest of the month unless you go live or request an extension. Sandbox conversation data is also retained for 30 days (Knowledge Base content and documents are kept until you delete them).
 
@@ -49,6 +56,18 @@ When your integration is ready, open **Settings → Support** and use the **Envi
 1. Click **Production** on the Sandbox / Production switch.
 2. A confirmation dialog shows your plan, its price, and its included monthly volume, and states plainly: going live starts billing for paid plans.
 3. Type your organisation's name to confirm, then click the confirm button — labelled **Go live** on Free, or **Set up billing & go live** on a paid plan without an active subscription.
+
+### Or from the terminal
+
+Going live is not dashboard-only. The CLI has the same switch, with the same typed confirmation:
+
+```bash
+lira env show        # is this workspace live?
+lira env go-live     # asks you to type the organisation name
+lira env sandbox     # go back
+```
+
+If your plan needs a subscription and there isn't one, the CLI stops and sends you to the dashboard — Paddle checkout needs a browser. Everything else works from the terminal. See [switching modes from your terminal](/platform/customer-support/test-and-live-mode#switching-modes-from-your-terminal).
 
 **On a paid plan (Pro or Scale) with no active subscription, going live collects payment first.** Confirming opens a **Paddle Checkout overlay**; the workspace only switches to production after payment succeeds. If a subscription is already active — or the workspace is on Free — there is no checkout step and the switch happens immediately. Because the workspace is still in sandbox at this point, any checkout you run before the switch uses Paddle's sandbox environment and test cards; the first checkout that bills a real card is the one that takes you live.
 

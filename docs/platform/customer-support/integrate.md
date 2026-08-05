@@ -118,6 +118,16 @@ Both scaffold code in your project. **Steps 1–3 above are still done in the da
 
 New organizations start in **SANDBOX**. Build and test there.
 
+Once you're integrating for real, you don't have to choose: **test and live keys work at the same time**, so your staging environment and production can both point at this workspace. Staging traffic gets its own quota, sends no real emails, and stays out of the live inbox. Switch from the dashboard topbar or the terminal:
+
+```bash
+lira mode test | lira mode live   # which key your commands use
+lira env go-live                  # the workspace switch (real sends + billing)
+lira status                       # what will my next command do?
+```
+
+→ [Test and live mode](/platform/customer-support/test-and-live-mode)
+
 **INTEGRATION CODE IS IDENTICAL IN BOTH.** Same org ID, same script tag, same
 API key, same mint endpoint, same WebSocket URL. Going live changes limits and
 billing only — **no code change, no redeploy**.

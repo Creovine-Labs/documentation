@@ -58,6 +58,7 @@ Once activated, copy the embed snippet from **Settings → Support → Get conne
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="YOUR_ORG_ID"
+  data-publishable-key="lira_pk_live_YOUR_KEY"
   data-position="bottom-right">
 </script>
 ```

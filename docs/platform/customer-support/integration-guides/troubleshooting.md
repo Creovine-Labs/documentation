@@ -42,6 +42,25 @@ The embed snippet on your site has a typo, an old org ID, or an ID for a differe
 
 **Fix:** Copy the snippet from **Lira dashboard → Settings → Support → Get connected** fresh and replace your embed.
 
+## Symptom: my production conversations aren't showing up in the inbox {#wrong-mode}
+
+Two causes, both about **[test vs live mode](/platform/customer-support/test-and-live-mode)**:
+
+**1. The dashboard is showing the other mode.** The topbar says **TEST DATA** or **LIVE DATA**. Click it and pick the one you expect. Test conversations never appear in the live view, by design.
+
+**2. The embed's publishable key isn't recognised.** Open your browser console and look for:
+
+```
+INVALID_PUBLISHABLE_KEY — The publishable key on this embed was not recognised
+for this organization. Running in TEST mode until it is fixed.
+```
+
+An unrecognised key (typo, wrong workspace, or one you rotated out) is deliberately forced to **test** rather than being allowed to become live traffic. Your production conversations are therefore landing under **Test data**.
+
+**Fix:** copy the current key from **Settings → Support → Developers → Publishable keys** and redeploy. Remember `lira_pk_test_…` belongs on staging and `lira_pk_live_…` in production.
+
+The same applies to mobile: the mode comes from the key **your backend** mints with, so a production app pointed at your staging backend produces test conversations.
+
 ### 4. CSP / network blocking
 
 Your site's Content Security Policy or a corporate proxy blocks `widget.liraintelligence.com` or `api.creovine.com`. The widget loads, but its WebSocket never connects.

@@ -46,11 +46,24 @@ Create a support route in your app, add a container, and load the Lira runtime:
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="YOUR_ORG_ID"
+  data-publishable-key="lira_pk_live_YOUR_KEY"
   data-mode="fullscreen"
   data-target="#lira-support-root"
   data-greeting="Hi! How can we help you?">
 </script>
 ```
+
+:::tip Staging vs production
+`data-publishable-key` decides whether this embed's traffic is **test** or
+**live**. Use `lira_pk_test_…` on staging and preview deploys and
+`lira_pk_live_…` in production — most teams read it from the environment
+variable that already distinguishes their builds. Copy both from
+**Settings → Support → Developers → Publishable keys**, and see
+[Test and live mode](/platform/customer-support/test-and-live-mode).
+
+Leaving it out keeps the behaviour you have today: the embed follows your
+workspace environment.
+:::
 
 This renders the full support conversation inside `#lira-support-root`. There is
 no floating launcher bubble in fullscreen mode.
@@ -115,6 +128,8 @@ context.
 <script>
   window.Lira.init({
     orgId: 'YOUR_ORG_ID',
+    // Test key on staging, live key in production — one env var, two values.
+    publishableKey: process.env.NEXT_PUBLIC_LIRA_PUBLISHABLE_KEY,
     orgName: 'LemonPay',
     primaryColor: '#111827',
     greeting: 'Hi! How can we help you?'

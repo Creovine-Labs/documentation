@@ -49,6 +49,18 @@ works**: Swift, Kotlin, Flutter, React Native.
 
 You never touch the API key. Your backend already handled that.
 
+:::note Staging vs production — nothing to do on your side
+Lira supports test and live mode, and the mode is decided by the key **your
+backend** mints with. Your staging builds automatically produce test traffic
+(no real emails or Slack alerts, separate quota, kept out of the live inbox)
+purely because they point at your staging backend. Your app code is identical
+in both.
+
+The only optional thing: the session response includes `"mode": "test" | "live"`.
+Show a small "Test mode" banner in internal builds if you find that useful.
+See [Test and live mode](/platform/customer-support/test-and-live-mode).
+:::
+
 ---
 
 ## Step 1 — Get the session

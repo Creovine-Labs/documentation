@@ -90,6 +90,7 @@ container:
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="YOUR_ORG_ID"
+  data-publishable-key="lira_pk_live_YOUR_KEY"
   data-mode="fullscreen"
   data-target="#lira-support-root">
 </script>

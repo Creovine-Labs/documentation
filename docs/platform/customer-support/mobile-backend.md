@@ -44,12 +44,32 @@ customer. That's it. That's the whole job.
 
 ## What you need
 
-1. **Your Lira API key** — `lira_sk_...`
+1. **Two Lira API keys — one per environment**
    Dashboard → **Settings → Support → Developers → New key** → tick **`sessions:mint`**. Any member can do this — you don't need admin rights.
+   - **Test** key (`lira_sk_test_…`) for your staging environment
+   - **Live** key (`lira_sk_live_…`) for production
+
+   Both are valid at the same time against the same Lira workspace.
 2. **Your Organization ID** — `org-...`
    Dashboard → **Settings → Organization → General** (Copy button).
 
-Store both as environment variables — `LIRA_API_KEY` and `LIRA_ORG_ID`. Never commit them.
+Store them as environment variables — `LIRA_API_KEY` and `LIRA_ORG_ID` — with the **test key in your staging config and the live key in your production config**. Never commit them.
+
+```bash
+# staging.env
+LIRA_API_KEY=lira_sk_test_…
+
+# production.env
+LIRA_API_KEY=lira_sk_live_…
+```
+
+That single config difference is the *entire* change needed for test/live separation on mobile. Same endpoint, same request body, same app code.
+
+:::tip Why this matters for mobile
+The session your endpoint mints **inherits the key's mode and keeps it for its whole life**. So your staging builds and TestFlight/internal testers produce **test** traffic: their conversations never reach the live inbox, never consume your plan's quota, and never trigger real emails, Slack, Linear or webhooks. Your production app, using the live key, is unaffected.
+
+Full explanation: [Test and live mode](/platform/customer-support/test-and-live-mode).
+:::
 
 ---
 
@@ -61,9 +81,11 @@ POST https://api.creovine.com/lira/v1/support/sessions/orgs/{YOUR_ORG_ID}/mint
 
 **Headers**
 ```
-Authorization: Bearer lira_sk_your_key_here
+Authorization: Bearer lira_sk_test_your_key_here
 Content-Type: application/json
 ```
+
+Use your **test** key (`lira_sk_test_…`) from staging and your **live** key (`lira_sk_live_…`) from production — both work against the same organization at once, and the session inherits the key's mode for its whole life. See [test vs live keys](/platform/customer-support/developer-api#test-vs-live-keys).
 
 **Body**
 ```json
@@ -83,11 +105,14 @@ Content-Type: application/json
 ```json
 {
   "token": "…",
-  "ws_url": "wss://api.creovine.com/lira/v1/support/chat/ws/…"
+  "ws_url": "wss://api.creovine.com/lira/v1/support/chat/ws/…",
+  "mode": "test"
 }
 ```
 
 The app only really needs **`ws_url`** — that's the address it opens.
+
+`mode` tells you which key minted the session (`"test"` or `"live"`). You can ignore it, or pass it to the app to show a debug banner in staging builds so testers know they aren't talking to production support.
 
 ---
 

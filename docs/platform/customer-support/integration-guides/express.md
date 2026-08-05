@@ -64,6 +64,7 @@ If your frontend is server-rendered (EJS, Pug, Handlebars), render this template
   <script
     src="https://widget.liraintelligence.com/v1/widget.js"
     data-org-id="<%= process.env.LIRA_ORG_ID %>"
+    data-publishable-key="<%= process.env.LIRA_PUBLISHABLE_KEY %>"
     data-mode="fullscreen"
     data-target="#lira-support-root"
     <% if (user) { %>

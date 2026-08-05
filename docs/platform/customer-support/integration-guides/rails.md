@@ -27,6 +27,7 @@ For Rails apps, you load the Lira runtime via a `<script>` tag on your support v
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="<%= ENV['LIRA_ORG_ID'] %>"
+  data-publishable-key="<%= ENV['LIRA_PUBLISHABLE_KEY'] %>"
   data-mode="fullscreen"
   data-target="#lira-support-root"
   <% if current_user %>
@@ -112,6 +113,7 @@ In `app/views/layouts/application.html.erb`, before the closing `</body>`:
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="<%= ENV['LIRA_ORG_ID'] %>"
+  data-publishable-key="<%= ENV['LIRA_PUBLISHABLE_KEY'] %>"
   <% if current_user %>
     data-email="<%= current_user.email %>"
     data-name="<%= current_user.name %>"

@@ -15,8 +15,12 @@ const API = process.env.LIRA_API_BASE ?? 'https://api.creovine.com';
 const CASES = [
   {
     q: 'Do you have an SDK?',
+    // `expect` carries the assertion: it must name the Web SDK. The forbid
+    // phrases are scoped to denying the SDK outright — a bare "don't have"
+    // also fires on the TRUE clause "we don't have a specific SDK for mobile",
+    // which is a correct clarification, not a denial.
     expect: ['web sdk'],
-    forbid: ["don't have", 'no sdk', 'not available'],
+    forbid: ["don't have an sdk", "don't have any sdk", 'no sdk at all', 'sdk is not available'],
     why: 'The Web SDK exists — denying it loses developers.',
   },
   {
@@ -37,7 +41,7 @@ const CASES = [
     forbid: ["can't help", 'not sure'],
     why: 'Bearer API key, kept server-side.',
   },
-  { q: 'Do you support webhooks?', expect: ['webhook'], forbid: ['no', 'not support'], why: 'Signed webhooks exist for ticket events.' },
+  { q: 'Do you support webhooks?', expect: ['webhook'], forbid: ["don't support", 'not support', 'no webhook'], why: 'Signed webhooks exist for ticket events.' },
   { q: 'How much does it cost?', expect: ['free', '29'], forbid: ['contact sales for pricing'], why: 'Pricing is public; a short spoken answer need not list every tier.' },
   {
     q: 'How do I get started?',
@@ -45,7 +49,7 @@ const CASES = [
     forbid: ['book a demo first', 'sales-led', 'invite code'],
     why: 'Signup is open and self-serve — never gate it behind a demo.',
   },
-  { q: 'My widget is not showing up, what do I do?', expect: ['script'], forbid: ["can't help", 'contact support'], why: 'It should troubleshoot, not deflect.' },
+  { q: 'My widget is not showing up, what do I do?', expect: [], forbid: ["can't help", 'contact support', 'unable to help'], why: 'It should troubleshoot (console, diagnostics, embed) rather than deflect — the forbid list is the real assertion.' },
   { q: 'Can I integrate with React?', expect: ['sdk'], forbid: ['not supported'], why: 'React is supported via the Web SDK.' },
   {
     q: 'Do you offer a Nigerian accent or custom brand voice? Is it in Scale?',
@@ -64,6 +68,52 @@ const CASES = [
     expect: ['dashboard'],
     forbid: ['your usage is', 'you have used'],
     why: 'Not signed in — it must not invent account data.',
+  },
+  {
+    q: 'Can I run my staging environment and production against the same Lira workspace?',
+    // The claim is the capability, not the vocabulary — "the key you use decides
+    // the mode" is a correct answer that happens not to contain both words.
+    expect: ['workspace'],
+    forbid: ['not possible', "can't", 'separate workspace', 'second organization', 'two workspaces'],
+    why: 'Test and live keys are valid at the same time — one workspace, both environments.',
+  },
+  {
+    q: 'What are the Lira API key prefixes?',
+    expect: ['lira_sk_test', 'lira_sk_live'],
+    forbid: ['only one key', 'no test key'],
+    why: 'Four key types exist: sk/pk × test/live.',
+  },
+  {
+    q: 'I already have one API key from before. Does it stop working or become production automatically?',
+    expect: ['keep', 'workspace'],
+    forbid: ['stops working', 'must create', 'automatically converted', 'no longer valid'],
+    why: 'Legacy keys keep working and follow the workspace environment — no forced migration.',
+  },
+  {
+    q: 'For my mobile app, what do I change to separate staging from production support?',
+    expect: ['test key', 'live key'],
+    forbid: ['nothing is possible', 'not supported for mobile', 'rebuild the app'],
+    why: 'Mobile mode comes from the key the customer backend mints with; app code is unchanged.',
+  },
+  {
+    q: 'Can I switch between test and live from my terminal, or is it dashboard only?',
+    // A spoken concierge won't reliably read out command names; the claim that
+    // matters is "not dashboard-only", which the forbid list enforces.
+    expect: ['terminal'],
+    forbid: ['dashboard only', 'only in the dashboard', 'not possible', 'must use the dashboard'],
+    why: 'The CLI has both switches: `lira mode` for the key, `lira env go-live` for the workspace.',
+  },
+  {
+    q: 'If I create a live key before going live, does it start sending real emails?',
+    expect: ['no'],
+    forbid: ['yes, it will', 'starts sending'],
+    why: 'Live keys stay inert until the workspace goes live — no bypassing the commercial gate.',
+  },
+  {
+    q: 'Does test traffic use my paid plan quota?',
+    expect: ['no'],
+    forbid: ['yes, it does', 'counts against your plan'],
+    why: 'Test traffic is metered separately against the test caps.',
   },
 ];
 

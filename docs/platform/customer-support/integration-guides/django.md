@@ -32,6 +32,7 @@ For Django apps, load the Lira runtime via a `<script>` tag on your support temp
   <script
     src="https://widget.liraintelligence.com/v1/widget.js"
     data-org-id="{{ lira_org_id }}"
+    data-publishable-key="{{ lira_publishable_key }}"
     data-mode="fullscreen"
     data-target="#lira-support-root"
     {% if user.is_authenticated %}
@@ -122,6 +123,7 @@ In your base template (`base.html`), before `</body>`:
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="{{ lira_org_id }}"
+  data-publishable-key="{{ lira_publishable_key }}"
   {% if user.is_authenticated %}
     data-email="{{ user.email }}"
     data-name="{{ user.get_full_name }}"

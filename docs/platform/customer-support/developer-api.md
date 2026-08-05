@@ -9,14 +9,49 @@ description: Automate Lira from your own backend or CI — create a scoped API k
 
 For teams that want to **script Lira** instead of clicking through the dashboard. Any member of the organization can create a scoped API key, and your engineers use it with the Lira CLI or the REST API to connect [MCP tools](/platform/customer-support/mcp), approve them, and mint support sessions for your customers from your backend.
 
+## Test vs live keys
+
+Every Lira key carries a **mode**, and both modes are valid at the same time. One organization, one dashboard, two key sets — so your staging environment and your production environment can point at the same Lira workspace without ever mixing.
+
+| Key | Where it belongs | What it does |
+|---|---|---|
+| `lira_sk_test_…` | staging / local backend | **Secret.** Test traffic: its own quota, no real emails, Slack, Linear or webhook deliveries. |
+| `lira_sk_live_…` | production backend | **Secret.** Real customers: real sends, your plan's limits, billing. |
+| `lira_pk_test_…` | staging website / app | **Publishable** — safe in your HTML. Marks that embed's traffic as test. |
+| `lira_pk_live_…` | production website / app | **Publishable** — safe in your HTML. Real customer traffic. |
+
+What test mode guarantees:
+
+- **Separate quota.** Test conversations and AI replies never consume the volume your live plan is paying for, and hitting a test cap never throttles real customers.
+- **No real-world side effects.** Outbound email, Slack, Linear and webhook deliveries are suppressed and previewed instead.
+- **Out of the live inbox.** Test conversations and tickets are only visible when the dashboard is switched to **Test data** (topbar switch), so a staging integration never pollutes the queue your team works.
+- **Isolated threads.** A test embed cannot resume, read, or hide a live conversation, and vice versa — even for the same customer.
+
+Switch what the dashboard shows with the **TEST DATA / LIVE DATA** control in the topbar.
+
+:::caution Going live does not disturb your test setup
+Going live turns on real sends for **live-key** traffic. Your test keys keep behaving exactly as before.
+:::
+
+### If a publishable key is wrong
+
+An embed whose publishable key isn't recognised — a typo, the wrong organization, or a key you rotated out — is forced into **test mode**, never live. That is deliberate: a broken staging deploy must not become live traffic. The widget logs an `INVALID_PUBLISHABLE_KEY` warning to the browser console with the fix.
+
+An embed that sends **no** publishable key at all (every embed created before test/live keys existed) keeps following your workspace environment, exactly as it did before. Nothing you already shipped breaks.
+
 ## Create a key
 
 **Any member** of the organization can create a key in **Settings → Support → Developers → New key** — you do not need to be an owner or admin. Developers usually aren't org admins, so requiring it only blocked the people doing the integration.
 
-1. Give it a name and pick only the permissions it needs.
-2. Optionally set an expiry (defaults to never).
-3. **Copy the key when it is shown** — it is displayed once and cannot be retrieved again (only revoked).
-4. Use it as the `LIRA_API_KEY` environment variable. Keep it **server-side**; never ship it in a mobile app or browser.
+1. Give it a name and pick the **mode** — Test (the default) or Live.
+2. Pick only the permissions it needs.
+3. Optionally set an expiry (defaults to never).
+4. **Copy the key when it is shown** — it is displayed once and cannot be retrieved again (only revoked).
+5. Use it as the `LIRA_API_KEY` environment variable. Keep it **server-side**; never ship it in a mobile app or browser.
+
+Publishable keys live in the same place, under **Publishable keys** — copy them straight into your embed, and rotate either mode independently. Rotating the **live** key breaks production embeds until you redeploy.
+
+Keys created before test/live mode shipped are shown as **Legacy**. They keep working and follow your workspace environment. Replace them with explicit test/live keys when convenient.
 
 ## Permissions (scopes)
 
@@ -25,13 +60,41 @@ For teams that want to **script Lira** instead of clicking through the dashboard
 | `mcp:read` | Read your MCP server config and discovered tools. |
 | `mcp:write` | Connect, approve, enable, and remove MCP tools. |
 | `sessions:mint` | Start a native support session as any of your customers. **High privilege** — keep this key on your backend only and revoke it if it leaks. |
-| `support:read` / `support:write` | *Reserved.* Support **config, tickets, and inbox** are managed in the dashboard today — these scopes exist for a future config-over-API surface and don't grant anything yet. |
+| `support:read` | Read support configuration and knowledge-base status. |
+| `support:write` | Activate support, change settings, crawl sites and upload documents — provision a workspace entirely from CI. |
+
+A session minted with a test key is a **test session for its whole life**, no matter what your workspace environment says. That is how your staging backend produces test traffic while production runs live on the same organization.
 
 ## Use the CLI
 
+The CLI can switch between test and live itself — you never have to open the
+dashboard to change which mode you're working in.
+
 ```bash
 npm i -g @liraintelligence/support
-export LIRA_API_KEY=lira_sk_…
+
+lira keys use --api-key=lira_sk_test_…   # save each key once
+lira keys use --api-key=lira_sk_live_…
+lira mode test        # switch mode
+lira mode live
+lira status           # org, mode, workspace, and what that means
+
+lira env go-live      # the workspace switch (real sends + billing), from the terminal
+lira env sandbox
+```
+
+Using a live key while the CLI is in test mode (or the reverse) is **refused**
+with the command to fix it, and a live key does nothing real until the workspace
+itself has gone live. Full detail: [Test and live mode](/platform/customer-support/test-and-live-mode#switching-modes-from-your-terminal).
+
+`LIRA_API_KEY` still works and overrides the saved key, for CI:
+
+```bash
+# Staging
+export LIRA_API_KEY=lira_sk_test_…
+
+# Production
+# export LIRA_API_KEY=lira_sk_live_…
 
 # Connect and govern an MCP server
 lira mcp connect --org-id=org_xxx --endpoint=https://mcp.yourcompany.com/mcp

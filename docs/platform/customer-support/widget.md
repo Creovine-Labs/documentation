@@ -34,10 +34,21 @@ The widget is a single `<script>` tag. Paste it before the closing `</body>` tag
 <script
   src="https://widget.liraintelligence.com/v1/widget.js"
   data-org-id="YOUR_ORG_ID"
+  data-publishable-key="lira_pk_live_YOUR_KEY"
   data-greeting="Hi! How can we help you today?"
   data-position="bottom-right">
 </script>
 ```
+
+### Staging vs production
+
+`data-publishable-key` is what tells Lira whether this embed is **test** or **live**. Use `lira_pk_test_…` on staging and preview deploys, and `lira_pk_live_…` in production — both are valid at once against the same workspace, so your staging site never consumes live quota, never triggers real emails or Slack/Linear/webhook deliveries, and never appears in the live inbox.
+
+Copy both keys from **Settings → Support → Developers → Publishable keys**. They are publishable: shipping them in your HTML is expected and safe.
+
+An embed with **no** publishable key follows your workspace environment, exactly as before — nothing you have already shipped breaks. An embed whose key is wrong (typo, rotated out) is forced into test mode rather than going live, and logs an `INVALID_PUBLISHABLE_KEY` warning to the browser console.
+
+Voice calls launched from the widget use the same key. A staging widget call creates a test voice conversation, not a live one.
 
 ### Getting your snippet
 
