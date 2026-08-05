@@ -7,11 +7,11 @@ description: Automate Lira from your own backend or CI — create a scoped API k
 
 # Developer API keys & CLI
 
-For teams that want to **script Lira** instead of clicking through the dashboard. An org admin creates a scoped API key, and your engineers use it with the Lira CLI or the REST API to connect [MCP tools](/platform/customer-support/mcp), approve them, and mint support sessions for your customers from your backend.
+For teams that want to **script Lira** instead of clicking through the dashboard. Any member of the organization can create a scoped API key, and your engineers use it with the Lira CLI or the REST API to connect [MCP tools](/platform/customer-support/mcp), approve them, and mint support sessions for your customers from your backend.
 
 ## Create a key
 
-Keys are created by an **owner or admin** in **Settings → Support → Developers → New key**.
+**Any member** of the organization can create a key in **Settings → Support → Developers → New key** — you do not need to be an owner or admin. Developers usually aren't org admins, so requiring it only blocked the people doing the integration.
 
 1. Give it a name and pick only the permissions it needs.
 2. Optionally set an expiry (defaults to never).

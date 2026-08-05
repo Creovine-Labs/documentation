@@ -45,7 +45,7 @@ customer. That's it. That's the whole job.
 ## What you need
 
 1. **Your Lira API key** — `lira_sk_...`
-   Dashboard → **Settings → Support → Developers → New key** → tick **`sessions:mint`**.
+   Dashboard → **Settings → Support → Developers → New key** → tick **`sessions:mint`**. Any member can do this — you don't need admin rights.
 2. **Your Organization ID** — `org-...`
    Dashboard → **Settings → Organization → General** (Copy button).
 
