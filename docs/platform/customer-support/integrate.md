@@ -111,6 +111,51 @@ Both scaffold code in your project. **Steps 1–3 above are still done in the da
 
 ---
 
+## STAGING (SANDBOX) VS LIVE
+
+New organizations start in **SANDBOX**. Build and test there.
+
+**INTEGRATION CODE IS IDENTICAL IN BOTH.** Same org ID, same script tag, same
+API key, same mint endpoint, same WebSocket URL. Going live changes limits and
+billing only — **no code change, no redeploy**.
+
+### Sandbox limits (per month)
+
+| Resource | Limit |
+|---|---|
+| Conversations | 500 |
+| AI replies | 500 |
+| LLM calls (all AI work, incl. classification) | 2,000 |
+| AI replies per minute | 10 |
+| Knowledge base pages | 200 |
+| Knowledge base documents | 25 |
+
+Conversations are purged after 30 days in sandbox. Knowledge base content is kept.
+Limits are hard stops — there is no overage in sandbox.
+
+### What does NOT send in sandbox
+
+Customer-facing email, ticket emails, proactive outreach, and WhatsApp are dry-run.
+
+**These DO fire for real in sandbox — configure with care:**
+Slack, Linear, and outbound webhook escalations, plus escalation email to your team.
+Team ticket alerts are sent, tagged `[SANDBOX]`.
+
+### Going live
+
+**Settings → Support → Environment card → Production**, then confirm by typing the
+organization name. Owner or admin only.
+
+Paid plans (Pro, Scale) require an active subscription — checkout opens during the
+switch. Free and Enterprise switch without checkout.
+
+Plans and pricing: [Subscription & Billing](/getting-started/plans-and-billing)
+Dashboard: **Settings → Subscription** (plan, usage, plan-change and sandbox-extension requests) and **Settings → Billing** (invoices, payment methods).
+
+Full detail: [Sandbox and going live](/platform/customer-support/sandbox-and-going-live)
+
+---
+
 ## ABOUT MCP
 
 MCP is **not** an integration path and is **not** required.
