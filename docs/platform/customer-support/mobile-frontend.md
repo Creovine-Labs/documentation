@@ -122,7 +122,16 @@ Handle the first three; the rest are optional upgrades.
 | `handback` | The human handed the chat back to the AI. Optional small note. |
 | `error` | Show a friendly retry message. |
 
-Full payload shapes for every event: **[Native mobile event reference](/platform/customer-support/native-mobile)**.
+---
+
+## WHAT TO BUILD FOR EACH EVENT (UI/UX SPEC)
+
+The **[Native mobile reference](/platform/customer-support/native-mobile)** documents,
+for every event above: the exact payload, and **what to render for it** — bubble
+layout, typing indicator, quick-reply chips, avatars, the confirm-before-action
+card, history replay, and CSAT. Flutter examples throughout.
+
+Use this page to get connected. Use that page while building the screen.
 
 ---
 
