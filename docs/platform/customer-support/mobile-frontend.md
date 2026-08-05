@@ -96,6 +96,12 @@ channel.stream.listen((raw) {
 
 **That's a working support chat.** Ship this, then add the extras below.
 
+:::note Verified
+This exact sequence — mint, connect, send, stream — was tested against the live
+API on 5 August 2026 and returned a streaming reply. If it fails for you, see
+[Common problems](#common-problems) at the bottom.
+:::
+
 ---
 
 ## Everything you can send
@@ -113,7 +119,10 @@ Handle the first three; the rest are optional upgrades.
 
 | You receive | What to do |
 |---|---|
-| `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). |
+| `welcome` | Sent immediately on connect. Confirms the socket is live — safe to ignore. |
+| `status` | Connection/conversation state. Safe to ignore at first. |
+| `typing` | Lira is thinking. Show your typing indicator. |
+| `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). A short answer may arrive as a single `reply_chunk`. |
 | `history` | On reconnect, past messages. Render them so the chat isn't empty. |
 | `confirm` | Lira wants to do something (e.g. freeze a card). Show **Approve / Deny** buttons, then send `confirm_response`. |
 | `action_result` | The action finished. Show a small "Card frozen ✓" note. |

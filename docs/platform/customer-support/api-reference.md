@@ -60,9 +60,12 @@ curl -X POST https://api.creovine.com/lira/v1/support/sessions/orgs/org_xxx/mint
   -H "Authorization: Bearer $LIRA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "ada@customer.com",
-    "name": "Ada Okafor",
-    "external_id": "user_123"
+    "customer": {
+      "email": "ada@customer.com",
+      "name": "Ada Okafor",
+      "externalCustomerId": "user_123"
+    },
+    "ttlSeconds": 3600
   }'
 ```
 
@@ -74,7 +77,7 @@ Returns a session token and its expiry. Pass the token to your frontend or mobil
 POST /support/sessions/orgs/{orgId}/{sessionId}/revoke
 ```
 
-Requires `sessions:mint`. Use this on logout or when you suspend an account, so an issued token cannot outlive the user's access.
+Requires a dashboard login (JWT) — developer API keys are **not** accepted on this endpoint. Use this on logout or when you suspend an account, so an issued token cannot outlive the user's access.
 
 ---
 
@@ -119,7 +122,7 @@ Requires `mcp:write`. Disconnects the server and disables every tool it provided
 POST /support/mcp/orgs/{orgId}/discover
 ```
 
-Requires `mcp:write`. Asks your MCP server for its current tool list and returns it alongside what you have already approved, so you can see additions, removals and changed signatures. Discovery never auto-approves — drift is surfaced for a human to accept.
+Requires `mcp:read`. Asks your MCP server for its current tool list and returns it alongside what you have already approved, so you can see additions, removals and changed signatures. Discovery never auto-approves — drift is surfaced for a human to accept.
 
 ### Read the tool-call audit trail
 
