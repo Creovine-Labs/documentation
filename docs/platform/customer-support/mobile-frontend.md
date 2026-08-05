@@ -74,7 +74,7 @@ Nothing else to authenticate — the `ws_url` already carries the session.
 ## Step 3 — Send what the user types
 
 ```dart
-channel.sink.add(jsonEncode({ 'type': 'message', 'body': 'How do I freeze my card?' }));
+channel.sink.add(jsonEncode({ 'type': 'message', 'body': 'Where is my order?' }));
 ```
 
 ## Step 4 — Show the reply as it streams in
@@ -128,7 +128,7 @@ Handle the first three; the rest are optional upgrades.
 | `typing` | Lira is thinking. Show your typing indicator. |
 | `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). A short answer may arrive as a single `reply_chunk`. |
 | `history` | On reconnect, past messages. Render them so the chat isn't empty. |
-| `confirm` | Lira wants to do something (e.g. freeze a card). Show **Approve / Deny** buttons, then send `confirm_response`. |
+| `confirm` | Lira wants to run an action and needs the customer's OK. Show **Approve / Deny** buttons, then send `confirm_response`. |
 | `action_result` | The action finished. Show a small "Card frozen ✓" note. |
 | `agent_reply` | A **human** teammate replied. Show their `sender_name` / `sender_avatar`. |
 | `proactive` | Lira started the conversation. Show it like a normal message. |
@@ -230,8 +230,16 @@ chips when the customer sends anything.
 
 ## Confirm-before-action
 
+:::note The actions are yours, not ours
+Lira has no built-in actions. Whatever your organization connects under
+**Settings → Support → Actions** is what the AI can run — cancelling an order,
+changing a booking, updating a subscription, whatever your product does. The
+`confirm` event is the same shape regardless; only `title`, `body`, and
+`tool_name` differ. Design the sheet generically and render what arrives.
+:::
+
 This is what makes actions safe on mobile. When the AI wants to do something that
-needs permission (e.g. **freeze a card**), you receive:
+needs permission, you receive:
 
 ```json
 { "type": "confirm", "pending_id": "pend_…", "tool_name": "…",

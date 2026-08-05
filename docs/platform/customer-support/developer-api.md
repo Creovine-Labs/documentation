@@ -36,7 +36,7 @@ export LIRA_API_KEY=lira_sk_…
 # Connect and govern an MCP server
 lira mcp connect --org-id=org_xxx --endpoint=https://mcp.yourcompany.com/mcp
 lira mcp discover --org-id=org_xxx
-lira mcp approve --org-id=org_xxx --source-name=card.freeze --risk=customer_confirm
+lira mcp approve --org-id=org_xxx --source-name=order.cancel --risk=customer_confirm
 lira mcp enable --org-id=org_xxx
 
 # From your backend, right after the customer authenticated:

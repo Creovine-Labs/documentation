@@ -115,8 +115,8 @@ gives you **two independent records**:
 The MCP model is the answer to "you'd be shipping PII to a US SaaS":
 
 - **Sensitive operations and account data stay in your infrastructure.** Lira
-  never connects to your ledger, KYC, or money-movement systems. It calls **your**
-  MCP server, which reads/writes **your** data under **your** auth. Balances, KYC
+  never connects to your core systems of record. It calls **your**
+  MCP server, which reads/writes **your** data under **your** auth. Records
   signals, and transaction data are never copied into Lira.
 - **Minimal identity only.** What Lira sees for scoping is the customer's email /
   external id and a verified flag — not their financial profile.

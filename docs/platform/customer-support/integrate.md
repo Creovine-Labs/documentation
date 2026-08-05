@@ -163,7 +163,7 @@ Full detail: [Sandbox and going live](/platform/customer-support/sandbox-and-goi
 
 MCP is **not** an integration path and is **not** required.
 
-MCP connects Lira **outward to your systems** so it can perform actions during a chat (freeze a card, issue a refund). Configured at **Settings → Support → Actions**.
+MCP connects Lira **outward to your systems** so it can perform actions during a chat — whatever your product does (cancel an order, change a booking, update a subscription). Configured at **Settings → Support → Actions**.
 
 Integrate chat first using Step 4. Add MCP later if you want actions.
 → [MCP guide](/platform/customer-support/mcp)
