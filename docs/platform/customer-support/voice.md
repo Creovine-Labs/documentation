@@ -6,6 +6,12 @@ sidebar_label: Voice
 
 # Localized voice
 
+:::warning Separate product — not a plan feature
+Localized, accented and custom brand voice are **not** included in any Lira plan (not Scale, not Enterprise). They are a **separate product still being built**, with its own site: **https://voice.liraintelligence.com**
+
+The page below describes the intended capability and is retained for reference.
+:::
+
 Lira can talk to your customers, not just type. The same knowledge-grounded
 agent that powers chat can answer out loud in a **natural, localized voice**
 matched to your market, so a caller hears a warm, on-brand agent that actually
@@ -16,7 +22,7 @@ agent can take approved actions, and anything it cannot resolve is escalated to
 your team with full context.
 
 :::info Plan requirement
-Localized voice is available on the **Scale** and **Enterprise** plans. It is
+(Historic note — superseded by the banner above.) It is
 enabled for your organization during onboarding. Voice usage is metered per
 minute on top of your plan.
 :::
