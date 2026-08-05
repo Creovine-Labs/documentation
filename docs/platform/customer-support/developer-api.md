@@ -71,3 +71,39 @@ The response includes a short-lived session token plus the `ws_url` and `rest_ba
 | **Dashboard** | Human admins — click-through setup in Settings → Support. |
 | **CLI** | Your engineers — one-off and scripted setup from a terminal. |
 | **API** | Your servers / CI — programmatic automation with `LIRA_API_KEY`. |
+
+## What each scope unlocks
+
+Every scope below is enforced by the API — a key only does what its scopes allow.
+
+| Scope | Lets the key… |
+|---|---|
+| `support:read` | Read support configuration and knowledge-base status |
+| `support:write` | Activate support, update settings, crawl a site, upload documents |
+| `mcp:read` | Read the MCP server config and discover tools |
+| `mcp:write` | Connect, update or remove an MCP server and approve tools |
+| `sessions:mint` | Mint a support session token for a logged-in customer |
+
+### Set up an org from CI, no dashboard
+
+`support:write` exists so provisioning can live in your pipeline:
+
+```bash
+ORG=org-xxxx; KEY=lira_sk_...
+
+# 1. activate support
+curl -X POST https://api.creovine.com/lira/v1/support/config/orgs/$ORG/activate \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{}'
+
+# 2. configure it
+curl -X PUT https://api.creovine.com/lira/v1/support/config/orgs/$ORG \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"greeting_message":"Hi! How can we help?","auto_reply_enabled":true}'
+
+# 3. seed the knowledge base
+curl -X POST https://api.creovine.com/lira/v1/orgs/$ORG/crawl \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"url":"https://yourcompany.com"}'
+```
+
+A key without the scope gets `401` — a `support:read` key cannot write.
