@@ -87,12 +87,8 @@ iOS, Android, Flutter, React Native. Two roles, two pages.
 
 Backend first. The app cannot connect until that endpoint exists.
 
-:::warning Have a UI/UX designer? Send them this too
-You build the chat screen yourself, so the design must match what Lira actually
-sends (typing indicator, streaming text, quick-reply chips, confirm card,
-markdown and code blocks).
-**→ [Mobile chat UI/UX spec](/platform/customer-support/native-mobile#design-spec)**
-:::
+The chat screen design is on [Native mobile support](/platform/customer-support/native-mobile).
+
 
 ---
 

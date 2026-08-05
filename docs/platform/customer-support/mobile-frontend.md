@@ -20,19 +20,6 @@ keywords:
 
 **Who this page is for:** the **mobile / frontend engineer**.
 
-:::danger Designing the screens? Read the UI/UX spec FIRST
-**→ [Mobile chat UI/UX spec — what every screen and state must show](/platform/customer-support/native-mobile#design-spec)**
-
-You build the chat UI, so **your designer needs this before they open Figma.**
-Lira sends states a normal chat mockup does not include — a typing indicator,
-streaming text that arrives word by word, quick-reply chips, an
-approve/deny confirmation card, human-agent avatars, and **markdown that must
-render** (bold, lists, and code blocks — the AI does send code).
-
-Design without it and the mockups will not match what the API actually sends.
-Hand this link to your designer at the same time you start building.
-:::
-
 **What you're building:** a support chat screen inside your app. You design the
 screen (it's your app, your styling). Lira sends you the words to put in it.
 
@@ -146,17 +133,6 @@ Handle the first three; the rest are optional upgrades.
 
 ---
 
-## WHAT TO BUILD FOR EACH EVENT (UI/UX SPEC)
-
-The **[Native mobile reference](/platform/customer-support/native-mobile)** documents,
-for every event above: the exact payload, and **what to render for it** — bubble
-layout, typing indicator, quick-reply chips, avatars, the confirm-before-action
-card, history replay, and CSAT. Flutter examples throughout.
-
-Use this page to get connected. Use that page while building the screen.
-
----
-
 ## A working reference app
 
 We have a **complete, runnable Flutter app** — a fintech-style app with a native
@@ -190,3 +166,15 @@ the full flow, and the code maps directly to Swift, Kotlin, and React Native.
 | `/support/session` returns 401 | Your app isn't sending its own login token — that endpoint is behind your normal auth. |
 | Connects, but replies are empty | The knowledge base is empty. Dashboard → **Grow → Knowledge Base** → add your content. |
 | No `ws_url` in the response | Backend issue — send your backend engineer to [their page](/platform/customer-support/mobile-backend). |
+
+---
+
+## Next page
+
+**[Native mobile support →](/platform/customer-support/native-mobile)**
+
+This page gets you connected. The next page shows **what the chat screen should
+look like** — the typing indicator, chips, code blocks, avatars, and every event.
+Read it before you design the screen.
+
+You don't need Figma to start. Build from that page, then refine the design later.
