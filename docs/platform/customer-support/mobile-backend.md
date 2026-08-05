@@ -104,7 +104,13 @@ Use your **test** key (`lira_sk_test_…`) from staging and your **live** key (`
   - `email` (required) — identifies the customer. Lira greets them by name and their whole support history follows this address across devices.
   - `name` (optional but recommended) — the AI addresses them by name.
   - **`externalCustomerId` (send it)** — your own id for this user. Two things depend on it: the session is marked **verified customer** rather than verified visitor, which is what unlocks account-scoped actions; and it is handed to your [MCP server](/platform/customer-support/mcp) as `_meta['io.lira/customer'].external_customer_id` so your tools can resolve *whose* account to act on. Email can change; this doesn't. Omit it and account-scoped tools have only an email to work with.
-- `context` — optional free-form info you want the AI to know (plan, app version…).
+- `context` — free-form info you want the AI to know. **Nothing here is a reserved key** — Lira reads the whole object, so name the fields whatever your systems already call them. This is the only product context a mobile session has (there is no page to send updates later), so if one workspace serves several products, put the distinguishing field here:
+
+  ```json
+  "context": { "app": "riverly", "productType": "personal", "platform": "ios" }
+  ```
+
+  Values reach the AI as advisory context — it can tell a Personal customer from a Corporate one — and are available to your tools. Advisory means exactly that: tools must still read authoritative data from your systems before any write.
 - `ttlSeconds` — how long the session lasts. 3600 (1 hour) is a good default.
 
 :::tip What the AI actually knows about the signed-in user
