@@ -49,6 +49,31 @@ An embed that sends **no** publishable key at all (every embed created before te
 4. **Copy the key when it is shown** — it is displayed once and cannot be retrieved again (only revoked).
 5. Use it as the `LIRA_API_KEY` environment variable. Keep it **server-side**; never ship it in a mobile app or browser.
 
+### Checking what a key can do, from the key itself
+
+If you hold a key and want to know exactly what it is allowed to do — no
+dashboard login needed:
+
+```bash
+curl https://api.creovine.com/lira/v1/support/developer-keys/self \
+  -H "Authorization: Bearer $LIRA_API_KEY"
+```
+
+```json
+{
+  "org_id": "org_xxx",
+  "key_id": "…",
+  "name": "Mobile backend",
+  "scopes": ["sessions:mint"],
+  "environment": "production",
+  "status": "active"
+}
+```
+
+This is the fastest way to settle "is this key over-scoped?" — it reports what
+the server actually holds for that key, which is what enforcement uses. It also
+works as a connectivity and validity check in CI.
+
 ### Seeing and changing what a key can do
 
 Every key lists its scopes next to it in **Settings → Support → API keys**, so
