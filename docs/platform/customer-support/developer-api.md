@@ -60,8 +60,34 @@ Keys created before test/live mode shipped are shown as **Legacy**. They keep wo
 | `mcp:read` | Read your MCP server config and discovered tools. |
 | `mcp:write` | Connect, approve, enable, and remove MCP tools. |
 | `sessions:mint` | Start a native support session as any of your customers. **High privilege** — keep this key on your backend only and revoke it if it leaks. |
-| `support:read` | Read support configuration and knowledge-base status. |
-| `support:write` | Activate support, change settings, crawl sites and upload documents — provision a workspace entirely from CI. |
+| `support:read` | Read support configuration, knowledge-base status, and list knowledge-base documents. |
+| `support:write` | Activate support, change settings, crawl sites, and **manage** knowledge-base documents — upload, reprocess, import and delete. Enough to provision *and maintain* a workspace entirely from CI. |
+
+Scopes are enforced on every route that declares them: a key holding only
+`sessions:mint` is rejected with `401` and
+`Developer key is missing required scope: support:write` on knowledge-base and
+config endpoints. Grant the narrowest set that works — a session-minting key on
+a mobile backend should carry `sessions:mint` alone.
+
+### Managing knowledge-base content from CI
+
+`support:read` and `support:write` cover the full document lifecycle, so content
+can be corrected or replaced rather than only added:
+
+```bash
+# list what is there
+curl "https://api.creovine.com/lira/v1/orgs/$ORG/documents" \
+  -H "Authorization: Bearer $LIRA_API_KEY"
+
+# replace a document
+curl -X DELETE "https://api.creovine.com/lira/v1/orgs/$ORG/documents/$DOC_ID" \
+  -H "Authorization: Bearer $LIRA_API_KEY"
+curl -X POST "https://api.creovine.com/lira/v1/orgs/$ORG/documents" \
+  -H "Authorization: Bearer $LIRA_API_KEY" -F "file=@handbook.md"
+```
+
+Deleting a document that no longer exists returns `404`, so a re-run of a
+cleanup job is safe.
 
 A session minted with a test key is a **test session for its whole life**, no matter what your workspace environment says. That is how your staging backend produces test traffic while production runs live on the same organization.
 
