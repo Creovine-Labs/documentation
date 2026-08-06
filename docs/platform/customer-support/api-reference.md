@@ -204,6 +204,12 @@ PATCH  /orgs/{orgId}/knowledge-base/{pageId}/segments            support:write
 POST   /orgs/{orgId}/kb/query               ask what Lira knows  support:read
 ```
 
+`GET /crawl/status` reports a running crawl and, once it has finished, the last
+run's outcome — `source` is `"live"` while a crawl is in progress and
+`"last_run"` afterwards. Check it after firing a crawl: a crawl that returns
+`pages_found: 0` immediately may still be running, and pages it ingests later
+become part of every answer.
+
 Upload is `multipart/form-data` with a `file` field. It returns `201`
 immediately and processes asynchronously — poll the document's `status` until it
 reads `indexed`.
