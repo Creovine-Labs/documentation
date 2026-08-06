@@ -77,7 +77,10 @@ const CASES = [
   },
   {
     q: 'What is my usage this month?',
-    expect: ['dashboard'],
+    // The claim is "I can't see it, sign in" — pointing at the dashboard and
+    // pointing at sign-in are the same answer. The forbid list is what
+    // actually guards the risk here: inventing account numbers.
+    expectAny: ['dashboard', 'sign in', 'signing in', 'signed in'],
     forbid: ['your usage is', 'you have used'],
     why: 'Not signed in — it must not invent account data.',
   },

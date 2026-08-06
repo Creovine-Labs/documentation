@@ -180,10 +180,41 @@ the terminal and one written in the dashboard are the same record.
 ```bash
 lira docs add --text="Refunds are processed within 14 days." --title="Refunds"
 lira docs add --file=./handbook.docx     # DOCX, TXT, MD, CSV, XLSX — not PDF
-lira docs list                            # poll until status reads "indexed"
+lira docs list                            # tags, status, chunk counts
 lira docs ask "How long do refunds take?" # confirm Lira actually learned it
 lira docs rm <doc_id>                     # deleting frees the slot
 ```
+
+### Tagging by product, from CI
+
+If one workspace serves several products, brands or regions, tag as you upload
+and Lira filters retrieval to the customer's product before the AI sees any
+candidates:
+
+```bash
+lira docs add --file=./personal-faq.md --segments=personal
+lira docs add --file=./pin-reset.md --segments=all       # shared, tagged once
+
+lira docs tag <doc_id> --segments=personal,all           # re-tag one document
+lira docs tag --untagged --segments=all                  # bulk: anything untagged
+lira docs tag --match=corporate --segments=corporate     # bulk: by filename
+lira docs tag --all --segments=all                       # bulk: everything
+
+lira docs ask "What do I need to open an account?" --segments=personal
+```
+
+`lira docs list` shows each document's tags and prints how many carry none —
+untagged content answers **every** product, so that count is the one to drive to
+zero before switching on `kb_segment_strict`.
+
+A bulk run that partially fails exits non-zero with the failures named, so CI
+stops rather than reporting success on a half-tagged knowledge base. Running
+`lira docs tag <doc_id>` with no `--segments` clears the tags, which is how you
+undo a bulk run.
+
+`lira docs ask --segments=personal` answers as a Personal customer would be
+answered — the cheapest end-to-end check that tagging did what you meant, with
+no session to mint and no widget to open.
 
 `lira docs ask` is the quickest way to confirm an upload landed — it answers from
 the knowledge base and names the sources it used, which makes it a useful smoke
