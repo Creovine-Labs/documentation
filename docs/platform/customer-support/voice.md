@@ -6,10 +6,23 @@ sidebar_label: Voice
 
 # Localized voice
 
-:::warning Separate product — not a plan feature
-Localized, accented and custom brand voice are **not** included in any Lira plan (not Scale, not Enterprise). They are a **separate product still being built**, with its own site: **https://voice.liraintelligence.com**
+:::tip Voice calling already works — this page is about something else
+**Customers can already talk to Lira today**, on your website and in your mobile
+app. A mic button opens a live call: they speak, Lira answers out loud, grounded
+in the same knowledge base as chat, and the transcript lands in the same
+conversation in your team's inbox.
 
-The page below describes the intended capability and is retained for reference.
+- **Website / web app** — built into the widget and Web SDK. Enable it in
+  **Settings → Support → Channels → Voice**; the mic button appears.
+- **Native mobile app** — your app streams microphone audio to Lira over a
+  WebSocket using the same session token as chat. See
+  [Mobile: voice calls](/platform/customer-support/mobile-frontend#voice) for the
+  audio format and events.
+
+**What is *not* included** is the separately-built product below: localized,
+accented and custom brand voices. Those are **not** part of any Lira plan (not
+Scale, not Enterprise) and live at **https://voice.liraintelligence.com**. The
+voice you get today is the standard one.
 :::
 
 Lira can talk to your customers, not just type. The same knowledge-grounded

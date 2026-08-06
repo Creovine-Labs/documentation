@@ -140,6 +140,18 @@ const CASES = [
     why: 'It moved to Settings → Support → API keys. Users hunted for it under Get connected.',
   },
   {
+    q: 'Can customers talk to Lira by voice in my mobile app, or is it chat only?',
+    expect: ['voice'],
+    forbid: ['chat only', 'not supported', 'only text', 'no voice'],
+    why: 'Voice works on native mobile via the same session token — a mic button streaming PCM over a WebSocket.',
+  },
+  {
+    q: 'If a customer calls by voice and then chats, is it the same conversation?',
+    expect: ['same'],
+    forbid: ['separate conversation', 'different thread', 'two conversations'],
+    why: 'Voice continues the open conversation — one thread, one customer, same knowledge base.',
+  },
+  {
     q: 'Does test traffic use my paid plan quota?',
     expect: ['no'],
     forbid: ['yes, it does', 'counts against your plan'],

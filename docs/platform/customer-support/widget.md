@@ -69,6 +69,19 @@ Your `data-org-id` is tied to your organisation and never changes. You do not ne
 
 ---
 
+## Voice calls
+
+Visitors can **talk** to Lira from the widget, not just type. Turn it on in
+**Settings → Support → Channels → Voice** and a mic button appears in the widget
+header — no snippet change, no extra attribute.
+
+A call is grounded in the same knowledge base as chat, continues the visitor's
+existing conversation rather than starting a separate one, and the transcript
+lands in the same thread in your inbox. Building the same thing inside a native
+app? See [Mobile: voice calls](/platform/customer-support/mobile-frontend#voice).
+
+---
+
 ## Telling Lira about the signed-in user
 
 The same runtime the script tag loads exposes `window.Lira.setContext(...)`, so
@@ -176,7 +189,7 @@ The widget secret is a unique hex key tied to your organisation. It lives in **S
 
 **Your server uses this key to compute the signature.** The secret itself must **never** appear in your frontend code, your HTML, or the browser — it should only ever exist on your backend.
 
-To find your secret: open the Lira dashboard → **Settings** (bottom of the sidebar) → **Support** tab → **Get connected** → scroll to **Widget secret** → click **Show**.
+To find your secret: open the Lira dashboard → **Settings** (bottom of the sidebar) → **Support** tab → **API keys** → **Signing secret** → click **Show**.
 
 ---
 

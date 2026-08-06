@@ -149,6 +149,93 @@ Handle the first three; the rest are optional upgrades.
 
 ---
 
+## Voice calls — the mic button {#voice}
+
+Your app can also **talk** to Lira, the same way the web widget does. Same
+session token, a different socket, and raw audio instead of text.
+
+```
+Your app  ──►  YOUR backend /support/session   →  same token as chat
+Your app  ──►  opens  wss://…/support/chat/voice/{orgId}?sessionToken=…
+Your app  ──►  streams mic audio as BINARY frames
+Lira      ──►  streams speech back as BINARY frames + JSON events
+```
+
+Turn it on first in **Settings → Support → Channels → Voice**. If voice is off,
+the socket closes with code `4004`.
+
+### The socket
+
+```
+wss://api.creovine.com/lira/v1/support/chat/voice/{orgId}?sessionToken=<token>
+```
+
+Reuse the token your backend already mints — no second call, no extra scope.
+The caller is identified exactly as in chat, so Lira greets them by name and
+account-scoped actions work.
+
+### Audio format
+
+This is the part to get right — it is raw PCM, not a container format, so there
+is no WAV/MP3 header:
+
+| Direction | Frame | Format |
+|---|---|---|
+| App → Lira (mic) | binary | PCM **16 kHz**, 16-bit signed, mono, little-endian |
+| Lira → App (speech) | binary | PCM **24 kHz**, 16-bit signed, mono, little-endian |
+
+Note the rates differ — capture at 16 kHz, play back at 24 kHz. Send small
+chunks continuously (~20–100 ms each) as the mic produces them; don't buffer the
+whole utterance. Barge-in works: keep streaming mic audio while Lira is talking
+and it will stop to listen.
+
+- **iOS** — `AVAudioEngine` with an `AVAudioFormat` of 16 kHz / 1 channel / Int16, plus `AVAudioSession` in `.playAndRecord` with `.voiceChat` mode for echo cancellation.
+- **Android** — `AudioRecord` at 16 kHz `ENCODING_PCM_16BIT` mono with `VOICE_COMMUNICATION` source, and `AudioTrack` at 24 kHz for playback.
+- **Flutter / React Native** — any mic-stream package that yields raw PCM16 frames works; the socket is plain WebSocket.
+
+### JSON events on the same socket
+
+Text frames are JSON. Binary frames are audio. Branch on the frame type.
+
+**Lira → your app**
+
+| Event | What to do |
+|---|---|
+| `call_started` | The call is live. Carries `session_id`, `logical_call_id` and `conversation_id` — the last one is the conversation this call belongs to in your inbox. Switch the UI into its in-call state. |
+| `transcript` | Live transcript — `{ role, text }`. Show it as a caption so the call is followable in a noisy place, and for accessibility. |
+| `interruption` | The caller barged in. **Stop playback immediately and drop any queued audio**, or Lira's old sentence talks over the new one. |
+| `confirm` | Lira wants approval before doing something real. Show an approve/deny sheet. |
+| `confirm_ack` | Your approval was recorded. Carries `action_id` and `status`. |
+| `call_ended` | Tear down audio and close the call UI. |
+| `error` | Something failed while starting the call. Show a friendly message and end. |
+
+**Your app → Lira**
+
+| Send | When |
+|---|---|
+| binary PCM frames | continuously, while the mic is open |
+| `{"action":"confirm_response","action_id":"…","approved":true}` | the caller tapped approve or deny |
+| `{"action":"end_call"}` | the caller hung up |
+
+Note voice uses `action` where the chat socket uses `type` — they are separate
+sockets with separate protocols.
+
+### What you build
+
+- a **mic button** on the chat screen that opens the voice socket
+- an **in-call state**: who is speaking, live transcript, a mute control, and a clear **End call** button
+- **microphone permission** handling with a graceful denial path — ask only when the mic button is first tapped, never on app launch
+
+:::tip It is one conversation, not two
+A voice call continues the customer's open conversation rather than starting a
+parallel one. If John chatted this morning and calls this afternoon, Lira has
+that context, the transcript lands in the same thread in your team's inbox, and
+it answers from the same knowledge base. Your team sees one customer with one
+history — not a chat log and a separate call log.
+:::
+
+---
+
 ## What you build — UX checklist {#design-spec}
 
 Everything below is **yours to render** (it's your app), and every item is fed

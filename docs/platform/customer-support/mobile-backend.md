@@ -131,6 +131,8 @@ It does **not** magically know their balance, transactions, or tickets in *your*
 
 The app only really needs **`ws_url`** — that's the address it opens.
 
+The same token also opens a **voice call** (`…/support/chat/voice/{orgId}?sessionToken=…`), so if your app wants a mic button there is nothing extra to add here — no second endpoint, no extra scope. See [Mobile: voice calls](/platform/customer-support/mobile-frontend#voice).
+
 `mode` tells you which key minted the session (`"test"` or `"live"`). You can ignore it, or pass it to the app to show a debug banner in staging builds so testers know they aren't talking to production support.
 
 ---
