@@ -203,9 +203,18 @@ lira docs tag --all --segments=all                       # bulk: everything
 lira docs ask "What do I need to open an account?" --segments=personal
 ```
 
-`lira docs list` shows each document's tags and prints how many carry none —
-untagged content answers **every** product, so that count is the one to drive to
-zero before switching on `kb_segment_strict`.
+`lira docs list` shows tags for documents **and crawled website pages**, and
+prints how many carry none. Crawled pages obey the same filter, so tagging only
+documents leaves a workspace that reads "0 untagged" while every page it crawled
+is about to fall out of retrieval:
+
+```bash
+lira docs tag --sources --untagged --segments=all   # crawled pages
+lira docs tag --sources --match=corporate --segments=corporate
+```
+
+That combined count is the one to drive to zero before switching on
+`kb_segment_strict`.
 
 A bulk run that partially fails exits non-zero with the failures named, so CI
 stops rather than reporting success on a half-tagged knowledge base. Running

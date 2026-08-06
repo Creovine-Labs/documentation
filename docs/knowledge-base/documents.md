@@ -64,6 +64,19 @@ every untagged document out of service at once.
 Sessions that name no product are unaffected either way — they search
 everything, as before.
 
+:::caution Crawled pages count too
+**Web Sources obey the same tags as documents.** A workspace that tags every
+document, sees zero untagged, and switches on strict mode will still lose every
+crawled page — because those were never tagged. Tag them from
+[Web Sources](/knowledge-base/web-sources), at crawl time with
+`options.segments`, or in bulk from the terminal:
+
+```bash
+lira docs list                                    # counts documents AND pages
+lira docs tag --sources --untagged --segments=all # tag every untagged page
+```
+:::
+
 :::note Where the product comes from matters
 When the session was minted by your backend (a signed support session), Lira
 takes the product from that token and the browser cannot change it. Context sent
