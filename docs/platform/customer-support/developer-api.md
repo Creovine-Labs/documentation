@@ -162,7 +162,34 @@ lira env sandbox
 lira channels                    # what's on: chat, voice, email, portal
 lira channels enable voice       # turn a channel on
 lira channels disable portal
+
+lira docs list                              # what Lira knows, and whether it finished indexing
+lira docs add --file=./handbook.docx        # upload a file
+lira docs add --text="Refunds take 14 days." --title="Refunds"
+lira docs ask "How long do refunds take?"   # ask what a customer would ask
+lira docs rm <doc_id>
 ```
+
+### Knowledge base from the terminal
+
+You do not need the dashboard to manage what Lira knows. `lira docs add --text`
+is the terminal equivalent of the dashboard's **Write a note directly**: the text
+is wrapped in Markdown and stored as an ordinary document, so a note written in
+the terminal and one written in the dashboard are the same record.
+
+```bash
+lira docs add --text="Refunds are processed within 14 days." --title="Refunds"
+lira docs add --file=./handbook.docx     # DOCX, TXT, MD, CSV, XLSX — not PDF
+lira docs list                            # poll until status reads "indexed"
+lira docs ask "How long do refunds take?" # confirm Lira actually learned it
+lira docs rm <doc_id>                     # deleting frees the slot
+```
+
+`lira docs ask` is the quickest way to confirm an upload landed — it answers from
+the knowledge base and names the sources it used, which makes it a useful smoke
+test at the end of a CI provisioning run. All of it needs a key with
+`support:read` / `support:write`; the same endpoints are documented in the
+[API reference](/platform/customer-support/api-reference#knowledge-base).
 
 Anything the dashboard's **Channels** tab does is available over the API too —
 `PUT /support/config/orgs/{orgId}` with `support:write` accepts `chat_enabled`,

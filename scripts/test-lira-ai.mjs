@@ -153,9 +153,24 @@ const CASES = [
   },
   {
     q: 'If I click Production in the dashboard without paying, what happens?',
-    expect: ['pay'],
+    expectAny: ['pay', 'billing', 'subscri', 'checkout'],
     forbid: ['nothing happens', 'it just switches', 'free'],
     why: 'Production is gated: picking it before go-live opens the plan/payment flow, like Paystack.',
+  },
+  {
+    q: 'Can I add a knowledge base note from the terminal, or do I have to use the dashboard?',
+    // This endpoint is the SPOKEN concierge, so the assertion is the claim, not
+    // the syntax — reading "--text=" aloud would be a worse answer, not a
+    // better one. The exact command is asserted in the docs, not here.
+    expectAny: ['terminal', 'command', 'cli'],
+    forbid: ['dashboard only', 'not possible', 'only through the dashboard'],
+    why: '`lira docs add --text` exists — sending people to the dashboard loses the CI use case.',
+  },
+  {
+    q: 'Can I upload a PDF to the knowledge base?',
+    expectAny: ['not supported', "isn't supported", 'cannot', "can't", 'docx'],
+    forbid: ['yes, you can upload a pdf', 'pdfs are supported'],
+    why: 'PDF extraction is rejected — promising it produces a silent failure at upload time.',
   },
   {
     q: 'Does sandbox traffic use my paid plan quota?',
@@ -190,14 +205,23 @@ for (const c of CASES) {
   const low = say.toLowerCase();
   const missing = (c.expect ?? []).filter((p) => !low.includes(p.toLowerCase()));
   const present = (c.forbid ?? []).filter((p) => low.includes(p.toLowerCase()));
+  // `expectAny` is for claims the AI can make correctly in several wordings —
+  // "you'll have to pay" and "it prompts you to set up billing" are the same
+  // answer. Requiring one exact word there fails correct answers, which trains
+  // us to ignore the suite.
+  const anyMissing =
+    c.expectAny && !c.expectAny.some((p) => low.includes(p.toLowerCase()))
+      ? [`one of: ${c.expectAny.join(' / ')}`]
+      : [];
 
-  if (missing.length === 0 && present.length === 0) {
+  if (missing.length === 0 && present.length === 0 && anyMissing.length === 0) {
     console.log(`✓ ${c.q}`);
   } else {
     failed++;
     console.log(`✗ ${c.q}`);
     console.log(`  why it matters: ${c.why}`);
     if (missing.length) console.log(`  missing: ${missing.join(', ')}`);
+    if (anyMissing.length) console.log(`  missing: ${anyMissing.join(', ')}`);
     if (present.length) console.log(`  MUST NOT say: ${present.join(', ')}`);
     console.log(`  actual: ${say.slice(0, 220)}`);
   }

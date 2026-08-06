@@ -199,11 +199,12 @@ DELETE /orgs/{orgId}/documents/{docId}      remove               support:write
 POST   /orgs/{orgId}/documents/{docId}/reprocess                 support:write
 POST   /orgs/{orgId}/crawl                  crawl a website      support:write
 GET    /orgs/{orgId}/crawl/status           crawl progress       support:read
+POST   /orgs/{orgId}/kb/query               ask what Lira knows  support:read
 ```
 
-Upload is `multipart/form-data` with a `file` field (PDF, DOCX, TXT, MD, CSV,
-XLSX). It returns `201` immediately and processes asynchronously — poll the
-document's `status` until it reads `indexed`.
+Upload is `multipart/form-data` with a `file` field. It returns `201`
+immediately and processes asynchronously — poll the document's `status` until it
+reads `indexed`.
 
 ```bash
 curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
@@ -211,14 +212,60 @@ curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
   -F "file=@handbook.md"
 ```
 
+**Supported file types:** DOCX, TXT, MD, CSV, XLSX. **PDF is not supported** —
+PDFs are frequently image-based and extract into text too poor to answer from,
+so we reject them rather than silently index nonsense. Export to DOCX or
+Markdown first.
+
+### Writing a note without a file
+
+The dashboard's **Write a note directly** is not a separate kind of object: it
+wraps your text in Markdown and uploads it as a document. To do the same over the
+API, upload the text as a `.md` file — the result is identical, and the note is
+editable and deletable like any other document.
+
+```bash
+printf '# Refunds\n\nRefunds are processed within 14 days.\n' > refunds.md
+curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -F "file=@refunds.md"
+```
+
+### Checking what Lira learned
+
+`POST /orgs/{orgId}/kb/query` answers a question from the knowledge base and
+returns the sources it used — the fastest way to confirm an upload actually took,
+without opening the dashboard.
+
+```bash
+curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/kb/query \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"How long do refunds take?"}'
+```
+
+```json
+{
+  "answer": "Refunds are processed within 14 days (Source: refunds.md).",
+  "sources": [{ "type": "document", "id": "…", "name": "refunds.md", "score": 0.83 }],
+  "has_context": true
+}
+```
+
 Deleting a document that is already gone returns `404`, so a re-run of a cleanup
-job is safe.
+job is safe. Deleting **does** free the slot it occupied.
 
 :::caution Knowledge-base volume limits
-Uploads and crawls are capped, and the cap is **cumulative** — deleting a
-document does not free a slot. When you hit it the API returns `403` with
-`{"code":"BETA_LIMIT_REACHED"}`. If you are loading a large knowledge base and
-hit this, contact us and we will raise it for your organization.
+Uploads and crawls are capped, and a `403` can come from either of two limits:
+
+- `{"code":"SANDBOX_LIMIT"}` — the sandbox allowance. Going live unlocks your
+  plan's volume, and we can raise the sandbox limits if you need more room while
+  still testing.
+- `{"code":"BETA_LIMIT_REACHED"}` — your plan's own limit for that feature. The
+  response includes `feature` so you know which one you hit.
+
+Both are cumulative against current usage, so deleting documents you no longer
+need genuinely gives the room back.
 :::
 
 ## Developer keys
