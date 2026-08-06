@@ -221,6 +221,19 @@ stops rather than reporting success on a half-tagged knowledge base. Running
 `lira docs tag <doc_id>` with no `--segments` clears the tags, which is how you
 undo a bulk run.
 
+Priority and cleanup, also from CI:
+
+```bash
+lira docs authority <doc_id> --level=primary        # answers ahead of everything
+lira docs authority --sources --all --level=background
+lira docs rm <page_id> --sources                    # delete a crawled page
+lira docs prune                                     # chunks of deleted pages still answering
+lira docs prune --yes
+```
+
+Bulk `rm` dry-runs unless you pass `--yes`, and `prune` reports before it
+deletes — both remove content nothing else can show you.
+
 `lira docs ask --segments=personal` answers as a Personal customer would be
 answered — the cheapest end-to-end check that tagging did what you meant, with
 no session to mint and no widget to open.

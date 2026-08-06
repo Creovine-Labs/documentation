@@ -305,6 +305,52 @@ curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/crawl \
   -d '{"url":"https://example.com/help","options":{"max_pages":25,"segments":["business"]}}'
 ```
 
+### Source priority
+
+Retrieval ranks on similarity, which alone lets a marketing page outrank a
+hand-written policy. Priority is a **precedence**: the highest tier with a
+relevant match answers, and lower tiers are not passed to the model at all.
+
+```
+PATCH /orgs/{orgId}/documents/{docId}/authority          support:write
+PATCH /orgs/{orgId}/knowledge-base/{pageId}/authority    support:write
+```
+
+```bash
+curl -X PATCH https://api.creovine.com/lira/v1/orgs/org_xxx/documents/doc_xxx/authority \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"authority":"primary"}'
+```
+
+| Value | Behaviour | Default for |
+| --- | --- | --- |
+| `primary` | Answers whenever relevant, ahead of everything else | — |
+| `normal` | The ordinary pool | documents |
+| `background` | Used only when nothing above it matched | crawled pages |
+
+Nothing needs migrating: a source with no stored value behaves as its type
+implies. Set it at ingestion too — `authority` as a form field on upload, or
+`options.authority` on a crawl.
+
+A high-priority source that is only marginally relevant does **not** suppress a
+strongly relevant one below it, so a single mistaken `primary` cannot quietly
+degrade every answer.
+
+### Removing crawled pages
+
+```
+DELETE /orgs/{orgId}/knowledge-base/{pageId}    support:write
+POST   /orgs/{orgId}/knowledge-base/prune       support:write
+```
+
+Deleting a page removes its indexed chunks as well as its record. `prune`
+reconciles the index against the pages that actually exist and reports what it
+would remove; pass `{"apply": true}` to delete. Run it once if you have been
+crawling for a while — a crawl replaces the **entire** crawled knowledge base,
+and until recently the replaced pages' chunks stayed in the index and kept
+answering.
+
 ### Checking what Lira learned
 
 `POST /orgs/{orgId}/kb/query` answers a question from the knowledge base and

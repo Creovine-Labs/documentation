@@ -62,7 +62,13 @@ const CASES = [
     why: 'Signup is open and self-serve — never gate it behind a demo.',
   },
   { q: 'My widget is not showing up, what do I do?', expect: [], forbid: ["can't help", 'contact support', 'unable to help'], why: 'It should troubleshoot (console, diagnostics, embed) rather than deflect — the forbid list is the real assertion.' },
-  { q: 'Can I integrate with React?', expect: ['sdk'], forbid: ['not supported'], why: 'React is supported via the Web SDK.' },
+  {
+    q: 'Can I integrate with React?',
+    // Naming the package is a better answer than saying "SDK", not a worse one.
+    expectAny: ['sdk', '@liraintelligence/support', 'npm'],
+    forbid: ['not supported'],
+    why: 'React is supported via the Web SDK.',
+  },
   {
     q: 'Do you offer a Nigerian accent or custom brand voice? Is it in Scale?',
     expect: ['separate'],

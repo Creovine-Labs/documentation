@@ -87,6 +87,45 @@ correctness control for identified customers, and as best-effort routing for
 anonymous ones.
 :::
 
+### Which source wins when two match
+
+Tagging decides *who* a source can answer. **Priority** decides which source
+answers when several are relevant — because similarity alone will happily let a
+marketing page outrank a policy you wrote by hand, simply for repeating more of
+the customer's words.
+
+| Priority | Meaning | Default for |
+| --- | --- | --- |
+| **Answer from this first** | Answers whenever it is relevant, ahead of everything else | — |
+| **Normal** | The ordinary pool | Uploaded documents and notes |
+| **Only if nothing else matches** | A fallback, used when nothing above it matched | Crawled website pages |
+
+This is a **precedence, not a score adjustment**: the highest priority with a
+relevant match answers, and lower ones are not shown to the AI at all. So a
+policy document at 41% relevance still beats a marketing page at 51%.
+
+Two guards worth knowing:
+
+- A barely-relevant high-priority source cannot silence a strong one below it.
+  A source has to be genuinely relevant to take precedence, so one over-eager
+  "answer from this first" will not quietly degrade every answer.
+- If nothing clears the bar anywhere, everything is considered — you get a weak
+  answer rather than silence.
+
+Change it on any document row, or on any page under **Web Sources**. From the
+terminal:
+
+```bash
+lira docs authority <doc_id> --level=primary
+lira docs authority --sources --all --level=background
+```
+
+:::tip When your help centre IS the authority
+The defaults assume crawled pages are marketing. If you crawl a real help
+centre, mark those pages **Normal** or **Answer from this first** so they rank
+with (or above) your documents.
+:::
+
 ---
 
 ## Supported file types
