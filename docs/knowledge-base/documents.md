@@ -75,6 +75,8 @@ crawled page — because those were never tagged. Tag them from
 lira docs list                                    # counts documents AND pages
 lira docs tag --sources --untagged --segments=all # tag every untagged page
 ```
+
+Re-crawling does not undo this — a crawl carries each page's tags across by URL.
 :::
 
 :::note Where the product comes from matters

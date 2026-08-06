@@ -346,10 +346,24 @@ POST   /orgs/{orgId}/knowledge-base/prune       support:write
 
 Deleting a page removes its indexed chunks as well as its record. `prune`
 reconciles the index against the pages that actually exist and reports what it
-would remove; pass `{"apply": true}` to delete. Run it once if you have been
-crawling for a while — a crawl replaces the **entire** crawled knowledge base,
-and until recently the replaced pages' chunks stayed in the index and kept
-answering.
+would remove; pass `{"apply": true}` to delete. Worth running once if you have
+been crawling for a while: crawls used to replace the entire crawled knowledge
+base and leave the replaced pages' chunks in the index, where they kept
+answering while appearing in no list.
+
+### Re-crawling
+
+A crawl **upserts by URL**. Pages it fetches are refreshed — carrying their tags
+and priority across, whatever internal id they land on — and pages it does not
+touch are left alone. So refreshing three pages of a two-hundred page knowledge
+base costs you nothing else.
+
+Pass `options.replace: true` for the old behaviour: wipe every crawled page
+first, then rebuild. Use it when pages have been removed from the site and you
+want them gone from Lira too.
+
+Explicit `options.segments` or `options.authority` override what a page carried
+before — that is you saying "these pages are X now".
 
 ### Checking what Lira learned
 

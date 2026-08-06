@@ -104,10 +104,16 @@ Clearing web sources cannot be undone. You will need to re-crawl to restore the 
 
 ## Re-crawling to refresh content
 
-Lira does not automatically re-crawl. If your website content changes:
+Lira does not automatically re-crawl. If your website content changes, enter the
+URL again and click **Crawl** — there is no need to clear anything first.
 
-1. Click **Clear All** to remove the old indexed pages
-2. Enter the URL again and click **Crawl**
+A crawl **updates the pages it fetches and leaves the rest alone**, so you can
+refresh a single page without touching the others. Pages that come back keep the
+product tags and priority you gave them, matched by URL.
+
+Use **Clear All** only when you want the crawled knowledge base emptied — for
+example when pages have been deleted from your site and should disappear from
+Lira too.
 
 ---
 
