@@ -186,6 +186,41 @@ Requires `mcp:read`. Returns MCP configuration and invocation events: which tool
 
 ---
 
+## Knowledge base
+
+The content Lira answers from. Both scopes cover the full lifecycle, so a
+workspace can be provisioned *and maintained* from CI.
+
+```
+POST   /orgs/{orgId}/documents              upload a file        support:write
+GET    /orgs/{orgId}/documents              list                 support:read
+GET    /orgs/{orgId}/documents/{docId}      status + details     support:read
+DELETE /orgs/{orgId}/documents/{docId}      remove               support:write
+POST   /orgs/{orgId}/documents/{docId}/reprocess                 support:write
+POST   /orgs/{orgId}/crawl                  crawl a website      support:write
+GET    /orgs/{orgId}/crawl/status           crawl progress       support:read
+```
+
+Upload is `multipart/form-data` with a `file` field (PDF, DOCX, TXT, MD, CSV,
+XLSX). It returns `201` immediately and processes asynchronously — poll the
+document's `status` until it reads `indexed`.
+
+```bash
+curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -F "file=@handbook.md"
+```
+
+Deleting a document that is already gone returns `404`, so a re-run of a cleanup
+job is safe.
+
+:::caution Knowledge-base volume limits
+Uploads and crawls are capped, and the cap is **cumulative** — deleting a
+document does not free a slot. When you hit it the API returns `403` with
+`{"code":"BETA_LIMIT_REACHED"}`. If you are loading a large knowledge base and
+hit this, contact us and we will raise it for your organization.
+:::
+
 ## Developer keys
 
 Key management is deliberately **not** callable with an API key — a leaked key must not be able to mint more keys. These endpoints require a dashboard session (JWT); **any member** of the organization may use them, since the engineers doing the integration are usually not org admins.
@@ -200,10 +235,31 @@ POST   /support/developer-keys/orgs/{orgId}/publishable-keys/{mode}/rotate
 They are returned in full (public by design) and provisioned on first read. Rotating `live` breaks production embeds until you redeploy; rotating `test` only affects staging.
 
 ```
-GET    /support/developer-keys/orgs/{orgId}/keys
-POST   /support/developer-keys/orgs/{orgId}/keys
-DELETE /support/developer-keys/orgs/{orgId}/keys/{keyId}
+GET    /support/developer-keys/orgs/{orgId}/keys            list
+POST   /support/developer-keys/orgs/{orgId}/keys            create
+PATCH  /support/developer-keys/orgs/{orgId}/keys/{keyId}    rename / change scopes
+DELETE /support/developer-keys/orgs/{orgId}/keys/{keyId}    revoke
 ```
+
+`PATCH` takes `{ "scopes": [...] }`, `{ "name": "..." }` and/or
+`{ "expires_at": null }`. The key itself does not change, so tightening an
+over-scoped key needs no redeploy. The environment is immutable — it is part of
+the token your services already hold — and editing a revoked key returns `409`.
+
+**One endpoint does not need a dashboard login:** a key can describe itself.
+
+```
+GET /support/developer-keys/self        (authenticated by the key itself)
+```
+
+```bash
+curl https://api.creovine.com/lira/v1/support/developer-keys/self \
+  -H "Authorization: Bearer $LIRA_API_KEY"
+```
+
+Returns the org, name, **scopes**, environment and status held for that key —
+the same record enforcement reads. Use it to confirm a key is scoped the way you
+intended, or as a connectivity check in CI. It never returns a secret.
 
 Keys are stored hashed. The plaintext value is returned once at creation and cannot be retrieved again — only revoked.
 
