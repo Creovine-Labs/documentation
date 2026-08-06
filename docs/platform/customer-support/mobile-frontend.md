@@ -161,8 +161,14 @@ Your app  ──►  streams mic audio as BINARY frames
 Lira      ──►  streams speech back as BINARY frames + JSON events
 ```
 
-Turn it on first in **Settings → Support → Channels → Voice**. If voice is off,
-the socket closes with code `4004`.
+Turn it on first — dashboard or terminal, whichever suits you:
+
+```bash
+lira channels enable voice
+```
+
+or **Settings → Support → Channels → Voice**. If voice is off, the socket closes
+with code `4004`.
 
 ### The socket
 

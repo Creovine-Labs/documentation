@@ -72,8 +72,9 @@ Your `data-org-id` is tied to your organisation and never changes. You do not ne
 ## Voice calls
 
 Visitors can **talk** to Lira from the widget, not just type. Turn it on in
-**Settings → Support → Channels → Voice** and a mic button appears in the widget
-header — no snippet change, no extra attribute.
+**Settings → Support → Channels → Voice** — or `lira channels enable voice` from
+your terminal — and a mic button appears in the widget header. No snippet
+change, no extra attribute.
 
 A call is grounded in the same knowledge base as chat, continues the visitor's
 existing conversation rather than starting a separate one, and the transcript

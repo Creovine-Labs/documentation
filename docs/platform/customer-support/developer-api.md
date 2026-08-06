@@ -105,9 +105,18 @@ lira mode test        # switch mode
 lira mode live
 lira status           # org, mode, workspace, and what that means
 
-lira env go-live      # the workspace switch (real sends + billing), from the terminal
+lira env go-live      # move to production (real sends + billing), from the terminal
 lira env sandbox
+
+lira channels                    # what's on: chat, voice, email, portal
+lira channels enable voice       # turn a channel on
+lira channels disable portal
 ```
+
+Anything the dashboard's **Channels** tab does is available over the API too —
+`PUT /support/config/orgs/{orgId}` with `support:write` accepts `chat_enabled`,
+`voice_enabled`, `email_enabled` and `portal_enabled` — so a workspace can be
+provisioned end to end from CI without opening the dashboard once.
 
 Using a live key while the CLI is in test mode (or the reverse) is **refused**
 with the command to fix it, and a live key does nothing real until the workspace
