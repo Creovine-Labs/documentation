@@ -49,6 +49,32 @@ An embed that sends **no** publishable key at all (every embed created before te
 4. **Copy the key when it is shown** — it is displayed once and cannot be retrieved again (only revoked).
 5. Use it as the `LIRA_API_KEY` environment variable. Keep it **server-side**; never ship it in a mobile app or browser.
 
+### Seeing and changing what a key can do
+
+Every key lists its scopes next to it in **Settings → Support → API keys**, so
+you can confirm at a glance what each one is allowed to do. **Edit** changes the
+name and scopes in place — useful for tightening a key that was granted more
+than it needed:
+
+- the key itself does not change, so nothing needs redeploying; the new scopes
+  apply to its next request
+- the environment (sandbox/production) is fixed, because it is part of the token
+  your services already hold — create a new key to switch
+- the secret is never shown again; if it leaked, revoke and create a new one
+
+From the terminal or CI:
+
+```bash
+lira keys list                       # all keys, with scopes and environment
+lira keys show --key-id=<id>         # one key in detail
+lira keys update --key-id=<id> --scopes=support:read,support:write
+lira keys revoke --key-id=<id>
+```
+
+Over the API: `GET /support/developer-keys/orgs/{orgId}/keys` to read, and
+`PATCH …/keys/{keyId}` with `{ "scopes": [...] }` or `{ "name": "..." }` to
+change. Editing a revoked key returns `409` — create a new one instead.
+
 Publishable keys live in the same place, under **Publishable keys** — copy them straight into your embed, and rotate either mode independently. Rotating the **live** key breaks production embeds until you redeploy.
 
 Keys created before test/live mode shipped are shown as **Legacy**. They keep working and follow your workspace environment. Replace them with explicit test/live keys when convenient.
