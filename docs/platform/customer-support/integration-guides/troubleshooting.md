@@ -46,7 +46,7 @@ The embed snippet on your site has a typo, an old org ID, or an ID for a differe
 
 Two causes, both about **[test vs live mode](/platform/customer-support/test-and-live-mode)**:
 
-**1. The dashboard is showing the other mode.** The topbar says **VIEWING: TEST** or **VIEWING: LIVE**. Click it and pick the one you expect. Test conversations never appear in the live view, by design.
+**1. The dashboard is showing the other mode.** The topbar says **SANDBOX** or **PRODUCTION**. Click it and pick the one you expect. Test conversations never appear in the live view, by design.
 
 **2. The embed's publishable key isn't recognised.** Open your browser console and look for:
 
@@ -55,7 +55,7 @@ INVALID_PUBLISHABLE_KEY — The publishable key on this embed was not recognised
 for this organization. Running in TEST mode until it is fixed.
 ```
 
-An unrecognised key (typo, wrong workspace, or one you rotated out) is deliberately forced to **test** rather than being allowed to become live traffic. Your production conversations are therefore landing under **Viewing: Test**.
+An unrecognised key (typo, wrong workspace, or one you rotated out) is deliberately forced to **test** rather than being allowed to become live traffic. Your production conversations are therefore landing under **Sandbox**.
 
 **Fix:** copy the current key from **Settings → Support → API keys → Publishable keys** and redeploy. Remember `lira_pk_test_…` belongs on staging and `lira_pk_live_…` in production.
 

@@ -98,7 +98,7 @@ const CASES = [
     why: 'Mobile mode comes from the key the customer backend mints with; app code is unchanged.',
   },
   {
-    q: 'Can I switch between test and live from my terminal, or is it dashboard only?',
+    q: 'Can I switch between sandbox and production from my terminal, or is it dashboard only?',
     // A spoken concierge won't reliably read out command names; the claim that
     // matters is "not dashboard-only", which the forbid list enforces.
     expect: ['terminal'],
@@ -152,7 +152,13 @@ const CASES = [
     why: 'Voice continues the open conversation — one thread, one customer, same knowledge base.',
   },
   {
-    q: 'Does test traffic use my paid plan quota?',
+    q: 'If I click Production in the dashboard without paying, what happens?',
+    expect: ['pay'],
+    forbid: ['nothing happens', 'it just switches', 'free'],
+    why: 'Production is gated: picking it before go-live opens the plan/payment flow, like Paystack.',
+  },
+  {
+    q: 'Does sandbox traffic use my paid plan quota?',
     expect: ['no'],
     forbid: ['yes, it does', 'counts against your plan'],
     why: 'Test traffic is metered separately against the test caps.',

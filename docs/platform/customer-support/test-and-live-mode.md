@@ -1,7 +1,7 @@
 ---
 slug: /platform/customer-support/test-and-live-mode
 sidebar_position: 3
-title: Test and live mode
+title: Sandbox and production keys
 description: Run your staging and production environments against the same Lira workspace at the same time — two key sets, separate quota, no real sends from test.
 keywords:
   - test mode
@@ -14,18 +14,25 @@ keywords:
   - environments
 ---
 
-# Test and live mode
+# Sandbox and production keys
 
 Your staging environment and your production environment can point at the **same Lira workspace at the same time**, without staging ever touching real customers or real quota.
 
-The rule is simple: **the key decides the mode, not the workspace.**
+The rule is simple: **the key decides the environment.**
 
 ```
-staging backend   →  lira_sk_test_…   →  test traffic
-production backend →  lira_sk_live_…   →  live traffic
-staging website   →  lira_pk_test_…   →  test traffic
-production website →  lira_pk_live_…   →  live traffic
+staging backend     →  lira_sk_test_…   →  sandbox traffic
+production backend  →  lira_sk_live_…   →  production traffic
+staging website     →  lira_pk_test_…   →  sandbox traffic
+production website  →  lira_pk_live_…   →  production traffic
 ```
+
+:::note Why the keys say `test` and `live`
+`test` = sandbox, `live` = production — the same two environments, nothing more.
+The key prefixes follow the convention your engineers already know from Stripe,
+Paystack and Flutterwave; the dashboard uses the plainer words. If you can read
+`lira_sk_test_`, you are holding a sandbox key.
+:::
 
 Both key sets are valid simultaneously. You never flip a switch to move between them, and you never need a second Lira workspace.
 
@@ -35,9 +42,9 @@ Both key sets are valid simultaneously. You never flip a switch to move between 
 
 | Key | Secret? | Where it belongs |
 |---|---|---|
-| `lira_sk_test_…` | **Secret** — server only | Your staging / local backend |
+| `lira_sk_test_…` | **Secret** — server only | Your staging / local backend (sandbox) |
 | `lira_sk_live_…` | **Secret** — server only | Your production backend |
-| `lira_pk_test_…` | Publishable — safe in HTML | Your staging website or app build |
+| `lira_pk_test_…` | Publishable — safe in HTML | Your staging website or app (sandbox) |
 | `lira_pk_live_…` | Publishable — safe in HTML | Your production website or app build |
 
 Find all four in **Settings → Support → API keys**. Secret keys are shown once at creation; publishable keys can be copied any time and rotated per mode.
@@ -52,9 +59,9 @@ You can create live keys and wire up your production config **before** going liv
 The day you go live, those keys start working — no redeploy, no key swap. Going live remains the only way to turn on real sends, so nobody can bypass it by minting a live key.
 :::
 
-## What test mode guarantees
+## What sandbox guarantees
 
-| | Test | Live |
+| | Sandbox | Production |
 |---|---|---|
 | Quota consumed | Its own test allowance | Your plan's volume |
 | Customer/team emails | Suppressed, never sent | Sent |
@@ -67,15 +74,15 @@ Two extra guarantees worth knowing:
 - **Threads are isolated.** A test embed cannot resume, read, hide, or act on a live conversation — even for the same signed-in customer — and the reverse is equally blocked. Staging can never write into a real customer's support thread.
 - **No real outbound notification is sent in test.** Customer replies, ticket lifecycle emails, team alerts, Slack, Linear, and webhooks are all suppressed. Use the dashboard's Test data view and ticket/event logs to verify the flow.
 
-## Test mode still has limits
+## Sandbox still has limits
 
 Test traffic is free, so it is capped. **These caps apply to test traffic whether or not your workspace is live** — a live workspace running a staging integration is still capped on the test side.
 
 | Cap | Default |
 |---|---|
-| Test conversations per month | 500 |
-| Test AI replies per month | 500 |
-| Test AI calls per month (all pipeline stages) | 2,000 |
+| Sandbox conversations per month | 500 |
+| Sandbox AI replies per month | 500 |
+| Sandbox AI calls per month (all pipeline stages) | 2,000 |
 | Rate | 10 AI replies per minute |
 | Knowledge Base | 200 pages / 25 documents (shared across modes) |
 
@@ -83,15 +90,17 @@ Caps reset monthly. Hitting one pauses **test** traffic only — your live custo
 
 Need more room while you build? **Settings → Subscription → Request sandbox extension** (owners and admins, up to 2 per month). See [Sandbox and going live](/platform/customer-support/sandbox-and-going-live).
 
-:::note Test mode is not a free tier for production traffic
-Test mode exists for building and QA. It shows a SANDBOX badge to end users, suppresses every real send, and is capped — so it can't quietly serve your real customers. Real customers need live keys and a live workspace.
+:::note Sandbox is not a free tier for production traffic
+Sandbox exists for building and QA. It shows a SANDBOX badge to end users, suppresses every real send, and is capped — so it can't quietly serve your real customers. Real customers need live keys and a live workspace.
 :::
 
-## Viewing test data in the dashboard
+## Switching in the dashboard
 
-The topbar shows **VIEWING: TEST** or **VIEWING: LIVE**. Click it to switch. The inbox, tickets, analytics and dashboard counts all follow your selection, and a ticket you create by hand is filed in the mode you're currently viewing.
+The topbar shows **SANDBOX** or **PRODUCTION**. Click it and pick the other one. The inbox, tickets, analytics and dashboard counts all follow, and a ticket you create by hand is filed in the environment you are in.
 
-The choice is yours alone — your teammate can be looking at live data while you debug staging.
+Before you have gone live there is only sandbox, so picking **Production** opens the go-live flow — plan, price and payment — rather than switching. You cannot end up looking at production without having moved there deliberately.
+
+Once live, the switch works both ways: a production workspace can drop into sandbox to check a staging integration. That choice is yours alone — a teammate can stay in production while you debug.
 
 ---
 

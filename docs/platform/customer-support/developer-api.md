@@ -24,10 +24,10 @@ What test mode guarantees:
 
 - **Separate quota.** Test conversations and AI replies never consume the volume your live plan is paying for, and hitting a test cap never throttles real customers.
 - **No real-world side effects.** Outbound email, Slack, Linear and webhook deliveries are suppressed and previewed instead.
-- **Out of the live inbox.** Test conversations and tickets are only visible when the dashboard is switched to **Viewing: Test** (topbar switch), so a staging integration never pollutes the queue your team works.
+- **Out of the live inbox.** Test conversations and tickets are only visible when the dashboard is switched to **Sandbox** (topbar switch), so a staging integration never pollutes the queue your team works.
 - **Isolated threads.** A test embed cannot resume, read, or hide a live conversation, and vice versa — even for the same customer.
 
-Switch what the dashboard shows with the **VIEWING: TEST / VIEWING: LIVE** control in the topbar.
+Switch what the dashboard shows with the **SANDBOX / PRODUCTION** control in the topbar.
 
 :::caution Going live does not disturb your test setup
 Going live turns on real sends for **live-key** traffic. Your test keys keep behaving exactly as before.

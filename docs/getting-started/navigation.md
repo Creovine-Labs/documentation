@@ -234,8 +234,8 @@ If you belong to multiple orgs, the **organization name at the top of the sideba
 | Get the widget snippet | Settings → Support → Get connected → Web widget |
 | Get the signing secret (logged-in customers) | Settings → Support → API keys → Signing secret |
 | Get a publishable or secret API key | Settings → Support → API keys |
-| Switch between test and live data | Topbar → **VIEWING: TEST / LIVE** |
-| Go live (turn on real sends + billing) | Topbar → Go live, or Settings → Support → Workspace mode |
+| Switch between sandbox and production | Topbar → **SANDBOX / PRODUCTION** |
+| Move to production (real sends + billing) | Topbar → **Production**, or Settings → Support → Environment |
 | Change widget color or greeting | Settings → Support → Get connected → Appearance & greeting |
 | Turn a channel on/off (chat, voice, email) | Settings → Support → Channels |
 | Set up a custom support email | Settings → Support → Channels → Email |
