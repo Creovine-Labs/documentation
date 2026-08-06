@@ -110,7 +110,7 @@ Use your **test** key (`lira_sk_test_…`) from staging and your **live** key (`
   "context": { "app": "riverly", "productType": "personal", "platform": "ios" }
   ```
 
-  Values reach the AI as advisory context — it can tell a Personal customer from a Corporate one — and are available to your tools. Advisory means exactly that: tools must still read authoritative data from your systems before any write.
+  Product/segment fields such as `productType`, `product`, `segment`, `kbSegment`, or `kbSegments` also scope knowledge retrieval. If the session says `productType: "personal"`, Lira searches documents and pages tagged `personal` plus shared tags such as `all` before the AI sees any candidates. Tools must still read authoritative data from your systems before any write.
 - `ttlSeconds` — how long the session lasts. 3600 (1 hour) is a good default.
 
 :::tip What the AI actually knows about the signed-in user

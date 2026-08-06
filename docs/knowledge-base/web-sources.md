@@ -32,8 +32,10 @@ For **internal knowledge** — policies, specs, playbooks — use [Documents](/k
 
 1. Go to **Sidebar → Grow → Knowledge Base → Web Sources**
 2. Enter the **starting URL** in the URL field (e.g. `https://yourdomain.com`)
-3. Set the **Max Pages** limit — how many pages Lira will visit before stopping (default 20, maximum 50)
-4. Click **Crawl**
+3. Set **Product / segment tags**. Use `all` for shared pages, or tags such as
+   `personal`, `business`, `corporate`, or a region name for scoped content.
+4. Set the **Max Pages** limit — how many pages Lira will visit before stopping (default 20, maximum 50)
+5. Click **Crawl**
 
 Lira will begin crawling from the URL you provided, following internal links to discover and index pages.
 
@@ -76,7 +78,11 @@ Below the crawl controls, all indexed pages are listed. For each page you can se
 - **Title** — the page title extracted from the HTML
 - **Category** — auto-detected category (`about`, `product`, `docs`, `blog`, `other`)
 - **Source URL** — click the link to open the original page
+- **Product / segment tags** — which support sessions may retrieve the page
 - **Embedding count** — how many vector embeddings were created from the page
+
+You can edit a page's tags from the row. Updating tags also updates the indexed
+chunks used by the AI.
 
 ---
 

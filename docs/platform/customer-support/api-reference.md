@@ -195,10 +195,12 @@ workspace can be provisioned *and maintained* from CI.
 POST   /orgs/{orgId}/documents              upload a file        support:write
 GET    /orgs/{orgId}/documents              list                 support:read
 GET    /orgs/{orgId}/documents/{docId}      status + details     support:read
+PATCH  /orgs/{orgId}/documents/{docId}/segments                 support:write
 DELETE /orgs/{orgId}/documents/{docId}      remove               support:write
 POST   /orgs/{orgId}/documents/{docId}/reprocess                 support:write
 POST   /orgs/{orgId}/crawl                  crawl a website      support:write
 GET    /orgs/{orgId}/crawl/status           crawl progress       support:read
+PATCH  /orgs/{orgId}/knowledge-base/{pageId}/segments            support:write
 POST   /orgs/{orgId}/kb/query               ask what Lira knows  support:read
 ```
 
@@ -209,7 +211,8 @@ reads `indexed`.
 ```bash
 curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
   -H "Authorization: Bearer $LIRA_API_KEY" \
-  -F "file=@handbook.md"
+  -F "file=@handbook.md" \
+  -F "segments=all,personal"
 ```
 
 **Supported file types:** DOCX, TXT, MD, CSV, XLSX. **PDF is not supported** —
@@ -228,7 +231,37 @@ editable and deletable like any other document.
 printf '# Refunds\n\nRefunds are processed within 14 days.\n' > refunds.md
 curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/documents \
   -H "Authorization: Bearer $LIRA_API_KEY" \
-  -F "file=@refunds.md"
+  -F "file=@refunds.md" \
+  -F "segments=all"
+```
+
+### Segmenting one workspace
+
+If one organization serves multiple products, brands, or regions, tag each
+source and pass the matching context when you mint a support session. Retrieval
+filters before the AI sees the candidates.
+
+- Tag shared content as `all`, `shared`, `global`, or `common`.
+- Tag product-specific content as `personal`, `business`, `corporate`, etc.
+- A session with `context.productType = "personal"` searches `personal` plus
+  shared tags; it does not search `business` or `corporate`.
+
+Update a document's tags:
+
+```bash
+curl -X PATCH https://api.creovine.com/lira/v1/orgs/org_xxx/documents/doc_xxx/segments \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"segments":["personal","all"]}'
+```
+
+When crawling a website, put tags inside `options.segments`:
+
+```bash
+curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/crawl \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com/help","options":{"max_pages":25,"segments":["business"]}}'
 ```
 
 ### Checking what Lira learned
@@ -241,7 +274,7 @@ without opening the dashboard.
 curl -X POST https://api.creovine.com/lira/v1/orgs/org_xxx/kb/query \
   -H "Authorization: Bearer $LIRA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"query":"How long do refunds take?"}'
+  -d '{"query":"How long do refunds take?","context":{"productType":"personal"}}'
 ```
 
 ```json

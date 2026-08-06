@@ -29,6 +29,17 @@ Query uses **Retrieval-Augmented Generation (RAG)**:
 
 Type your question in the input box at the bottom of the Query tab and press **Enter** (or click the send button).
 
+### Testing a product segment
+
+Use **Test segment** when you need to verify product-specific retrieval before
+launch. Enter a tag such as `personal`, `business`, or `corporate`, then ask the
+same question across segments.
+
+Example: if "What do I need to open an account?" has different answers for
+Personal, Business, and Corporate, each segment should return only sources tagged
+for that segment plus shared `all` content. Untagged content is not included in a
+segmented query.
+
 The conversation is **multi-turn** — Lira remembers the previous messages in the session, so you can ask follow-up questions naturally:
 
 > **You:** What is our refund policy?  

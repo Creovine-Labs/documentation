@@ -25,6 +25,22 @@ Click **Browse** inside the upload zone to open your system file picker. You can
 
 Once uploaded, each file appears in the document list below with a status badge showing its processing stage.
 
+### Product / segment tags
+
+If one workspace supports multiple products, brands, or regions, add tags before
+uploading. Use comma-separated values such as:
+
+- `all` for shared content that applies to every customer
+- `personal`, `business`, `corporate` for product-specific content
+- `nigeria`, `rwanda`, `ghana` for region-specific policies
+
+Lira uses these tags during retrieval. A support session with
+`productType: "personal"` searches `personal` plus shared tags like `all`; it
+does not search `business` or `corporate` documents.
+
+You can edit a document's tags from the document row after upload. Updating tags
+also updates the indexed chunks used by the AI.
+
 ---
 
 ## Supported file types

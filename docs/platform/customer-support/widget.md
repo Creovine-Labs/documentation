@@ -103,6 +103,12 @@ flattened. Identity itself (name, email, verified) comes from the `data-email` /
 `data-sig` attributes below. Full detail: [what the AI knows about a signed-in
 user](/platform/customer-support/web-sdk#what-the-ai-knows).
 
+If your workspace serves multiple products, brands, or regions, tag Knowledge
+Base sources and pass the same product field here. For example,
+`productType: 'corporate'` searches `corporate` and shared `all` content before
+the AI sees results, so a Personal customer is not answered from Corporate
+policy material.
+
 ---
 
 ## Updating the widget after installation
