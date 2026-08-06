@@ -104,10 +104,20 @@ flattened. Identity itself (name, email, verified) comes from the `data-email` /
 user](/platform/customer-support/web-sdk#what-the-ai-knows).
 
 If your workspace serves multiple products, brands, or regions, tag Knowledge
-Base sources and pass the same product field here. For example,
-`productType: 'corporate'` searches `corporate` and shared `all` content before
-the AI sees results, so a Personal customer is not answered from Corporate
-policy material.
+Base sources and pass the same product field. For example, `productType:
+'corporate'` searches `corporate` and shared `all` content before the AI sees
+results, so a Personal customer is not answered from Corporate policy material.
+
+:::caution Set the product server-side for identified customers
+`setContext()` runs in the browser, so it is a hint, not a guarantee — a
+customer can open the console and change it. When the product decides *which
+documents a customer may be answered from*, pass it in `context` when your
+backend [mints the support
+session](/platform/customer-support/api-reference#mint-a-session). Lira
+segments retrieval on the signed session's value, and a later `setContext()`
+cannot widen it. Use `setContext()` for the product on top of that — the page
+the customer is on, their plan, cart state — not as the security boundary.
+:::
 
 ---
 

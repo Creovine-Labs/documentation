@@ -33,7 +33,7 @@ Add a teammate from the **Members** page → **Invite a teammate**. Each invite 
 The **Knowledge Base** is the content Lira reads to answer questions in your visitors' words. Sources:
 
 - **Web crawl** — Point Lira at a help center / docs / marketing site. It crawls, summarizes, and stores each page; re-runs on demand.
-- **Documents** — Upload PDFs, DOCX, Markdown, CSV.
+- **Documents** — Upload DOCX, Markdown, TXT, CSV, XLSX. (PDF is not supported — see [Documents](/knowledge-base/documents).)
 - **Connected sources** — Connect Google Drive when your support docs live there; Lira imports approved files into the KB.
 
 Content is prepared for semantic search so Lira can retrieve the most relevant snippets for each visitor question. That grounding is what keeps answers tied to your approved docs instead of generic AI guesses.

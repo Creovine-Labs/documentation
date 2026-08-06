@@ -64,7 +64,7 @@ Lira's answers are grounded in **your context**. You feed it as much or as littl
 <div className="feature-grid">
   <a className="feature-card" href="/knowledge-base/documents">
     <h3>📄 Documents</h3>
-    <p>Drop in PDFs, DOCX, Markdown, CSV — anything you'd hand a new support hire.</p>
+    <p>Drop in DOCX, Markdown, TXT, CSV — anything you'd hand a new support hire.</p>
   </a>
   <a className="feature-card" href="/knowledge-base/web-sources">
     <h3>🌐 Web sources</h3>

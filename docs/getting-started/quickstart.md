@@ -19,7 +19,7 @@ If you don't have an account yet, start at **[Get an Account](/getting-started/g
 
 - An email address (that's it — signup is free and self-serve)
 - A site or app you can paste a `<script>` tag into — staging is fine
-- A help center URL, a few PDFs, or a Google Drive folder with docs (any one of these works)
+- A help center URL, a few Word or Markdown documents, or a Google Drive folder (any one of these works)
 
 ## Step 1 — Create your account and organization
 
@@ -34,7 +34,7 @@ To bring in teammates, go to **Members** in the sidebar and click **Invite a tea
 Lira's quality is a direct function of what it knows about your product. Open **Knowledge Base** in the sidebar (under **Grow**) and add at least one source:
 
 - **Web crawl** — paste your help center / docs URL. Lira crawls, summarizes, and stores each page. Re-runs on demand.
-- **Documents** — drop in PDFs, DOCX, Markdown, or CSV files.
+- **Documents** — drop in DOCX, Markdown, TXT, CSV or XLSX files. PDF is not supported.
 - **Connected sources** — connect Google Drive when your support docs live there, then import the approved files into your KB.
 
 You can mix all three. See [Knowledge Base](/knowledge-base/overview) for the full picture.

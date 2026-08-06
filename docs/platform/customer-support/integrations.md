@@ -18,7 +18,7 @@ Where Lira learns your product from. See [Knowledge Base](/knowledge-base/overvi
 | Source | What it does |
 | --- | --- |
 | **Website crawl** | Point Lira at a URL and it crawls, chunks, and embeds the pages. Re-crawlable. |
-| **Document upload** | PDF, DOCX, TXT, Markdown, CSV. Parsed, chunked, and embedded. |
+| **Document upload** | DOCX, TXT, Markdown, CSV, XLSX. Parsed, chunked, and embedded. PDF is not supported. |
 | **Google Drive** | OAuth connection with a folder/file picker. Lira reads only the files you select. |
 
 ## Channels

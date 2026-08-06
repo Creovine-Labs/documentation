@@ -49,7 +49,7 @@ All of this happens in the free **sandbox** environment. Switching the workspace
 ## Step 2 — Teach Lira about your product
 
 **What:** seed your Knowledge Base. The fastest path is a website crawl, but you can also:
-- Upload PDFs, Markdown files, plain text docs
+- Upload Word documents, Markdown files, plain text docs (PDF is not supported)
 - Upload files, crawl your help center, or import approved files from Google Drive
 - Add KB entries manually
 

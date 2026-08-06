@@ -39,7 +39,7 @@ After connecting, Lira lists files from your Drive that it can process:
 
 - Google Docs (exported as text)
 - Google Sheets (exported as CSV)
-- PDFs and Word documents stored in Drive
+- Word documents, spreadsheets and text files stored in Drive. **PDFs cannot be imported** — the import is rejected with an "Unsupported file type" error, because Lira cannot extract them reliably. Convert to Word or text first.
 
 ### Importing files
 

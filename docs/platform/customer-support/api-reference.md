@@ -245,6 +245,41 @@ filters before the AI sees the candidates.
 - Tag product-specific content as `personal`, `business`, `corporate`, etc.
 - A session with `context.productType = "personal"` searches `personal` plus
   shared tags; it does not search `business` or `corporate`.
+- **An untagged source answers every segment by default.** Adopting segmentation
+  is therefore additive — existing content keeps working while you tag.
+
+Once everything is tagged, set `kb_segment_strict` to make untagged content
+unreachable to any session that names a segment:
+
+```bash
+curl -X PUT https://api.creovine.com/lira/v1/support/config/orgs/org_xxx \
+  -H "Authorization: Bearer $LIRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"kb_segment_strict":true}'
+```
+
+That is the difference between a convention and a control: with it on, a
+document someone forgot to tag produces *no* answer instead of quietly
+answering the wrong product. Turn it on after tagging — it withdraws every
+untagged source at once.
+
+:::caution The segment must come from your backend
+Retrieval reads the product from the **signed session token** minted by your
+server. A `context_update` sent later by the browser can refine what the AI
+knows but cannot widen which documents are searched — otherwise a Personal
+customer's page could ask for `corporate` and be answered from Corporate
+material. Anonymous visitors have no signed session, so for them the page's
+value is the only available signal.
+
+Pass the product at mint time:
+
+```json
+{
+  "customer": { "email": "ada@customer.com", "externalCustomerId": "user_123" },
+  "context": { "productType": "personal" }
+}
+```
+:::
 
 Update a document's tags:
 

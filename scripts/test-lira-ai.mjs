@@ -25,8 +25,18 @@ const CASES = [
   },
   {
     q: 'Do you have a native SDK for mobile?',
-    expect: ['support'],
-    forbid: ['native sdk for ios', 'install our mobile sdk', 'reference app'],
+    // The claim is "no mobile SDK, but mobile IS supported — via a session
+    // token and a WebSocket". Naming that mechanism proves both halves; the
+    // old single word 'support' failed correct answers that said "you
+    // integrate using a WebSocket connection" instead.
+    expectAny: ['websocket', 'session token', 'web sdk'],
+    forbid: [
+      'native sdk for ios',
+      'install our mobile sdk',
+      'reference app',
+      'mobile is not supported',
+      "can't use lira on mobile",
+    ],
     why: 'There is NO mobile SDK. It must not invent one, nor deny mobile support.',
   },
   {
@@ -168,7 +178,7 @@ const CASES = [
   },
   {
     q: 'Can I upload a PDF to the knowledge base?',
-    expectAny: ['not supported', "isn't supported", 'cannot', "can't", 'docx'],
+    expectAny: ['not supported', "isn't supported", "aren't supported", 'are not supported', 'cannot', "can't", 'convert'],
     forbid: ['yes, you can upload a pdf', 'pdfs are supported'],
     why: 'PDF extraction is rejected — promising it produces a silent failure at upload time.',
   },
