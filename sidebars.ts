@@ -94,6 +94,7 @@ const sidebars: SidebarsConfig = {
         'knowledge-base/google-drive',
         'knowledge-base/web-sources',
         'knowledge-base/query',
+        'knowledge-base/unanswered',
       ],
     },
     'changelog',

@@ -18,9 +18,20 @@ for the AI's work, never per agent.
 | WhatsApp Business API | — | — | ✓ | ✓ |
 | Custom brand voice | — | — | — | ✓ |
 | Multiple domains | — | — | ✓ | ✓ |
-| "Powered by Lira" removed | — | ✓ | ✓ | ✓ |
+| "Powered by Lira" removed *(production only)* | — | ✓ | ✓ | ✓ |
 | Priority support | — | — | ✓ | ✓ |
 | Advanced analytics & exports | — | — | ✓ | ✓ |
+
+:::note "Powered by Lira" always shows in sandbox
+Removing the attribution needs a paid plan **and** production traffic. A sandbox
+workspace shows it whatever the plan — a sandbox integration is what gets
+demoed, and the attribution is how the people seeing it learn Lira exists.
+
+It comes off on its own when you go live on a paid plan. There is no switch to
+find and nothing to redeploy. If you build your own chat UI (native mobile),
+your app renders it from the `powered_by` field —
+see [Mobile frontend](/platform/customer-support/mobile-frontend#attribution).
+:::
 
 A **conversation** is one complete chat session between a visitor and the
 agent — not one per message. WhatsApp Business API conversations additionally

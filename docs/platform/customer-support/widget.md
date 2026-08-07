@@ -161,6 +161,28 @@ or announce what Lira can help with:
 
 ---
 
+## "Powered by Lira"
+
+The widget shows a small **Powered by Lira** link at the bottom, opening
+liraintelligence.com. You do not add or remove it — the widget handles it:
+
+| Workspace | Shows? |
+| --- | --- |
+| Sandbox, any plan | Yes |
+| Production, free plan | Yes |
+| Production, paid plan | No — removed automatically |
+
+Removing it needs a paid plan **and** production. Sandbox always shows it,
+whatever your plan, because a sandbox integration is what gets demoed. When you
+go live on a paid plan it disappears on its own: no setting to change, no
+re-embed.
+
+If you build your own chat UI instead of using the widget, you render the
+attribution yourself from the `powered_by` field on the session —
+see [Mobile frontend](/platform/customer-support/mobile-frontend#attribution).
+
+---
+
 ## Live preview during activation
 
 During the [activation wizard (Step 2)](/platform/customer-support/activation#step-2--web-surfaces-and-channels), you'll see a live interactive preview of the widget running an animated demo conversation. Switch between **Desktop** and **Mobile** views to see how it looks on different screen sizes.

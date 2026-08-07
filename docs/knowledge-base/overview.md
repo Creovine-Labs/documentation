@@ -30,6 +30,7 @@ The Knowledge Base is split into four tabs, each representing a different way to
 | [**Connected Sources**](/knowledge-base/connected-sources) | Pull documents in from Google Drive without manual uploads |
 | [**Web Sources**](/knowledge-base/web-sources) | Crawl and index pages from your website or any public URL |
 | [**Query**](/knowledge-base/query) | Ask questions and get AI answers grounded in everything you've indexed |
+| [**Unanswered**](/knowledge-base/unanswered) | What customers asked that Lira couldn't answer — recorded automatically, ranked by how many asked |
 
 ---
 
