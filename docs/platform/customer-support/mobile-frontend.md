@@ -127,7 +127,8 @@ API on 5 August 2026 and returned a streaming reply. If it fails for you, see
 | `{"type":"message","body":"..."}` | User sends a message |
 | `{"type":"typing"}` | User is typing (optional, shows the agent they're active) |
 | `{"type":"confirm_response","pending_id":"...","approved":true}` | User tapped Approve/Deny on a confirmation |
-| `{"type":"end","body":"5"}` | User closed the chat (optional CSAT score 1–5) |
+| `{"type":"rate","score":5}` | User rated a reply. Stores the score and **leaves the conversation open** — see [Collecting a rating](#lifecycle). |
+| `{"type":"end"}` | User closed the chat. **Resolves the conversation** — do not send on backgrounding. `body` may carry a CSAT score 1–5. |
 
 ## Everything you can receive
 
@@ -145,7 +146,8 @@ Handle the first three; the rest are optional upgrades.
 | `agent_reply` | A **human** teammate replied. Show their `sender_name` / `sender_avatar`. |
 | `proactive` | Lira started the conversation. Show it like a normal message. |
 | `handback` | The human handed the chat back to the AI. Optional small note. |
-| `error` | Show a friendly retry message. `code` identifies the reason (e.g. `INVALID_CSAT_SCORE`) and `message` is human-readable. |
+| `rated` | Confirms a rating was stored. Carries `score` and the conversation's unchanged `status`. |
+| `error` | Show a friendly retry message. `code` identifies the reason (e.g. `INVALID_CSAT_SCORE`, `CSAT_ALREADY_RECORDED`) and `message` is human-readable. |
 
 ### Message ids
 
@@ -292,16 +294,41 @@ Nothing resolves a conversation on a timer — inactivity alone never changes th
 state. A thread stays `open` until something explicitly resolves it, and only
 `open` conversations are auto-resumed on connect.
 
-### Ending a chat and collecting CSAT
+### Collecting a rating
+
+**Rate without ending the chat** — this is what you want for a thumbs-up or a
+star widget under a reply:
 
 ```jsonc
-{ "type": "end", "body": "5" }   // optional CSAT: a whole number, 1 to 5
+{ "type": "rate", "score": 5 }   // a whole number, 1 to 5
 ```
 
-The score is stored against the conversation and the conversation resolves. If
-`body` is present but is not a whole number from 1 to 5, the conversation still
-resolves — refusing to end a chat over a bad rating would be worse — and you
-get an error frame naming the problem:
+```json
+{ "type": "rated", "conv_id": "conv-…", "score": 5, "status": "open" }
+```
+
+The conversation is untouched — same status, same thread, the customer carries
+on. Ratings are **write-once per conversation**: a second `rate` returns
+`CSAT_ALREADY_RECORDED` rather than silently doing nothing, so your widget can
+show it as already rated instead of appearing to work.
+
+A conversation can be rated whatever its status, including after it has been
+resolved. That is how the emailed one-click rating links have always worked.
+
+### Ending a chat
+
+```jsonc
+{ "type": "end" }                // ends the conversation
+{ "type": "end", "body": "5" }   // ends AND rates, in one frame
+```
+
+`end` **resolves** the conversation. Use it only when the customer is finished —
+not on backgrounding, and not merely because they rated something. If all you
+want is the rating, send `rate`.
+
+If `body` is present but is not a whole number from 1 to 5, the conversation
+still resolves — refusing to end a chat over a bad rating would be worse — and
+you get an error frame naming the problem:
 
 ```json
 {
