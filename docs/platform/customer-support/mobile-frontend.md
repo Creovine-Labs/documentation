@@ -138,14 +138,111 @@ Handle the first three; the rest are optional upgrades.
 | `welcome` | Sent immediately on connect. Confirms the socket is live — safe to ignore. |
 | `status` | Connection/conversation state. Safe to ignore at first. |
 | `typing` | Lira is thinking. Show your typing indicator. |
-| `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). A short answer may arrive as a single `reply_chunk`. |
-| `history` | On reconnect, past messages. Render them so the chat isn't empty. |
+| `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). A short answer may arrive as a single `reply_chunk`. `message_id` is the **same id the message has in `history`** — key your bubble on it and reconnects reconcile with no matching on text. |
+| `history` | On reconnect, past messages. Render them so the chat isn't empty. Each `id` matches the `message_id` you saw while the message streamed. |
 | `confirm` | Lira wants to run an action and needs the customer's OK. Show **Approve / Deny** buttons, then send `confirm_response`. |
-| `action_result` | The action finished. Show a small "Card frozen ✓" note. |
+| `action_result` | An internal step finished. **Safe to ignore — our own web widget ignores it.** Not limited to MCP or registered actions: built-in steps such as a knowledge-base lookup emit it too, so you will see it on ordinary chats in a workspace with no actions configured. Render it only if you deliberately want to show the customer what Lira is doing. |
 | `agent_reply` | A **human** teammate replied. Show their `sender_name` / `sender_avatar`. |
 | `proactive` | Lira started the conversation. Show it like a normal message. |
 | `handback` | The human handed the chat back to the AI. Optional small note. |
-| `error` | Show a friendly retry message. |
+| `error` | Show a friendly retry message. `code` identifies the reason (e.g. `INVALID_CSAT_SCORE`) and `message` is human-readable. |
+
+### Message ids
+
+The id in `reply_start` / `reply_chunk` / `reply_end` **is** the id the message
+carries in `history`. Key your bubble on `message_id` and a reconnect replays
+the same message under the same id, so you can de-duplicate on identity rather
+than on body text.
+
+```jsonc
+// while it arrives
+{ "type": "reply_start", "message_id": "msg-542443ab-e55a-4658-8931-dafdb51e900c" }
+{ "type": "reply_end",   "message_id": "msg-542443ab-e55a-4658-8931-dafdb51e900c" }
+
+// after reconnect
+{ "type": "history", "messages": [
+  { "id": "msg-542443ab-e55a-4658-8931-dafdb51e900c", "role": "lira", "body": "…" }
+]}
+```
+
+:::note Older builds
+Before August 2026 the streaming frames used an ephemeral `lira_<timestamp>_<n>`
+id that never appeared in history. If you are reading this against an older
+deployment, that is the behaviour you will see.
+:::
+
+---
+
+## Conversations across visits {#lifecycle}
+
+### What we recommend for a native app
+
+**One conversation per visit, with past threads reachable behind a list.** On
+connect, Lira resumes the customer's **open** conversation if there is one, so a
+customer who backgrounds the app and returns an hour later lands back in the
+same thread. A conversation that has been resolved is not resumed: the next
+message starts a fresh one.
+
+That is deliberate. A support thread has an end, and reopening a settled
+question weeks later gives the model stale context to answer from. Show previous
+threads in a "Previous chats" list and let the customer tap into one.
+
+| You want | Do this |
+| --- | --- |
+| Continue where they left off | Connect normally. The open conversation resumes automatically. |
+| Show past threads | `GET /support/chat/conversations/{orgId}` with the session token. |
+| Reopen a specific past thread | Connect with `&convId=<conv_id>` — this works for a resolved conversation too. |
+| Always start fresh | Connect with `&forceNewCase=true`. |
+
+Both mechanisms are supported and neither is going away.
+
+:::caution Do not send `end` on backgrounding
+`{"type":"end"}` **resolves** the conversation — it means "the customer is
+finished", not "the socket is closing". An app that sends it when it
+backgrounds, loses the network or tears down the socket resolves the thread
+every session, and the customer starts empty every launch.
+
+Just close the socket. Nothing needs to be sent, and the conversation stays
+open for the next connect.
+:::
+
+### Conversation states
+
+A conversation is always exactly one of four states. **There is no `closed`
+state for conversations** — `closed` is a *ticket* status, so if you are seeing
+it, you are looking at a ticket.
+
+| State | Set when | Set by |
+| --- | --- | --- |
+| `open` | Created, or reopened from the inbox or the support portal | Lira, your team |
+| `pending` | An action chain stopped on a failure and is waiting | Lira |
+| `escalated` | Handed to a human teammate | Lira, your team |
+| `resolved` | The client sent `{"type":"end"}`; a voice call ended; a teammate resolved it in the inbox | Your app, Lira, your team |
+
+Nothing resolves a conversation on a timer — inactivity alone never changes the
+state. A thread stays `open` until something explicitly resolves it, and only
+`open` conversations are auto-resumed on connect.
+
+### Ending a chat and collecting CSAT
+
+```jsonc
+{ "type": "end", "body": "5" }   // optional CSAT: a whole number, 1 to 5
+```
+
+The score is stored against the conversation and the conversation resolves. If
+`body` is present but is not a whole number from 1 to 5, the conversation still
+resolves — refusing to end a chat over a bad rating would be worse — and you
+get an error frame naming the problem:
+
+```json
+{
+  "type": "error",
+  "code": "INVALID_CSAT_SCORE",
+  "message": "CSAT score must be a whole number from 1 to 5. Received \"9\" — the conversation was ended without a rating."
+}
+```
+
+Omit `body` entirely to end without a rating.
 
 ---
 
