@@ -173,6 +173,42 @@ deployment, that is the behaviour you will see.
 
 ---
 
+## "Powered by Lira" {#attribution}
+
+Your app renders its own chat UI, so we cannot draw this for you — the session
+mint tells you whether it is required:
+
+```json
+{
+  "token": "…",
+  "mode": "test",
+  "powered_by": {
+    "show": true,
+    "label": "Powered by Lira",
+    "url": "https://liraintelligence.com",
+    "reason": "sandbox"
+  }
+}
+```
+
+When `show` is `true`, display `label` somewhere persistent in the chat screen —
+the footer below the composer is the natural place — and open `url` when it is
+tapped. Read the label and URL from the response rather than hardcoding them.
+
+| Workspace | Shows? | Why |
+| --- | --- | --- |
+| Sandbox, any plan | **Yes** | A sandbox integration is what gets demoed; the attribution is how people learn Lira exists |
+| Production, free plan | **Yes** | The trade for the free tier |
+| Production, paid plan | No | `show` is `false` — remove it |
+
+It disappears on its own when you upgrade. There is no switch to find and
+nothing to redeploy: `show` flips to `false` and your next mint reflects it.
+
+The web widget and hosted portal do this automatically — this section applies
+only to a UI you build yourself.
+
+---
+
 ## Conversations across visits {#lifecycle}
 
 ### What we recommend for a native app
