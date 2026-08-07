@@ -173,15 +173,18 @@ deployment, that is the behaviour you will see.
 
 ---
 
-## "Powered by Lira" {#attribution}
+## Branding {#attribution}
 
-Your app renders its own chat UI, so we cannot draw this for you — the session
-mint tells you whether it is required:
+Nothing to build. Lira's attribution appears only on surfaces Lira renders —
+the [chat widget](/platform/customer-support/widget) and the hosted support
+portal. A native app draws its own chat screen, so there is nothing for you to
+add and nothing to remove.
+
+The session response includes a `powered_by` object describing what your plan
+covers:
 
 ```json
 {
-  "token": "…",
-  "mode": "test",
   "powered_by": {
     "show": true,
     "label": "Powered by Lira",
@@ -191,21 +194,9 @@ mint tells you whether it is required:
 }
 ```
 
-When `show` is `true`, display `label` somewhere persistent in the chat screen —
-the footer below the composer is the natural place — and open `url` when it is
-tapped. Read the label and URL from the response rather than hardcoding them.
-
-| Workspace | Shows? | Why |
-| --- | --- | --- |
-| Sandbox, any plan | **Yes** | A sandbox integration is what gets demoed; the attribution is how people learn Lira exists |
-| Production, free plan | **Yes** | The trade for the free tier |
-| Production, paid plan | No | `show` is `false` — remove it |
-
-It disappears on its own when you upgrade. There is no switch to find and
-nothing to redeploy: `show` flips to `false` and your next mint reflects it.
-
-The web widget and hosted portal do this automatically — this section applies
-only to a UI you build yourself.
+It is **informational**. Some teams choose to show a small attribution and read
+the label and link from here so a rebrand needs no release on their side; most
+do not, and that is fine. Your support screen should match your app.
 
 ---
 

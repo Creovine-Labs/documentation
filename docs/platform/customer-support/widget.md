@@ -177,9 +177,9 @@ whatever your plan, because a sandbox integration is what gets demoed. When you
 go live on a paid plan it disappears on its own: no setting to change, no
 re-embed.
 
-If you build your own chat UI instead of using the widget, you render the
-attribution yourself from the `powered_by` field on the session —
-see [Mobile frontend](/platform/customer-support/mobile-frontend#attribution).
+This applies to surfaces Lira renders — this widget and the hosted portal. If
+you build your own chat UI (native mobile), there is nothing to add: your
+support screen is yours, and it should match your app.
 
 ---
 

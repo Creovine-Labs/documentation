@@ -28,9 +28,10 @@ workspace shows it whatever the plan — a sandbox integration is what gets
 demoed, and the attribution is how the people seeing it learn Lira exists.
 
 It comes off on its own when you go live on a paid plan. There is no switch to
-find and nothing to redeploy. If you build your own chat UI (native mobile),
-your app renders it from the `powered_by` field —
-see [Mobile frontend](/platform/customer-support/mobile-frontend#attribution).
+find and nothing to redeploy.
+
+This applies to the chat widget and the hosted portal — the surfaces Lira
+renders. A native app you build yourself carries no Lira branding either way.
 :::
 
 A **conversation** is one complete chat session between a visitor and the
