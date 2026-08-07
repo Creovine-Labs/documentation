@@ -135,8 +135,8 @@ Handle the first three; the rest are optional upgrades.
 
 | You receive | What to do |
 |---|---|
-| `welcome` | Sent immediately on connect. Confirms the socket is live — safe to ignore. |
-| `status` | Connection/conversation state. Safe to ignore at first. |
+| `welcome` | Sent immediately on connect. Carries `conv_id` and `status` when a conversation resumed, and `previous_conversation` when there is nothing to resume but the customer has a settled thread (see [Conversations across visits](#lifecycle)). |
+| `status` | **Handle `status: "resolved"`.** A teammate closed the chat from the dashboard, or the chat ended. `body` carries the closing message — show it, stop the composer, and offer "Start a new chat". This is how a human takeover ends. Other status values are informational. |
 | `typing` | Lira is thinking. Show your typing indicator. |
 | `reply_start` / `reply_chunk` / `reply_end` | **Required.** Build the streaming bubble (Step 4). A short answer may arrive as a single `reply_chunk`. `message_id` is the **same id the message has in `history`** — key your bubble on it and reconnects reconcile with no matching on text. |
 | `history` | On reconnect, past messages. Render them so the chat isn't empty. Each `id` matches the `message_id` you saw while the message streamed. |
@@ -205,6 +205,48 @@ every session, and the customer starts empty every launch.
 Just close the socket. Nothing needs to be sent, and the conversation stays
 open for the next connect.
 :::
+
+### When a teammate closes the chat
+
+This is the normal end of a human takeover, and it needs no polling.
+
+**If the app is open**, the socket receives a push the moment your teammate hits
+Resolve in the dashboard:
+
+```json
+{
+  "type": "status",
+  "status": "resolved",
+  "body": "This conversation has been resolved. Thanks for reaching out! Start a new chat if you need more help."
+}
+```
+
+Show `body`, disable the composer, and offer **Start a new chat** — the next
+message opens a fresh conversation automatically. (Our web widget does exactly
+this, then shows a rating prompt.)
+
+**If the app was closed** — the common case, since teammates usually resolve
+after the customer has gone — there is no socket to push to. The next connect
+tells you instead: `welcome` carries `previous_conversation`.
+
+```json
+{
+  "type": "welcome",
+  "body": "Hi! How can we help you today?",
+  "previous_conversation": {
+    "conv_id": "conv-22482636-…",
+    "status": "resolved",
+    "resolved_at": "2026-08-07T14:14:28.555Z",
+    "resolution_type": "human",
+    "message_count": 4
+  }
+}
+```
+
+`resolution_type` is `human` when a teammate resolved it and `autonomous` when
+Lira or the customer did. Use it to show something honest — "Your last chat was
+resolved by our team" — with a tap to reopen it via `&convId=`. Without this a
+returning customer sees an empty screen and assumes their history is gone.
 
 ### Conversation states
 
